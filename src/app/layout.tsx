@@ -1,96 +1,32 @@
-// src/app/layout.tsx
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Open_Sans } from "next/font/google";
-import "./globals.css";
-import { SessionAuthProvider } from "@/components/session-auth";
-import { QueryClientContext } from "@/providers/queryclient";
-import { Toaster } from "sonner";
+import type { Metadata, Viewport } from "next"
+import { Anton, Oswald, PT_Serif } from "next/font/google"
+import { Toaster } from "sonner"
+import { NOME_DO_SITE, urlDoSite } from "@/lib/site"
+import "./globals.css"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const anton = Anton({ variable: "--font-anton", weight: "400", subsets: ["latin"] })
+const oswald = Oswald({ variable: "--font-oswald", weight: ["400", "500", "600", "700"], subsets: ["latin"] })
+const ptSerif = PT_Serif({ variable: "--font-pt-serif", weight: ["400", "700"], style: ["normal", "italic"], subsets: ["latin"] })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const openSans = Open_Sans({
-  variable: "--font-open-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700", "800"],
-});
+const DESCRICAO = "Classificados por cidade, no formato do caderno de jornal. Anuncie por R$ 1,00 a semana."
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://courtesyfy.com.br"),
-  title: {
-    default: "Courtesyfy",
-    template: "%s | Courtesyfy",
-  },
-  description: "Gestão de campanhas promocionais com chaves únicas. Crie campanhas, gere QR Codes e valide resgates com facilidade.",
-  keywords: ["cortesias", "campanhas promocionais", "QR Code", "chaves únicas", "gestão de promoções"],
-  authors: [{ name: "Courtesyfy", url: "https://courtesyfy.com.br" }],
-  openGraph: {
-    type: "website",
-    locale: "pt_BR",
-    url: "https://courtesyfy.com.br",
-    siteName: "Courtesyfy",
-    title: "Courtesyfy — Campanhas com chaves únicas",
-    description: "Crie campanhas, gere QR Codes e valide resgates com facilidade.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Courtesyfy",
-    description: "Gestão de campanhas promocionais com chaves únicas.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+  metadataBase: new URL(urlDoSite()),
+  title: { default: NOME_DO_SITE, template: `%s | ${NOME_DO_SITE}` },
+  description: DESCRICAO,
+  openGraph: { type: "website", locale: "pt_BR", siteName: NOME_DO_SITE, title: NOME_DO_SITE, description: DESCRICAO },
+  robots: { index: true, follow: true },
+}
 
-// Script injetado no <head> — executa ANTES do React hidratar.
-// Lê a preferência salva e aplica a classe .dark no <html> imediatamente,
-// evitando o flash de tema errado na primeira renderização.
-const themeScript = `
-(function(){
-  try {
-    var t = localStorage.getItem('cfy-theme');
-    if (t === 'light') {
-      document.documentElement.classList.remove('dark');
-    } else {
-      // padrão é escuro
-      document.documentElement.classList.add('dark');
-    }
-  } catch(e) {
-    document.documentElement.classList.add('dark');
-  }
-})();
-`.trim();
+export const viewport: Viewport = { themeColor: "#f4f1e8", width: "device-width", initialScale: 1 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      {/* Script de tema roda antes da hidratação — sem flash */}
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${openSans.variable} antialiased`}
-        suppressHydrationWarning
-      >
-        <SessionAuthProvider>
-          <QueryClientContext>
-            {children}
-            <Toaster position="top-right" richColors duration={2500} />
-          </QueryClientContext>
-        </SessionAuthProvider>
+    <html lang="pt-BR">
+      <body className={`${anton.variable} ${oswald.variable} ${ptSerif.variable} min-h-dvh`}>
+        {children}
+        <Toaster position="top-center" closeButton toastOptions={{ style: { borderRadius: 0, border: "1px solid #141412", fontFamily: "var(--font-texto)" } }} />
       </body>
     </html>
-  );
+  )
 }

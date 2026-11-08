@@ -1,0 +1,120 @@
+// APLICAÇÃO — criar, editar, remover e restaurar anúncios (RF-10 a RF-13, RF-34, RN-10, RN-11, RN-14).
+
+import { ALFABETO_DO_CODIGO, type ConteudoDoAnuncio, TAMANHO_DO_CODIGO, normalizarConteudo, validarConteudo } from "@/domain/anuncio/anuncio"
+import { type ErrosDeCampo, type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
+import type { Perfil } from "@/domain/usuario/usuario"
+import type { AnuncioRegistro, AnuncioRepository, CategoriaRepository, PagamentoRepository } from "../../ports/caderno"
+import type { Localidades } from "../../ports/localidades"
+import type { GeradorDeCodigo } from "../../ports/sistema"
+import { conferirCidade } from "../acesso/conta"
+import { type DepsDePagamento, abrirCobranca } from "../pagamentos/pagamentos"
+
+export interface Ator {
+  usuarioId: string
+  perfil: Perfil
+}
+
+/** Dono do anúncio ou administrador. */
+export function podeMexer(ator: Ator, anuncio: Pick<AnuncioRegistro, "usuarioId">): boolean {
+  return ator.perfil === "ADMIN" || anuncio.usuarioId === ator.usuarioId
+}
+
+async function validarComCatalogos(
+  conteudo: ConteudoDoAnuncio,
+  categorias: CategoriaRepository,
+  localidades: Localidades,
+  categoriaAtual?: string,
+): Promise<ErrosDeCampo> {
+  const erros = validarConteudo(conteudo)
+  conferirCidade(localidades, conteudo.uf, conteudo.cidadeCodigo, erros)
+  if (!erros.categoriaId) {
+    const categoria = await categorias.buscarPorId(conteudo.categoriaId)
+    // Categoria desativada continua valendo para quem já anunciava nela (RN-31).
+    if (!categoria || (!categoria.ativa && categoria.id !== categoriaAtual)) erros.categoriaId = "Escolha uma categoria disponível."
+  }
+  return erros
+}
+
+export class CriarAnuncioUseCase {
+  constructor(
+    private readonly anuncios: AnuncioRepository,
+    private readonly categorias: CategoriaRepository,
+    private readonly localidades: Localidades,
+    private readonly codigos: GeradorDeCodigo,
+    private readonly pagamento: DepsDePagamento,
+  ) {}
+
+  /** RN-10: nasce aguardando pagamento, já com a cobrança aberta. */
+  async executar(usuarioId: string, entrada: ConteudoDoAnuncio): Promise<Result<{ anuncioId: string; codigo: string }>> {
+    const conteudo = normalizarConteudo(entrada)
+    const erros = await validarComCatalogos(conteudo, this.categorias, this.localidades)
+    if (Object.keys(erros).length > 0) return falhaDeValidacao(erros)
+
+    let codigo = this.codigos.codigo(ALFABETO_DO_CODIGO, TAMANHO_DO_CODIGO)
+    while (await this.anuncios.existeCodigo(codigo)) codigo = this.codigos.codigo(ALFABETO_DO_CODIGO, TAMANHO_DO_CODIGO)
+
+    const anuncioId = await this.anuncios.inserir({
+      ...conteudo,
+      codigo,
+      usuarioId,
+      situacao: "AGUARDANDO_PAGAMENTO",
+      publicadoEm: null,
+      expiraEm: null,
+    })
+    await abrirCobranca(this.pagamento, { id: anuncioId, usuarioId })
+    return ok({ anuncioId, codigo })
+  }
+}
+
+export class EditarAnuncioUseCase {
+  constructor(
+    private readonly anuncios: AnuncioRepository,
+    private readonly categorias: CategoriaRepository,
+    private readonly localidades: Localidades,
+  ) {}
+
+  /** RN-11: o texto e a formatação mudam a qualquer momento; o tempo no ar não muda. */
+  async executar(ator: Ator, anuncioId: string, entrada: ConteudoDoAnuncio): Promise<Result<true>> {
+    const anuncio = await this.anuncios.buscarPorId(anuncioId)
+    if (!anuncio || !podeMexer(ator, anuncio)) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
+    if (anuncio.situacao === "REMOVIDO") return falha("ANUNCIO_REMOVIDO", "Anúncio removido não pode ser editado.")
+
+    const conteudo = normalizarConteudo(entrada)
+    const erros = await validarComCatalogos(conteudo, this.categorias, this.localidades, anuncio.categoriaId)
+    if (Object.keys(erros).length > 0) return falhaDeValidacao(erros)
+
+    await this.anuncios.atualizar({ ...anuncio, ...conteudo })
+    return ok(true)
+  }
+}
+
+export class RemoverAnuncioUseCase {
+  constructor(
+    private readonly anuncios: AnuncioRepository,
+    private readonly pagamentos: PagamentoRepository,
+  ) {}
+
+  /** RN-14: sai do caderno na hora; o histórico de pagamentos fica. */
+  async executar(ator: Ator, anuncioId: string): Promise<Result<true>> {
+    const anuncio = await this.anuncios.buscarPorId(anuncioId)
+    if (!anuncio || !podeMexer(ator, anuncio)) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
+    if (anuncio.situacao === "REMOVIDO") return ok(true)
+    await this.anuncios.atualizar({ ...anuncio, situacao: "REMOVIDO" })
+    await this.pagamentos.cancelarPendentesDoAnuncio(anuncio.id)
+    return ok(true)
+  }
+}
+
+export class RestaurarAnuncioUseCase {
+  constructor(private readonly anuncios: AnuncioRepository) {}
+
+  /** Só o admin desfaz uma remoção. Volta como publicado se já foi pago alguma vez. */
+  async executar(ator: Ator, anuncioId: string): Promise<Result<true>> {
+    if (ator.perfil !== "ADMIN") return falha("NAO_AUTORIZADO", "Só o administrador restaura anúncios.")
+    const anuncio = await this.anuncios.buscarPorId(anuncioId)
+    if (!anuncio) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
+    if (anuncio.situacao !== "REMOVIDO") return ok(true)
+    await this.anuncios.atualizar({ ...anuncio, situacao: anuncio.publicadoEm ? "PUBLICADO" : "AGUARDANDO_PAGAMENTO" })
+    return ok(true)
+  }
+}

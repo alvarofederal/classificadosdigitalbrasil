@@ -1,99 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Classificados Digitais do Brasil
 
-## Getting Started
+Classificados por cidade no formato do caderno de jornal. Quem procura escolhe UF, cidade e seção; quem anuncia cria uma conta, monta o anúncio vendo a prévia e paga R$ 1,00 por 7 dias via Pix.
 
-First, run the development server:
+Documentação completa em [`spec/`](spec/README.md).
+
+## Rodar localmente
 
 ```bash
+npm install
+cp .env.example .env   # preencha DATABASE_URL e as chaves do Cloudinary
+npx prisma migrate deploy
+npm run db:seed        # categorias, configuração e admin inicial
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run db:seed:demo` cria 14 anúncios de demonstração em Brasília/DF.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test
+```
 
-## Learn More
+## Deploy (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
+O build de produção (`scripts/vercel-build.mjs`) aplica as migrations e roda o seed. Previews não alteram o banco.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Variáveis na Vercel:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variável | Para quê |
+|---|---|
+| `DATABASE_URL` | MySQL de produção |
+| `CLOUDINARY_NAME`, `CLOUDINARY_KEY`, `CLOUDINARY_SECRET` | Álbum de fotos |
+| `CLOUDINARY_PASTA` | Pasta das fotos (padrão `classificadosdigitalbrasil`) |
+| `SEED_ADMIN_EMAIL`, `SEED_ADMIN_SENHA`, `SEED_ADMIN_NOME` | Admin inicial, criado só se ainda não houver admin; troca de senha no 1º acesso |
+| `SEED_DEMO=1` | Cria os anúncios de demonstração |
+| `SEED_LIMPAR_DEMO=1` | Remove a demonstração (tire o `SEED_DEMO` antes) |
+| `NEXT_PUBLIC_URL` | Endereço público, quando houver domínio próprio |
 
-## Deploy on Vercel
+## Municípios
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-"# basemedical" 
-
-
-# Sequência para Git Flow
-
-
-## Iniciando o Git Flow
-git checkout -b develop
-git flow init
-
-
-## Criação de uma feature
-git checkout develop
-git checkout -b name-feature
-
-git flow feature start name-feature
-
-
-## Finalização de uma feature
-git checkout develop
-git merge name-feature
-
-git flow feature finish name-feature
-
-
-
-### Branch Hotfix
-##Criação de um Hotfix
-git checkout master
-git checkout -b name-hotfix
-
-git flow hotfix start name-hotfix
-
-## Finalização de um Hotfix
-git checkout master
-git merge name-hotfix
-git checkout develop
-git merge name-hotfix
-git tag name-hotfix
-
-git flow hotfix finish name-hotfix
-
-
-
-### Branch Release
-## Criação de uma Release
-git checkout develop
-git checkout -b release/1.0.0
-
-git flow release start 1.0.0
-
-## Finalização de uma Release
-git checkout master
-git merge release/1.0.0
-git checkout develop
-git merge release/1.0.0
-git tag 1.0.0
-
-git flow release finish 1.0.0
-
-git checkout -b secao5aula50
-"# courtesyfy" 
-# courtesyfy
+`npm run municipios` baixa de novo a lista do IBGE (só quando o IBGE criar ou renomear município).
