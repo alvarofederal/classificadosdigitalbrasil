@@ -17,7 +17,7 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | ID | Requisito |
 |---|---|
 | RF-04 | A capa mostra o título "Classificados" e, logo abaixo, os filtros UF → Cidade → Seção → Pesquisar. |
-| RF-05 | Cada cidade e cada seção têm endereço próprio: `/df/brasilia` e `/df/brasilia/veiculos`. |
+| RF-05 | Cada cidade e cada seção têm endereço próprio: `/df/brasilia` e `/df/brasilia/veiculos`. A página da cidade é a página inteira do caderno: todas as seções em colunas, até 8 anúncios cada, com "ver todos". |
 | RF-06 | A página da seção mostra os anúncios no ar daquela cidade, em colunas de jornal, 40 por página, quem pagou por último primeiro. |
 | RF-07 | Cada anúncio tem página própria (`/anuncio/<código>`) para compartilhar. |
 | RF-17 | No rodapé do quadrado, o ícone de conversa abre uma caixa (modal) para o visitante deixar nome, contato e mensagem. |
@@ -74,7 +74,7 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 
 | ID | Requisito |
 |---|---|
-| RNF-01 | A lista pública é sempre de uma cidade e uma seção, com índice `(cidadeCodigo, categoriaId, situacao, expiraEm)`. |
+| RNF-01 | Toda consulta de anúncios do site é de uma cidade e uma seção, com índice `(cidadeCodigo, categoriaId, situacao, expiraEm)`. A página da cidade faz uma consulta limitada por seção que tem anúncio; a capa não consulta anúncios. |
 | RNF-02 | Fotos entregues pelo Cloudinary com formato e qualidade automáticos. |
 | RNF-03 | Funciona no celular com 16 px de margem e sem rolagem horizontal. |
 | RNF-04 | Cabeçalhos de segurança (CSP, X-Frame-Options, nosniff). |

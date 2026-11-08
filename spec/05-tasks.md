@@ -16,8 +16,9 @@
 | T-10 | Seed: 18 categorias, configuração, admin inicial, demonstração removível | — | Feito |
 | T-11 | Build da Vercel com migração só em produção | ADR-09 | Feito |
 | T-12 | Testes de unidade e da regra de dependência | 06-test-plan | Feito (56) |
-| T-13 | Banco da Hostinger acessível pela Vercel e primeiro deploy | — | **Bloqueado**: o banco recusa a conexão (senha ou acesso remoto) |
-| T-14 | Teste ponta a ponta no navegador | — | Pendente (depende da T-13) |
+| T-13 | Banco da Hostinger acessível pela Vercel e primeiro deploy | — | Feito (2026-11-08): migration aplicada, 18 categorias |
+| T-14 | Teste ponta a ponta no navegador | — | Pendente: falta o admin (conta a promover) e a chave Pix |
+| T-15 | Visual da página impressa de referência: página branca, 5 colunas densas, tarjas nas colunas, capa e cidade como página inteira, fontes carregando | RF-04, RF-05, 04-design-system | Feito |
 
 ## Próximas versões
 

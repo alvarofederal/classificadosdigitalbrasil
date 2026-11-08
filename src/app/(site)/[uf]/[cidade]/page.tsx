@@ -1,14 +1,18 @@
-// APRESENTAÇÃO — caderno de uma cidade: as seções com a quantidade de anúncios no ar (RF-05, RNF-01).
+// APRESENTAÇÃO — o caderno de uma cidade: todas as seções em colunas, como a página impressa (RF-05).
+// Cada seção é uma consulta própria e limitada (RNF-01); "ver todos" leva à página da seção.
 
 import type { Metadata } from "next"
 import Link from "next/link"
+import { Fragment } from "react"
+import { AnuncioDaCasa, AnuncioDoCaderno, Caderno, RodapeDaCasa, TarjaSecao, estiloDaCasa } from "@/components/jornal/caderno"
 import { Filtros } from "@/components/jornal/filtros"
-import { Faixa } from "@/components/jornal/pecas"
 import { container } from "@/infrastructure/container"
-import { plural } from "@/lib/formatadores"
+import { formatarReais, plural } from "@/lib/formatadores"
+import { chamadaDaSecao, descricaoDaSecao } from "@/lib/secoes"
 import { caminhoDaSecao } from "@/lib/site"
-import { cn } from "@/lib/utils"
 import { cidadeDoEndereco } from "../../localizar"
+
+const POR_SECAO = 8
 
 type Props = { params: Promise<{ uf: string; cidade: string }> }
 
@@ -26,50 +30,72 @@ export default async function PaginaDaCidade({ params }: Props) {
   const { uf, cidade: slug } = await params
   const cidade = cidadeDoEndereco(uf, slug)
   const c = container()
-  const [secoes, contagem] = await Promise.all([c.classificados.categoriasAtivas(), c.classificados.contagemPorCategoria(cidade.codigo, c.relogio.agora())])
+  const agora = c.relogio.agora()
+  const [secoes, contagem, tabela] = await Promise.all([
+    c.classificados.categoriasAtivas(),
+    c.classificados.contagemPorCategoria(cidade.codigo, agora),
+    c.configuracao.obter(),
+  ])
+  const comAnuncios = secoes.filter((s) => (contagem[s.id] ?? 0) > 0).map((s) => s.id)
+  const anuncios = comAnuncios.length > 0 ? await c.classificados.primeirosPorSecao({ cidadeCodigo: cidade.codigo, categoriaIds: comAnuncios, limite: POR_SECAO, agora }) : {}
   const total = Object.values(contagem).reduce((soma, n) => soma + n, 0)
+  const preco = `${formatarReais(tabela.valorAnuncioCentavos)} por ${plural(tabela.diasDePublicacao, "dia", "dias")}`
+  const anunciarAqui = (categoriaId?: string) => `/minha-conta/anuncios/novo?uf=${cidade.uf}&cidade=${cidade.codigo}${categoriaId ? `&categoria=${categoriaId}` : ""}`
 
   return (
-    <div className="flex flex-col gap-6 pt-5">
-      <Filtros secoes={secoes.map(({ id, nome, slug }) => ({ id, nome, slug }))} ufInicial={cidade.uf} cidadeInicial={cidade} />
-
-      <section aria-labelledby="titulo-cidade">
-        <Faixa como="h1" className="mb-1">
-          <span id="titulo-cidade">
-            Classificados de {cidade.nome}/{cidade.uf}
-          </span>
-        </Faixa>
-        <p className="mb-4 text-sm text-tinta-suave">
-          {total > 0 ? `${plural(total, "anúncio no ar", "anúncios no ar")}. Escolha a seção.` : "Ainda não há anúncios no ar nesta cidade."}
-        </p>
-
-        <ul className="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
-          {secoes.map((secao) => {
-            const n = contagem[secao.id] ?? 0
-            return (
-              <li key={secao.id}>
-                <Link
-                  href={caminhoDaSecao(cidade, secao.slug)}
-                  className={cn("flex items-center justify-between gap-3 border-b border-fio py-2 hover:bg-papel-escuro", n === 0 && "text-tinta-suave")}
-                >
-                  <span className="font-titulo font-semibold uppercase tracking-wide">{secao.nome}</span>
-                  <span className={cn("shrink-0 font-titulo text-sm", n > 0 && "faixa px-2 py-0.5")}>{n}</span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+    <div className="pt-3">
+      <section aria-label="Procurar anúncios" className="border-b-2 border-tinta pb-3">
+        <Filtros secoes={secoes.map(({ id, nome, slug }) => ({ id, nome, slug }))} ufInicial={cidade.uf} cidadeInicial={cidade} />
       </section>
 
-      {total === 0 && (
-        <section className="cartao flex flex-col items-start gap-3 p-5">
-          <p className="font-titulo text-xl font-bold uppercase">Seja o primeiro a anunciar em {cidade.nome}</p>
-          <p>O anúncio aparece no caderno da cidade assim que o Pix é confirmado.</p>
-          <Link href={`/minha-conta/anuncios/novo?uf=${cidade.uf}&cidade=${cidade.codigo}`} className="botao">
-            Anunciar em {cidade.nome}
-          </Link>
-        </section>
-      )}
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-tinta py-1.5">
+        <h1 className="font-titulo text-xl font-bold uppercase sm:text-2xl">
+          {cidade.nome}/{cidade.uf}
+        </h1>
+        <span className="font-titulo text-xs uppercase tracking-wider">{total > 0 ? plural(total, "anúncio no ar", "anúncios no ar") : "Nenhum anúncio no ar ainda"}</span>
+      </div>
+
+      <Caderno className="mt-3">
+        {secoes.map((secao, i) => {
+          const lista = anuncios[secao.id] ?? []
+          const quantos = contagem[secao.id] ?? 0
+          const linkSecao = caminhoDaSecao(cidade, secao.slug)
+          if (lista.length === 0) {
+            return (
+              <div key={secao.id}>
+                <TarjaSecao href={linkSecao}>{secao.nome}</TarjaSecao>
+                <AnuncioDaCasa
+                  href={anunciarAqui(secao.id)}
+                  conteudo={{
+                    titulo: chamadaDaSecao(secao.slug, secao.nome),
+                    texto: `${descricaoDaSecao(secao.slug)} Ainda sem anúncios em ${cidade.nome}.`,
+                    precoCentavos: null,
+                    estilo: estiloDaCasa(i),
+                  }}
+                  rodape={<RodapeDaCasa preco={preco} />}
+                />
+              </div>
+            )
+          }
+          const [primeiro, ...resto] = lista
+          return (
+            <Fragment key={secao.id}>
+              <div>
+                <TarjaSecao href={linkSecao}>{secao.nome}</TarjaSecao>
+                <AnuncioDoCaderno anuncio={primeiro} />
+              </div>
+              {resto.map((anuncio) => (
+                <AnuncioDoCaderno key={anuncio.id} anuncio={anuncio} />
+              ))}
+              {quantos > lista.length && (
+                <Link href={linkSecao} className="block border border-tinta px-2 py-1 text-center font-titulo text-xs font-bold uppercase hover:bg-papel-escuro">
+                  Ver os {quantos} anúncios de {secao.nome} →
+                </Link>
+              )}
+            </Fragment>
+          )
+        })}
+      </Caderno>
     </div>
   )
 }

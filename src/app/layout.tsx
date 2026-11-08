@@ -18,14 +18,15 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 }
 
-export const viewport: Viewport = { themeColor: "#f4f1e8", width: "device-width", initialScale: 1 }
+export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR">
-      <body className={`${anton.variable} ${oswald.variable} ${ptSerif.variable} min-h-dvh`}>
+    // As variáveis das fontes ficam em <html>: é onde o tema (:root) resolve --font-manchete, --font-titulo e --font-texto.
+    <html lang="pt-BR" className={`${anton.variable} ${oswald.variable} ${ptSerif.variable}`}>
+      <body className="min-h-dvh">
         {children}
-        <Toaster position="top-center" closeButton toastOptions={{ style: { borderRadius: 0, border: "1px solid #141412", fontFamily: "var(--font-texto)" } }} />
+        <Toaster position="top-center" closeButton toastOptions={{ style: { borderRadius: 0, border: "1px solid #111111", fontFamily: "var(--font-texto)" } }} />
       </body>
     </html>
   )

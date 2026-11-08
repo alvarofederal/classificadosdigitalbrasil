@@ -35,6 +35,8 @@ export interface ClassificadosQuery {
   /** categoriaId → anúncios no ar naquela cidade. */
   contagemPorCategoria(cidadeCodigo: number, agora: Date): Promise<Record<string, number>>
   anunciosDaCategoria(params: { cidadeCodigo: number; categoriaId: string; pagina: number; porPagina: number; agora: Date }): Promise<Pagina<AnuncioPublicoDTO>>
+  /** Página da cidade: os primeiros anúncios de cada seção, uma consulta por seção (RNF-01). */
+  primeirosPorSecao(params: { cidadeCodigo: number; categoriaIds: string[]; limite: number; agora: Date }): Promise<Record<string, AnuncioPublicoDTO[]>>
   /** Só devolve se o anúncio estiver no ar. */
   anuncioNoAr(codigo: string, agora: Date): Promise<AnuncioPublicoDTO | null>
   cidadesComAnuncios(agora: Date, limite: number): Promise<Array<{ uf: string; cidadeCodigo: number; total: number }>>

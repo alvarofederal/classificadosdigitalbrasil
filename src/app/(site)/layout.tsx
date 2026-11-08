@@ -8,7 +8,7 @@ export default function LayoutDoSite({ children }: { children: React.ReactNode }
   return (
     <>
       <Cabecalho />
-      <main className="mx-auto w-full max-w-7xl px-4">{children}</main>
+      <main className="mx-auto w-full max-w-[1400px] px-3 sm:px-4">{children}</main>
       <Rodape />
     </>
   )

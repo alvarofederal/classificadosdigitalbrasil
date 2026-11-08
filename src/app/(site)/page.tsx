@@ -1,11 +1,14 @@
-// APRESENTAÇÃO — capa: filtros logo abaixo do título e o caderno explicado em quadrados (RF-04).
+// APRESENTAÇÃO — capa: filtros logo abaixo do título e a página do caderno com todas as seções (RF-04).
+// Sem cidade escolhida não há consulta de anúncios (RNF-01): cada seção mostra o convite para anunciar.
 
 import Link from "next/link"
+import { Fragment } from "react"
+import { AnuncioDaCasa, Caderno, RodapeDaCasa, TarjaSecao, estiloDaCasa } from "@/components/jornal/caderno"
 import { CaixaAnuncio } from "@/components/jornal/caixa-anuncio"
 import { Filtros } from "@/components/jornal/filtros"
-import { Faixa } from "@/components/jornal/pecas"
 import { container } from "@/infrastructure/container"
 import { formatarReais, plural } from "@/lib/formatadores"
+import { chamadaDaSecao, descricaoDaSecao } from "@/lib/secoes"
 import { caminhoDaCidade } from "@/lib/site"
 
 export default async function Capa() {
@@ -13,92 +16,84 @@ export default async function Capa() {
   const agora = c.relogio.agora()
   const [secoes, cidades, tabela] = await Promise.all([
     c.classificados.categoriasAtivas(),
-    c.classificados.cidadesComAnuncios(agora, 12),
+    c.classificados.cidadesComAnuncios(agora, 15),
     c.configuracao.obter(),
   ])
-  const preco = formatarReais(tabela.valorAnuncioCentavos)
-  const periodo = plural(tabela.diasDePublicacao, "dia", "dias")
+  const preco = `${formatarReais(tabela.valorAnuncioCentavos)} por ${plural(tabela.diasDePublicacao, "dia", "dias")}`
 
   return (
-    <div className="flex flex-col gap-8 pt-5">
-      <section aria-labelledby="titulo-busca" className="cartao p-4 sm:p-5">
-        <h1 id="titulo-busca" className="mb-3 font-titulo text-lg font-bold uppercase tracking-wide">
-          Procure os classificados da sua cidade
-        </h1>
+    <div className="pt-3">
+      <section aria-label="Procurar anúncios" className="border-b-2 border-tinta pb-3">
         <Filtros secoes={secoes.map(({ id, nome, slug }) => ({ id, nome, slug }))} />
       </section>
 
-      <section aria-label="Como funciona" className="colunas-jornal columns-1 sm:columns-2 lg:columns-3">
-        <CaixaAnuncio
-          className="mb-4"
+      <Caderno className="mt-3">
+        <AnuncioDaCasa
+          href="/minha-conta/anuncios/novo"
           conteudo={{
-            titulo: "ANUNCIE AQUI",
-            texto: `Seu anúncio no caderno da sua cidade por ${preco} a cada ${periodo}. Escreva, escolha a moldura e pague por Pix.`,
+            titulo: "Anuncie aqui",
+            texto: `Seu anúncio no caderno da sua cidade: ${preco}. Escreva, escolha a moldura e pague por Pix.`,
             precoCentavos: null,
             estilo: { moldura: "DUPLA", estiloTitulo: "TARJA", alinhamento: "CENTRO", estrelas: true },
           }}
-          rodape={
-            <div className="text-center">
-              <Link href="/minha-conta/anuncios/novo" className="botao botao-pequeno">
-                Criar meu anúncio
-              </Link>
-            </div>
-          }
         />
         <CaixaAnuncio
-          className="mb-4"
           conteudo={{
-            titulo: "COMO FUNCIONA",
-            texto: "1. Crie sua conta com seus dados.\n2. Monte o anúncio vendo a prévia do quadrado.\n3. Pague o Pix e o anúncio entra no caderno.\n4. Receba as mensagens dos interessados na sua conta.",
+            titulo: "Como funciona",
+            texto: "1. Crie sua conta.\n2. Monte o anúncio vendo a prévia.\n3. Pague o Pix.\n4. O anúncio entra no caderno da cidade e as mensagens chegam na sua conta.",
             precoCentavos: null,
             estilo: { moldura: "SIMPLES", estiloTitulo: "SUBLINHADO", alinhamento: "ESQUERDA", estrelas: false },
           }}
         />
+
+        {cidades.length > 0 && (
+          <div>
+            <TarjaSecao>Cidades no caderno</TarjaSecao>
+            <ul className="border border-t-0 border-tinta px-2 py-1.5 text-[0.74rem] leading-[1.45]">
+              {cidades.map((item) => {
+                const cidade = c.localidades.cidade(item.cidadeCodigo)
+                if (!cidade) return null
+                return (
+                  <li key={cidade.codigo} className="flex justify-between gap-2">
+                    <Link href={caminhoDaCidade(cidade)} className="hover:underline">
+                      {cidade.nome}/{cidade.uf}
+                    </Link>
+                    <span className="font-titulo">{item.total}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
+
+        {secoes.map((secao, i) => (
+          <Fragment key={secao.id}>
+            {/* Tarja e primeiro anúncio juntos: a seção nunca fica com o título sozinho no pé da coluna. */}
+            <div>
+              <TarjaSecao>{secao.nome}</TarjaSecao>
+              <AnuncioDaCasa
+                href="/minha-conta/anuncios/novo"
+                conteudo={{
+                  titulo: chamadaDaSecao(secao.slug, secao.nome),
+                  texto: descricaoDaSecao(secao.slug),
+                  precoCentavos: null,
+                  estilo: estiloDaCasa(i),
+                }}
+                rodape={<RodapeDaCasa preco={preco} />}
+              />
+            </div>
+          </Fragment>
+        ))}
+
         <CaixaAnuncio
-          className="mb-4"
           conteudo={{
-            titulo: "PARA QUEM PROCURA",
-            texto: "Escolha o estado, a cidade e a seção. Cada quadrado tem um botão de mensagem e, quando há fotos, o álbum. Não precisa de cadastro para mandar mensagem.",
+            titulo: "Para quem procura",
+            texto: "Cada anúncio tem o ícone de mensagem para falar com o anunciante e, quando há fotos, o ícone do álbum. Não precisa de cadastro para mandar mensagem.",
             precoCentavos: null,
             estilo: { moldura: "TRACEJADA", estiloTitulo: "NEGRITO", alinhamento: "ESQUERDA", estrelas: false },
           }}
         />
-      </section>
-
-      {cidades.length > 0 && (
-        <section aria-labelledby="titulo-cidades">
-          <Faixa className="mb-3">
-            <span id="titulo-cidades">Cidades com anúncios no ar</span>
-          </Faixa>
-          <ul className="colunas-jornal columns-2 sm:columns-3 lg:columns-4">
-            {cidades.map((item) => {
-              const cidade = c.localidades.cidade(item.cidadeCodigo)
-              if (!cidade) return null
-              return (
-                <li key={cidade.codigo} className="py-1">
-                  <Link href={caminhoDaCidade(cidade)} className="link">
-                    {cidade.nome}/{cidade.uf}
-                  </Link>{" "}
-                  <span className="text-sm text-tinta-suave">({item.total})</span>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
-
-      <section aria-labelledby="titulo-secoes">
-        <Faixa className="mb-3">
-          <span id="titulo-secoes">Seções do caderno</span>
-        </Faixa>
-        <ul className="colunas-jornal columns-2 font-titulo text-sm uppercase tracking-wide sm:columns-3 lg:columns-4">
-          {secoes.map((secao) => (
-            <li key={secao.id} className="py-1">
-              {secao.nome}
-            </li>
-          ))}
-        </ul>
-      </section>
+      </Caderno>
     </div>
   )
 }

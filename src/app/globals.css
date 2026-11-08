@@ -1,17 +1,18 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────
-   Design system (spec/04-design-system.md): papel de jornal e tinta preta.
-   Uma cor só para tudo, como no caderno impresso; vermelho e verde só para avisos.
+   Design system (spec/04-design-system.md): página branca e tinta preta, como o caderno impresso.
+   Uma cor só para tudo; vermelho e verde só para avisos do sistema.
+   As fontes vêm do next/font em <html> (layout.tsx) — é lá que as variáveis --font-* existem.
    ───────────────────────────────────────────────────────────── */
 
 @theme {
-  --color-papel: #f4f1e8;
-  --color-papel-claro: #fbf9f3;
-  --color-papel-escuro: #e7e1d1;
-  --color-tinta: #141412;
-  --color-tinta-suave: #55534c;
-  --color-fio: #1f1e1b;
+  --color-papel: #ffffff;
+  --color-papel-claro: #ffffff;
+  --color-papel-escuro: #ececec;
+  --color-tinta: #111111;
+  --color-tinta-suave: #555555;
+  --color-fio: #111111;
   --color-perigo: #a3161a;
   --color-sucesso: #1d6b3a;
 
@@ -52,13 +53,27 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* Colunas do caderno: os anúncios descem em colunas, com fio entre elas */
+/* Colunas do caderno: tudo desce em colunas estreitas e densas, como na página impressa */
 .colunas-jornal {
-  column-gap: 1rem;
-  column-rule: 1px solid color-mix(in srgb, var(--color-fio) 35%, transparent);
+  column-gap: 0.6rem;
 }
 .colunas-jornal > * {
   break-inside: avoid;
+  margin-bottom: 0.5rem;
+}
+
+/* Tarja da seção dentro da coluna (IMÓVEIS, CARROS…) */
+.tarja-secao {
+  display: block;
+  background: var(--color-tinta);
+  color: #fff;
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.15rem;
+  line-height: 1.1;
+  padding: 0.3rem 0.5rem 0.25rem;
 }
 
 /* Campos e botões no tom do papel: cantos retos, fio preto */

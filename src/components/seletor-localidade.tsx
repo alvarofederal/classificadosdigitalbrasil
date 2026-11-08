@@ -88,13 +88,13 @@ export function SeletorLocalidade({
   }
 
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)]", className)}>
+    <div className={cn("grid grid-cols-[6rem_minmax(0,1fr)] gap-3", className)}>
       <Campo rotulo={rotuloUf} nome={nomeUf} erro={erroUf} obrigatorio={obrigatorio}>
         <select {...aria(nomeUf, erroUf)} className="campo" value={uf} onChange={(e) => escolherUf(e.target.value)}>
           <option value="">UF</option>
           {SIGLAS_UF.map((sigla) => (
-            <option key={sigla} value={sigla} title={UFS[sigla]}>
-              {sigla} · {UFS[sigla]}
+            <option key={sigla} value={sigla} title={UFS[sigla]} aria-label={UFS[sigla]}>
+              {sigla}
             </option>
           ))}
         </select>

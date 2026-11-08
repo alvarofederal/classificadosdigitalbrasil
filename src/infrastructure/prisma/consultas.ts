@@ -108,6 +108,20 @@ export class PrismaClassificadosQuery implements ClassificadosQuery {
     return { itens: linhas.map(paraPublico), total, pagina: params.pagina, porPagina: params.porPagina }
   }
 
+  async primeirosPorSecao(params: { cidadeCodigo: number; categoriaIds: string[]; limite: number; agora: Date }) {
+    const listas = await Promise.all(
+      params.categoriaIds.map((categoriaId) =>
+        this.db.anuncio.findMany({
+          where: { cidadeCodigo: params.cidadeCodigo, categoriaId, ...noAr(params.agora) },
+          orderBy: [{ expiraEm: "desc" }, { id: "asc" }],
+          take: params.limite,
+          select: SELECAO_PUBLICA,
+        }),
+      ),
+    )
+    return Object.fromEntries(params.categoriaIds.map((id, i) => [id, listas[i].map(paraPublico)]))
+  }
+
   async anuncioNoAr(codigo: string, agora: Date) {
     const linha = await this.db.anuncio.findFirst({ where: { codigo, ...noAr(agora) }, select: SELECAO_PUBLICA })
     return linha ? paraPublico(linha) : null

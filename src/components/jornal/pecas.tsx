@@ -37,7 +37,7 @@ export function Paginacao({ pagina, total, porPagina, endereco }: { pagina: numb
 
 export function Rodape() {
   return (
-    <footer className="mx-auto mt-12 w-full max-w-7xl px-4 pb-8">
+    <footer className="mx-auto mt-10 w-full max-w-[1400px] px-3 pb-8 sm:px-4">
       <div className="fio-duplo" />
       <div className="flex flex-col items-center justify-between gap-2 py-3 text-center font-titulo text-xs uppercase tracking-wider sm:flex-row sm:text-left">
         <span>{NOME_DO_SITE}</span>

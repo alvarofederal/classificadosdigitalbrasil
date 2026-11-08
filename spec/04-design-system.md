@@ -1,18 +1,27 @@
 # 04 · Design system
 
-Referência: o caderno de classificados impresso. Papel claro, tinta preta, fios, tarjas pretas com letras brancas nas seções. Uma cor só para os anúncios; vermelho e verde aparecem apenas em avisos do sistema.
+Referência: a página de classificados impressa que o Álvaro enviou em 2026-11-08 (manchete "CLASSIFICADOS" ocupando a largura, cinco colunas densas de anúncios pequenos, tarjas pretas das seções dentro das colunas, molduras simples, duplas e tracejadas, fileiras de estrelas). Página branca e tinta preta. Uma cor só para os anúncios; vermelho e verde aparecem apenas em avisos do sistema.
 
 ## Cores (tokens em `src/app/globals.css`)
 
 | Token | Valor | Uso |
 |---|---|---|
-| `papel` | `#f4f1e8` | fundo da página |
-| `papel-claro` | `#fbf9f3` | fundo do quadrado, campos, cartões |
-| `papel-escuro` | `#e7e1d1` | hover, destaques suaves |
-| `tinta` | `#141412` | texto, fios, tarjas, botões |
-| `tinta-suave` | `#55534c` | textos secundários |
+| `papel` / `papel-claro` | `#ffffff` | fundo da página, dos anúncios e dos campos |
+| `papel-escuro` | `#ececec` | hover |
+| `tinta` | `#111111` | texto, fios, tarjas, botões |
+| `tinta-suave` | `#555555` | textos secundários |
 | `perigo` | `#a3161a` | erros, remover |
 | `sucesso` | `#1d6b3a` | "No ar", confirmações |
+
+As variáveis das fontes do `next/font` ficam em `<html>` (não no `<body>`): é ali que o tema resolve `--font-manchete`, `--font-titulo` e `--font-texto`. No `<body>` as fontes não carregavam.
+
+## Página do caderno
+
+- `Caderno` (`components/jornal/caderno.tsx`): colunas CSS, 1 no celular, 2 a partir de 460 px, 3/4/5 em tablet, notebook e monitor.
+- `TarjaSecao`: tarja preta da seção dentro da coluna, sempre junto do primeiro anúncio (nunca sozinha no pé da coluna).
+- Anúncio: título Oswald 13 px em caixa alta, texto PT Serif 12 px, rodapé com ícone de mensagem, código e ícone do álbum.
+- Capa: convites da casa por seção (sem consulta de anúncios). Cidade: todas as seções, até 8 anúncios cada, com "ver todos". Seção: todos, 60 por página.
+- A prévia do editor tem a largura de uma coluna do caderno.
 
 ## Tipografia
 

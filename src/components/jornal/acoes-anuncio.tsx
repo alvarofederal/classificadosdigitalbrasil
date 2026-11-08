@@ -25,18 +25,19 @@ export function AcoesAnuncio({ anuncio, mostrarCodigo = true }: { anuncio: Anunc
   const [albumAberto, setAlbumAberto] = useState(false)
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center justify-between gap-1">
       <button
         type="button"
         onClick={() => setMensagemAberta(true)}
-        className="inline-flex min-h-9 items-center gap-1.5 px-1 font-titulo text-xs font-semibold uppercase tracking-wide hover:bg-papel-escuro"
+        className="-ml-1 inline-flex min-h-7 min-w-7 items-center justify-center gap-1 px-1 font-titulo text-[0.62rem] font-semibold uppercase tracking-wide hover:bg-papel-escuro"
         aria-label={`Enviar mensagem para o anunciante de ${anuncio.titulo}`}
+        title="Enviar mensagem"
       >
-        <MessageSquare className="size-4" aria-hidden />
-        Mensagem
+        <MessageSquare className="size-3.5" aria-hidden />
+        <span aria-hidden>Msg</span>
       </button>
       {mostrarCodigo && (
-        <Link href={`/anuncio/${anuncio.codigo}`} className="font-titulo text-[0.65rem] uppercase tracking-wider text-tinta-suave hover:underline">
+        <Link href={`/anuncio/${anuncio.codigo}`} className="font-titulo text-[0.58rem] uppercase tracking-wider text-tinta-suave hover:underline">
           Cód. {anuncio.codigo}
         </Link>
       )}
@@ -44,14 +45,15 @@ export function AcoesAnuncio({ anuncio, mostrarCodigo = true }: { anuncio: Anunc
         <button
           type="button"
           onClick={() => setAlbumAberto(true)}
-          className="inline-flex min-h-9 items-center gap-1 px-1 font-titulo text-xs font-semibold hover:bg-papel-escuro"
+          className="-mr-1 inline-flex min-h-7 min-w-7 items-center justify-center gap-0.5 px-1 font-titulo text-[0.62rem] font-semibold hover:bg-papel-escuro"
           aria-label={`Ver ${anuncio.fotos.length} foto(s) de ${anuncio.titulo}`}
+          title="Ver fotos"
         >
-          <Images className="size-4" aria-hidden />
+          <Images className="size-3.5" aria-hidden />
           {anuncio.fotos.length}
         </button>
       ) : (
-        <span className="w-9" aria-hidden />
+        <span className="w-7" aria-hidden />
       )}
 
       <ModalMensagem anuncio={anuncio} aberto={mensagemAberta} aoMudar={setMensagemAberta} />

@@ -1,4 +1,4 @@
-// APRESENTAÇÃO — o cabeçalho do jornal: nome do caderno, linha de data e o preço do espaço.
+// APRESENTAÇÃO — o cabeçalho do jornal: a manchete CLASSIFICADOS ocupando a largura, como na página impressa.
 
 import Link from "next/link"
 import { container } from "@/infrastructure/container"
@@ -13,12 +13,10 @@ export async function Cabecalho({ compacto = false }: { compacto?: boolean }) {
   const areaDoUsuario = usuario ? (usuario.perfil === "ADMIN" ? "/painel" : "/minha-conta") : null
 
   return (
-    <header className="mx-auto w-full max-w-7xl px-4 pt-3">
-      <nav className="flex items-center justify-between gap-3 font-titulo text-xs uppercase tracking-wider sm:text-sm" aria-label="Conta">
-        <Link href="/" className="hover:underline">
-          Capa
-        </Link>
-        <div className="flex items-center gap-3 sm:gap-5">
+    <header className="mx-auto w-full max-w-[1400px] px-3 pt-2 sm:px-4">
+      <nav className="flex items-center justify-between gap-3 font-titulo text-[0.7rem] uppercase tracking-wider sm:text-xs" aria-label="Conta">
+        <span className="hidden sm:inline">{dataPorExtenso(agora)}</span>
+        <div className="ml-auto flex items-center gap-3 sm:gap-5">
           <Link href="/minha-conta/anuncios/novo" className="font-bold hover:underline">
             Anunciar
           </Link>
@@ -31,7 +29,7 @@ export async function Cabecalho({ compacto = false }: { compacto?: boolean }) {
               <Link href="/entrar" className="hover:underline">
                 Entrar
               </Link>
-              <Link href="/cadastro" className="hidden hover:underline sm:inline">
+              <Link href="/cadastro" className="hover:underline">
                 Criar conta
               </Link>
             </>
@@ -39,24 +37,20 @@ export async function Cabecalho({ compacto = false }: { compacto?: boolean }) {
         </div>
       </nav>
 
-      <div className="fio-grosso mt-2" />
-      <Link href="/" className="block text-center" aria-label="Classificados Digitais do Brasil — capa">
+      <Link href="/" className="block text-center" aria-label="Classificados Digitais do Brasil, capa">
         <span
           className={cn(
-            "block font-manchete uppercase leading-[0.9] tracking-[0.02em]",
-            compacto ? "py-2 text-[clamp(2.4rem,9vw,4.5rem)]" : "py-3 text-[clamp(3rem,13vw,8.5rem)]",
+            "block font-manchete uppercase leading-[0.82] tracking-[-0.01em]",
+            compacto ? "pb-1 pt-2 text-[clamp(2.6rem,10vw,5.5rem)]" : "pb-1 pt-2 text-[clamp(3.4rem,15.2vw,13.5rem)]",
           )}
         >
           Classificados
         </span>
       </Link>
-      <div className="fio-duplo" />
-      <div className="grid grid-cols-1 items-center gap-1 py-1.5 text-center font-titulo text-[0.7rem] uppercase tracking-[0.12em] sm:grid-cols-3 sm:text-xs">
-        <span className="hidden sm:block sm:text-left">{dataPorExtenso(agora)}</span>
-        <span className="font-bold tracking-[0.3em]">Digitais do Brasil</span>
-        <span className="hidden sm:block sm:text-right">Anúncio: {preco}</span>
+      <div className="flex items-center justify-between gap-2 border-y border-tinta py-0.5 font-titulo text-[0.62rem] font-semibold uppercase tracking-[0.18em] sm:text-[0.7rem]">
+        <span>Digitais do Brasil</span>
+        <span className="text-right">Anúncio {preco}</span>
       </div>
-      <div className="border-t border-fio" />
     </header>
   )
 }

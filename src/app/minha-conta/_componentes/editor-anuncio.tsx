@@ -49,6 +49,8 @@ export function EditorAnuncio({
   const [texto, setTexto] = useState(iniciais.texto)
   const [preco, setPreco] = useState(iniciais.preco)
   const [estilo, setEstilo] = useState<EstiloDoAnuncio>(iniciais.estilo)
+  const [categoriaId, setCategoriaId] = useState(iniciais.categoriaId)
+  const categoriaNome = categorias.find((c) => c.id === categoriaId)?.nome
   const { estado, pendente, onSubmit, formRef, erro } = useFormularioAcao(acao)
 
   const precoCentavos = preco.trim() ? centavosDeTextoEmReais(preco.trim()) : null
@@ -60,7 +62,7 @@ export function EditorAnuncio({
         <MensagemFormulario estado={estado} />
 
         <Campo rotulo="Seção" nome="categoriaId" erro={erro("categoriaId")} obrigatorio>
-          <select {...aria("categoriaId", erro("categoriaId"))} className="campo" defaultValue={iniciais.categoriaId}>
+          <select {...aria("categoriaId", erro("categoriaId"))} className="campo" value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
             <option value="">Escolha a seção do caderno</option>
             {categorias.map((c) => (
               <option key={c.id} value={c.id}>
@@ -130,18 +132,20 @@ export function EditorAnuncio({
 
       <aside className="lg:sticky lg:top-4 lg:self-start" aria-label="Prévia do anúncio">
         <p className="rotulo mb-2">Prévia no caderno</p>
-        <div className="bg-papel p-3 [background-image:repeating-linear-gradient(0deg,transparent,transparent_23px,rgba(20,20,18,0.04)_24px)]">
+        {/* Mesma largura de uma coluna do caderno: o anúncio aparece aqui do tamanho que vai sair. */}
+        <div className="mx-auto w-[15.5rem] border border-dashed border-tinta/40 p-2">
+          <p className="tarja-secao mb-2 text-sm">{categoriaNome || "Seção"}</p>
           <CaixaAnuncio
             conteudo={{ titulo, texto, precoCentavos, estilo }}
             rodape={
-              <div className="flex items-center justify-between gap-2 font-titulo text-xs font-semibold uppercase" aria-hidden>
-                <span className="inline-flex items-center gap-1.5">
-                  <MessageSquare className="size-4" />
-                  Mensagem
+              <div className="flex min-h-7 items-center justify-between gap-1 font-titulo text-[0.62rem] font-semibold uppercase" aria-hidden>
+                <span className="inline-flex items-center gap-1">
+                  <MessageSquare className="size-3.5" />
+                  Msg
                 </span>
-                <span className="text-[0.65rem] tracking-wider text-tinta-suave">Cód. {codigo ?? "······"}</span>
-                <span className={cn("inline-flex items-center gap-1", totalFotos === 0 && "opacity-30")}>
-                  <Images className="size-4" />
+                <span className="text-[0.58rem] tracking-wider text-tinta-suave">Cód. {codigo ?? "······"}</span>
+                <span className={cn("inline-flex items-center gap-0.5", totalFotos === 0 && "opacity-30")}>
+                  <Images className="size-3.5" />
                   {totalFotos}
                 </span>
               </div>
