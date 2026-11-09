@@ -62,54 +62,66 @@ export function AcoesAnuncio({ anuncio, mostrarCodigo = true }: { anuncio: Anunc
   )
 }
 
-function ModalMensagem({ anuncio, aberto, aoMudar }: { anuncio: AnuncioDoRodape; aberto: boolean; aoMudar: (v: boolean) => void }) {
+/** Caixa de conversa: no modal do caderno e aberta na página do anúncio (RF-17, RF-71). */
+export function FormularioMensagem({ anuncio, prefixo = "msg", aoFechar }: { anuncio: Pick<AnuncioDoRodape, "id" | "titulo">; prefixo?: string; aoFechar?: () => void }) {
   const [enviada, setEnviada] = useState(false)
   const { estado, pendente, onSubmit, formRef, erro } = useFormularioAcao(enviarMensagemAction.bind(null, anuncio.id), {
     avisarSucesso: false,
     aoSucesso: () => setEnviada(true),
   })
+  const id = (campo: string) => `${prefixo}-${campo}`
 
-  function mudar(v: boolean) {
-    aoMudar(v)
-    if (!v) setTimeout(() => setEnviada(false), 200)
+  if (enviada) {
+    return (
+      <div className="flex flex-col gap-4">
+        <p>Mensagem enviada. O anunciante vai responder pelo contato que você informou.</p>
+        {aoFechar ? (
+          <button type="button" className="botao self-start" onClick={aoFechar}>
+            Fechar
+          </button>
+        ) : (
+          <button type="button" className="botao botao-vazado botao-pequeno self-start" onClick={() => setEnviada(false)}>
+            Enviar outra mensagem
+          </button>
+        )}
+      </div>
+    )
   }
 
   return (
-    <Modal aberto={aberto} aoMudar={mudar} titulo="Mensagem ao anunciante" descricao={anuncio.titulo}>
-      {enviada ? (
-        <div className="flex flex-col gap-4">
-          <p>Mensagem enviada. O anunciante vai responder pelo contato que você informou.</p>
-          <button type="button" className="botao self-start" onClick={() => mudar(false)}>
-            Fechar
-          </button>
-        </div>
-      ) : (
-        <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-3" noValidate>
-          <MensagemFormulario estado={estado} />
-          <Campo rotulo="Seu nome" nome="nome" erro={erro("nome")} obrigatorio>
-            <input {...aria("nome", erro("nome"))} className="campo" autoComplete="name" maxLength={LIMITES_DA_MENSAGEM.nomeMax} />
-          </Campo>
-          <Campo rotulo="Telefone ou e-mail" nome="contato" erro={erro("contato")} obrigatorio dica="É por aqui que o anunciante vai responder.">
-            <input {...aria("contato", erro("contato"))} className="campo" autoComplete="tel" maxLength={LIMITES_DA_MENSAGEM.contatoMax} />
-          </Campo>
-          <Campo rotulo="Mensagem" nome="texto" erro={erro("texto")} obrigatorio>
-            <textarea
-              {...aria("texto", erro("texto"))}
-              className="campo min-h-28"
-              maxLength={LIMITES_DA_MENSAGEM.textoMax}
-              defaultValue={`Olá! Vi seu anúncio "${anuncio.titulo}" no Classificados Digitais do Brasil. Ainda está disponível?`}
-            />
-          </Campo>
-          {/* Campo-isca: invisível para pessoas; robôs preenchem e a mensagem é descartada. */}
-          <div className="absolute -left-[9999px]" aria-hidden>
-            <label htmlFor="site">Site</label>
-            <input id="site" name="site" tabIndex={-1} autoComplete="off" />
-          </div>
-          <BotaoEnviar pendente={pendente} className="self-start">
-            Enviar mensagem
-          </BotaoEnviar>
-        </form>
-      )}
+    <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-3" noValidate>
+      <MensagemFormulario estado={estado} />
+      <Campo rotulo="Seu nome" nome={id("nome")} erro={erro("nome")} obrigatorio>
+        <input {...aria(id("nome"), erro("nome"))} name="nome" className="campo" autoComplete="name" maxLength={LIMITES_DA_MENSAGEM.nomeMax} />
+      </Campo>
+      <Campo rotulo="Telefone ou e-mail" nome={id("contato")} erro={erro("contato")} obrigatorio dica="É por aqui que o anunciante vai responder.">
+        <input {...aria(id("contato"), erro("contato"))} name="contato" className="campo" autoComplete="tel" maxLength={LIMITES_DA_MENSAGEM.contatoMax} />
+      </Campo>
+      <Campo rotulo="Mensagem" nome={id("texto")} erro={erro("texto")} obrigatorio>
+        <textarea
+          {...aria(id("texto"), erro("texto"))}
+          name="texto"
+          className="campo min-h-28"
+          maxLength={LIMITES_DA_MENSAGEM.textoMax}
+          defaultValue={`Olá! Vi seu anúncio "${anuncio.titulo}" no Classificados Digitais do Brasil. Ainda está disponível?`}
+        />
+      </Campo>
+      {/* Campo-isca: invisível para pessoas; robôs preenchem e a mensagem é descartada. */}
+      <div className="absolute -left-[9999px]" aria-hidden>
+        <label htmlFor={id("site")}>Site</label>
+        <input id={id("site")} name="site" tabIndex={-1} autoComplete="off" />
+      </div>
+      <BotaoEnviar pendente={pendente} className="self-start">
+        Enviar mensagem
+      </BotaoEnviar>
+    </form>
+  )
+}
+
+function ModalMensagem({ anuncio, aberto, aoMudar }: { anuncio: AnuncioDoRodape; aberto: boolean; aoMudar: (v: boolean) => void }) {
+  return (
+    <Modal aberto={aberto} aoMudar={aoMudar} titulo="Mensagem ao anunciante" descricao={anuncio.titulo}>
+      {aberto && <FormularioMensagem anuncio={anuncio} prefixo={`modal-${anuncio.codigo}`} aoFechar={() => aoMudar(false)} />}
     </Modal>
   )
 }

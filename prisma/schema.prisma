@@ -113,24 +113,27 @@ enum Alinhamento {
 }
 
 model Anuncio {
-  id           String          @id @default(cuid())
-  codigo       String          @unique @db.Char(6) // endereço público /anuncio/<codigo>
-  usuarioId    String
-  categoriaId  String
-  uf           String          @db.Char(2)
-  cidadeCodigo Int
-  titulo       String          @db.VarChar(40)
-  texto        String          @db.VarChar(400)
-  preco        Decimal?        @db.Decimal(12, 2)
-  moldura      Moldura         @default(SIMPLES)
-  estiloTitulo EstiloTitulo    @default(NEGRITO)
-  alinhamento  Alinhamento     @default(ESQUERDA)
-  estrelas     Boolean         @default(false)
-  situacao     SituacaoAnuncio @default(AGUARDANDO_PAGAMENTO)
-  publicadoEm  DateTime?
-  expiraEm     DateTime?
-  criadoEm     DateTime        @default(now())
-  atualizadoEm DateTime        @updatedAt
+  id            String          @id @default(cuid())
+  codigo        String          @unique @db.Char(6) // endereço público /anuncio/<codigo>
+  usuarioId     String
+  categoriaId   String
+  uf            String          @db.Char(2)
+  cidadeCodigo  Int
+  titulo        String          @db.VarChar(40)
+  texto         String          @db.VarChar(400)
+  preco         Decimal?        @db.Decimal(12, 2)
+  moldura       Moldura         @default(SIMPLES)
+  estiloTitulo  EstiloTitulo    @default(NEGRITO)
+  alinhamento   Alinhamento     @default(ESQUERDA)
+  estrelas      Boolean         @default(false)
+  situacao      SituacaoAnuncio @default(AGUARDANDO_PAGAMENTO)
+  planoCodigo   String          @default("SIMPLES") @db.VarChar(20) // plano escolhido / em vigor (feature 003)
+  prioridade    Int             @default(0) // RN-50: definida quando o pagamento é confirmado
+  visualizacoes Int             @default(0) // RF-75, sem dados de quem visitou
+  publicadoEm   DateTime?
+  expiraEm      DateTime?
+  criadoEm      DateTime        @default(now())
+  atualizadoEm  DateTime        @updatedAt
 
   usuario    Usuario       @relation(fields: [usuarioId], references: [id])
   categoria  Categoria     @relation(fields: [categoriaId], references: [id])
@@ -140,6 +143,7 @@ model Anuncio {
 
   // RNF-01: a lista pública é sempre de UMA cidade + UMA categoria, só o que está no ar.
   @@index([cidadeCodigo, categoriaId, situacao, expiraEm])
+  @@index([planoCodigo, situacao, expiraEm]) // vitrine da capa (RF-47)
   @@index([usuarioId])
   @@index([categoriaId])
   @@index([uf, cidadeCodigo])
@@ -177,8 +181,21 @@ model Mensagem {
 }
 
 // ─────────────────────────────────────────
-// PAGAMENTO (ADR-07: Pix estático + confirmação no painel)
+// PLANOS E PAGAMENTO (feature 003; ADR-07 Pix estático; ADR-12 gateway)
 // ─────────────────────────────────────────
+
+model Plano {
+  codigo       String   @id @db.VarChar(20) // SIMPLES, FOTOS, DESTAQUE, VITRINE (fixos, RN-55)
+  nome         String   @db.VarChar(40)
+  descricao    String   @db.VarChar(200)
+  maxFotos     Int
+  valor7Dias   Decimal  @db.Decimal(10, 2)
+  valor30Dias  Decimal  @db.Decimal(10, 2)
+  ativo        Boolean  @default(true)
+  atualizadoEm DateTime @updatedAt
+
+  @@map("planos")
+}
 
 enum SituacaoPagamento {
   PENDENTE
@@ -193,7 +210,12 @@ model Pagamento {
   usuarioId       String
   valor           Decimal           @db.Decimal(10, 2)
   dias            Int
+  planoCodigo     String            @default("SIMPLES") @db.VarChar(20)
   situacao        SituacaoPagamento @default(PENDENTE)
+  gateway         String?           @db.VarChar(20) // MERCADO_PAGO, CORTESIA ou nulo (Pix estático)
+  gatewayId       String?           @db.VarChar(64)
+  copiaECola      String?           @db.Text // Pix dinâmico devolvido pelo gateway
+  vencimentoEm    DateTime?
   criadoEm        DateTime          @default(now())
   confirmadoEm    DateTime?
   confirmadoPorId String?
@@ -206,17 +228,54 @@ model Pagamento {
   @@index([usuarioId, situacao])
   @@index([confirmadoPorId])
   @@index([situacao, criadoEm])
+  @@index([gatewayId])
   @@map("pagamentos")
 }
 
+// Recebedor do Pix estático (reserva quando o gateway não está configurado).
 model Configuracao {
-  id               String   @id @default("geral")
-  pixChave         String   @default("") @db.VarChar(77)
-  pixNome          String   @default("") @db.VarChar(25)
-  pixCidade        String   @default("") @db.VarChar(15)
-  valorAnuncio     Decimal  @default(1.00) @db.Decimal(10, 2)
-  diasDePublicacao Int      @default(7)
-  atualizadoEm     DateTime @updatedAt
+  id           String   @id @default("geral")
+  pixChave     String   @default("") @db.VarChar(77)
+  pixNome      String   @default("") @db.VarChar(25)
+  pixCidade    String   @default("") @db.VarChar(15)
+  atualizadoEm DateTime @updatedAt
 
   @@map("configuracoes")
+}
+
+// ─────────────────────────────────────────
+// CONTATO (feature 004)
+// ─────────────────────────────────────────
+
+enum AssuntoChamado {
+  DUVIDA
+  SUPORTE
+  PAGAMENTO
+  DENUNCIA
+  SUGESTAO
+  OUTRO
+}
+
+enum SituacaoChamado {
+  ABERTO
+  RESOLVIDO
+}
+
+model Chamado {
+  id            String          @id @default(cuid())
+  protocolo     String          @unique @db.Char(8)
+  nome          String          @db.VarChar(80)
+  email         String          @db.VarChar(160)
+  telefone      String          @default("") @db.VarChar(20)
+  assunto       AssuntoChamado
+  mensagem      String          @db.Text
+  anuncioCodigo String?         @db.Char(6)
+  situacao      SituacaoChamado @default(ABERTO)
+  notaInterna   String?         @db.Text
+  criadoEm      DateTime        @default(now())
+  resolvidoEm   DateTime?
+
+  @@index([situacao, criadoEm])
+  @@index([email, criadoEm])
+  @@map("chamados")
 }

@@ -6,8 +6,10 @@ import Link from "next/link"
 import { CaixaAnuncio } from "@/components/jornal/caixa-anuncio"
 import { Faixa } from "@/components/jornal/pecas"
 import { situacaoExibida } from "@/domain/anuncio/anuncio"
+import { planoTemDestaque } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDia, formatarReais, plural } from "@/lib/formatadores"
+import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { exigirPerfil } from "@/lib/sessao"
 import { SeloSituacao } from "./_componentes/selo-situacao"
 
@@ -50,11 +52,11 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <SeloSituacao situacao={situacao} />
                   <span className="font-titulo text-xs uppercase tracking-wider text-tinta-suave">
-                    {anuncio.categoriaNome} · {cidade ? `${cidade.nome}/${cidade.uf}` : anuncio.uf}
+                    {anuncio.categoriaNome} · {cidade ? `${cidade.nome}/${cidade.uf}` : anuncio.uf} · {NOMES_DOS_PLANOS[anuncio.planoCodigo]}
                   </span>
                 </div>
                 <Link href={`/minha-conta/anuncios/${anuncio.id}`} className="block hover:opacity-90">
-                  <CaixaAnuncio conteudo={anuncio} />
+                  <CaixaAnuncio conteudo={anuncio} destaque={planoTemDestaque(anuncio.planoCodigo)} />
                 </Link>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                   {situacao === "NO_AR" && (
@@ -71,7 +73,10 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Images className="size-4" aria-hidden />
-                    {anuncio.fotos.length}/6
+                    {anuncio.fotos.length}
+                  </span>
+                  <span>
+                    {plural(anuncio.visualizacoes, "visita", "visitas")}
                   </span>
                 </div>
                 <Link href={`/minha-conta/anuncios/${anuncio.id}`} className="botao botao-vazado botao-pequeno self-start">

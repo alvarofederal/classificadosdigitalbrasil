@@ -1,6 +1,7 @@
 // INFRAESTRUTURA — tradução entre linhas do Prisma e registros da aplicação.
 
 import type { AnuncioRegistro } from "@/application/ports/caderno"
+import { type CodigoDoPlano, ehCodigoDePlano } from "@/domain/plano/plano"
 import { centavosDeDecimal, centavosParaDecimal } from "@/domain/shared/dinheiro"
 import type { Anuncio, Prisma } from "@/generated/prisma"
 
@@ -10,6 +11,11 @@ export function centavos(valor: Prisma.Decimal | null): number | null {
 
 export function decimal(valor: number | null): string | null {
   return valor === null ? null : centavosParaDecimal(valor)
+}
+
+/** Código guardado como texto no banco; qualquer valor estranho vira Simples. */
+export function codigoDoPlano(valor: string): CodigoDoPlano {
+  return ehCodigoDePlano(valor) ? valor : "SIMPLES"
 }
 
 export function paraAnuncio(linha: Anuncio): AnuncioRegistro {
@@ -25,6 +31,8 @@ export function paraAnuncio(linha: Anuncio): AnuncioRegistro {
     precoCentavos: centavos(linha.preco),
     estilo: { moldura: linha.moldura, estiloTitulo: linha.estiloTitulo, alinhamento: linha.alinhamento, estrelas: linha.estrelas },
     situacao: linha.situacao,
+    planoCodigo: codigoDoPlano(linha.planoCodigo),
+    prioridade: linha.prioridade,
     publicadoEm: linha.publicadoEm,
     expiraEm: linha.expiraEm,
   }
@@ -45,6 +53,8 @@ export function dadosDoAnuncio(anuncio: Omit<AnuncioRegistro, "id">) {
     alinhamento: anuncio.estilo.alinhamento,
     estrelas: anuncio.estilo.estrelas,
     situacao: anuncio.situacao,
+    planoCodigo: anuncio.planoCodigo,
+    prioridade: anuncio.prioridade,
     publicadoEm: anuncio.publicadoEm,
     expiraEm: anuncio.expiraEm,
   }
@@ -54,3 +64,6 @@ export function dadosDoAnuncio(anuncio: Omit<AnuncioRegistro, "id">) {
 export function noAr(agora: Date) {
   return { situacao: "PUBLICADO" as const, expiraEm: { gt: agora } }
 }
+
+/** RN-50: maior plano primeiro; no mesmo plano, quem pagou por último (expira por último). */
+export const ORDEM_DO_CADERNO = [{ prioridade: "desc" as const }, { expiraEm: "desc" as const }, { id: "asc" as const }]

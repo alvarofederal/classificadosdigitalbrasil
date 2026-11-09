@@ -5,10 +5,12 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AnuncioDaCasa, AnuncioDoCaderno, Caderno, TarjaSecao } from "@/components/jornal/caderno"
 import { Filtros } from "@/components/jornal/filtros"
+import { LembrarCidade } from "@/components/jornal/perto-de-mim"
 import { Paginacao } from "@/components/jornal/pecas"
 import { container } from "@/infrastructure/container"
 import { paginaDe } from "@/lib/formularios"
-import { formatarReais, plural } from "@/lib/formatadores"
+import { plural } from "@/lib/formatadores"
+import { precoInicial } from "@/lib/planos"
 import { caminhoDaCidade, caminhoDaSecao } from "@/lib/site"
 import { cidadeDoEndereco } from "../../../localizar"
 
@@ -45,17 +47,18 @@ export default async function PaginaDaSecao({ params, searchParams }: Props) {
   const c = container()
   const agora = c.relogio.agora()
 
-  const [lista, tabela] = await Promise.all([
+  const [lista, planos] = await Promise.all([
     c.classificados.anunciosDaCategoria({ cidadeCodigo: cidade.codigo, categoriaId: secao.id, pagina, porPagina: POR_PAGINA, agora }),
-    c.configuracao.obter(),
+    c.classificados.planosAVenda(),
   ])
   const caminho = caminhoDaSecao(cidade, secao.slug)
   const novoAnuncio = `/minha-conta/anuncios/novo?uf=${cidade.uf}&cidade=${cidade.codigo}&categoria=${secao.id}`
-  const preco = `${formatarReais(tabela.valorAnuncioCentavos)} por ${plural(tabela.diasDePublicacao, "dia", "dias")}`
+  const preco = `a partir de ${precoInicial(planos)}`
   const [primeiro, ...resto] = lista.itens
 
   return (
     <div className="pt-3">
+      <LembrarCidade uf={cidade.uf} slug={cidade.slug} nome={cidade.nome} />
       <section aria-label="Procurar anúncios" className="border-b-2 border-tinta pb-3">
         <Filtros secoes={secoes.map(({ id, nome, slug }) => ({ id, nome, slug }))} ufInicial={cidade.uf} cidadeInicial={cidade} secaoInicial={secao.slug} />
       </section>

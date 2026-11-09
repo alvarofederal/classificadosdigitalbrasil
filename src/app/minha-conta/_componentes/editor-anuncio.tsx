@@ -14,9 +14,11 @@ import {
   LIMITES_DO_ANUNCIO,
   MOLDURAS,
 } from "@/domain/anuncio/anuncio"
+import { type Periodo, type Plano, planoTemDestaque } from "@/domain/plano/plano"
 import { centavosDeTextoEmReais } from "@/domain/shared/dinheiro"
 import type { EstadoFormulario } from "@/lib/formularios"
 import { cn } from "@/lib/utils"
+import { EscolhaDePlano } from "./escolha-de-plano"
 
 export interface ValoresDoEditor {
   categoriaId: string
@@ -36,6 +38,8 @@ export function EditorAnuncio({
   aviso,
   totalFotos = 0,
   codigo,
+  planos,
+  planoAtual = "SIMPLES",
 }: {
   acao: (formData: FormData) => Promise<EstadoFormulario>
   categorias: Array<{ id: string; nome: string }>
@@ -44,12 +48,17 @@ export function EditorAnuncio({
   aviso?: string
   totalFotos?: number
   codigo?: string
+  /** Só no anúncio novo: escolha de plano e período (feature 003). */
+  planos?: Plano[]
+  planoAtual?: string
 }) {
   const [titulo, setTitulo] = useState(iniciais.titulo)
   const [texto, setTexto] = useState(iniciais.texto)
   const [preco, setPreco] = useState(iniciais.preco)
   const [estilo, setEstilo] = useState<EstiloDoAnuncio>(iniciais.estilo)
   const [categoriaId, setCategoriaId] = useState(iniciais.categoriaId)
+  const [plano, setPlano] = useState(planoAtual)
+  const [dias, setDias] = useState<Periodo>(7)
   const categoriaNome = categorias.find((c) => c.id === categoriaId)?.nome
   const { estado, pendente, onSubmit, formRef, erro } = useFormularioAcao(acao)
 
@@ -124,6 +133,10 @@ export function EditorAnuncio({
           </label>
         </fieldset>
 
+        {planos && planos.length > 0 && (
+          <EscolhaDePlano planos={planos} plano={plano} dias={dias} aoMudarPlano={setPlano} aoMudarDias={setDias} erroPlano={erro("planoCodigo")} erroDias={erro("dias")} />
+        )}
+
         {aviso && <p className="border border-tinta bg-papel-escuro px-3 py-2 text-sm">{aviso}</p>}
         <BotaoEnviar pendente={pendente} className="self-start">
           {textoDoBotao}
@@ -136,6 +149,7 @@ export function EditorAnuncio({
         <div className="mx-auto w-[15.5rem] border border-dashed border-tinta/40 p-2">
           <p className="tarja-secao mb-2 text-sm">{categoriaNome || "Seção"}</p>
           <CaixaAnuncio
+            destaque={planoTemDestaque(plano)}
             conteudo={{ titulo, texto, precoCentavos, estilo }}
             rodape={
               <div className="flex min-h-7 items-center justify-between gap-1 font-titulo text-[0.62rem] font-semibold uppercase" aria-hidden>

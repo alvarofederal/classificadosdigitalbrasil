@@ -5,6 +5,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import type { AnuncioPublicoDTO } from "@/application/queries/consultas"
 import type { EstiloDoAnuncio } from "@/domain/anuncio/anuncio"
+import { planoTemDestaque } from "@/domain/plano/plano"
 import { cn } from "@/lib/utils"
 import { AcoesAnuncio } from "./acoes-anuncio"
 import { CaixaAnuncio, type ConteudoDaCaixa } from "./caixa-anuncio"
@@ -24,11 +25,23 @@ export function TarjaSecao({ children, href }: { children: ReactNode; href?: str
   )
 }
 
-export function AnuncioDoCaderno({ anuncio }: { anuncio: AnuncioPublicoDTO }) {
+/** RF-70: clicar em qualquer parte do anúncio abre a página dele; os ícones do rodapé continuam abrindo os modais. */
+export function AnuncioDoCaderno({ anuncio, mostrarCidade }: { anuncio: AnuncioPublicoDTO; mostrarCidade?: string }) {
   return (
     <CaixaAnuncio
       conteudo={anuncio}
-      rodape={<AcoesAnuncio anuncio={{ id: anuncio.id, codigo: anuncio.codigo, titulo: anuncio.titulo, fotos: anuncio.fotos }} />}
+      destaque={planoTemDestaque(anuncio.planoCodigo)}
+      tituloComoLink={(titulo) => (
+        <Link href={`/anuncio/${anuncio.codigo}`} className="after:absolute after:inset-0 after:content-['']">
+          {titulo}
+        </Link>
+      )}
+      rodape={
+        <>
+          {mostrarCidade && <p className="text-center font-titulo text-[0.58rem] uppercase tracking-wider text-tinta-suave">{mostrarCidade}</p>}
+          <AcoesAnuncio anuncio={{ id: anuncio.id, codigo: anuncio.codigo, titulo: anuncio.titulo, fotos: anuncio.fotos }} />
+        </>
+      }
     />
   )
 }

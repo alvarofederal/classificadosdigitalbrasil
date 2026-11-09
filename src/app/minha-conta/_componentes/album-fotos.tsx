@@ -8,10 +8,18 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
-import { MAXIMO_FOTOS } from "@/domain/anuncio/anuncio"
+import type { NovaFoto } from "@/application/ports/caderno"
+import type { EstadoFormulario } from "@/lib/formularios"
 import { urlImagem } from "@/lib/imagens"
 import { cn } from "@/lib/utils"
-import { adicionarFotosAction, prepararUploadAction, removerFotoAction, reordenarFotosAction } from "../actions"
+
+/** As ações vêm de quem usa o álbum: Minha conta (dono) ou Painel (admin, feature 007). */
+export interface AcoesDoAlbum {
+  preparar: (anuncioId: string, quantidade: number) => Promise<{ ok: true; assinaturas: Array<{ url: string; campos: Record<string, string> }> } | { ok: false; mensagem: string }>
+  adicionar: (anuncioId: string, fotos: NovaFoto[]) => Promise<EstadoFormulario>
+  reordenar: (anuncioId: string, ids: string[]) => Promise<EstadoFormulario>
+  remover: (anuncioId: string, fotoId: string) => Promise<EstadoFormulario>
+}
 
 const LADO_MAXIMO = 1600
 const QUALIDADE_JPEG = 0.82
@@ -21,7 +29,7 @@ const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp", "image/heic", "i
 type Foto = { id: string; url: string }
 type Envio = { nome: string; progresso: number; erro?: string }
 
-export function AlbumFotos({ anuncioId, fotos: iniciais }: { anuncioId: string; fotos: Foto[] }) {
+export function AlbumFotos({ anuncioId, fotos: iniciais, maximo, acoes }: { anuncioId: string; fotos: Foto[]; maximo: number; acoes: AcoesDoAlbum }) {
   const router = useRouter()
   const [fotos, setFotos] = useState(iniciais)
   const [envios, setEnvios] = useState<Envio[]>([])
@@ -32,16 +40,16 @@ export function AlbumFotos({ anuncioId, fotos: iniciais }: { anuncioId: string; 
   useEffect(() => setFotos(iniciais), [iniciais])
 
   async function enviar(arquivos: File[]) {
-    const vagas = MAXIMO_FOTOS - fotos.length
+    const vagas = maximo - fotos.length
     if (arquivos.length === 0) return
     const validos = arquivos.filter((a) => !a.type || TIPOS_ACEITOS.includes(a.type)).slice(0, vagas)
-    if (validos.length < arquivos.length) toast.warning(`Entraram ${validos.length} foto(s). O álbum aceita até ${MAXIMO_FOTOS}, em JPG, PNG, WEBP ou HEIC.`)
+    if (validos.length < arquivos.length) toast.warning(`Entraram ${validos.length} foto(s). O álbum aceita até ${maximo}, em JPG, PNG, WEBP ou HEIC.`)
     if (validos.length === 0) return
 
     setEnviando(true)
     setEnvios(validos.map((a) => ({ nome: a.name, progresso: 0 })))
     try {
-      const preparo = await prepararUploadAction(anuncioId, validos.length)
+      const preparo = await acoes.preparar(anuncioId, validos.length)
       if (!preparo.ok || !("assinaturas" in preparo)) {
         toast.error(preparo.mensagem ?? "Não foi possível enviar as fotos.")
         return
@@ -62,7 +70,7 @@ export function AlbumFotos({ anuncioId, fotos: iniciais }: { anuncioId: string; 
       )
       const enviadas = resultados.filter((r): r is NonNullable<typeof r> => r !== null)
       if (enviadas.length > 0) {
-        const registro = await adicionarFotosAction(anuncioId, enviadas)
+        const registro = await acoes.adicionar(anuncioId, enviadas)
         if (registro && !registro.ok) toast.error(registro.mensagem)
         else toast.success(enviadas.length === 1 ? "Foto adicionada ao álbum." : `${enviadas.length} fotos adicionadas ao álbum.`)
         router.refresh()
@@ -86,7 +94,7 @@ export function AlbumFotos({ anuncioId, fotos: iniciais }: { anuncioId: string; 
     copia.splice(para, 0, foto)
     setFotos(copia)
     iniciar(async () => {
-      const r = await reordenarFotosAction(anuncioId, copia.map((f) => f.id))
+      const r = await acoes.reordenar(anuncioId, copia.map((f) => f.id))
       if (r && !r.ok) {
         setFotos(anterior)
         toast.error(r.mensagem)
@@ -97,7 +105,7 @@ export function AlbumFotos({ anuncioId, fotos: iniciais }: { anuncioId: string; 
   function remover(foto: Foto) {
     if (!window.confirm("Remover esta foto do álbum?")) return
     iniciar(async () => {
-      const r = await removerFotoAction(anuncioId, foto.id)
+      const r = await acoes.remover(anuncioId, foto.id)
       if (r && !r.ok) toast.error(r.mensagem)
       else {
         setFotos((atual) => atual.filter((f) => f.id !== foto.id))
@@ -107,7 +115,7 @@ export function AlbumFotos({ anuncioId, fotos: iniciais }: { anuncioId: string; 
     })
   }
 
-  const cheio = fotos.length >= MAXIMO_FOTOS
+  const cheio = fotos.length >= maximo
 
   return (
     <div className="flex flex-col gap-4">
@@ -126,7 +134,7 @@ export function AlbumFotos({ anuncioId, fotos: iniciais }: { anuncioId: string; 
           />
         </label>
         <span className="text-sm text-tinta-suave">
-          {fotos.length} de {MAXIMO_FOTOS} fotos · a primeira abre o álbum
+          {fotos.length} de {maximo} fotos · a primeira abre o álbum
         </span>
       </div>
 

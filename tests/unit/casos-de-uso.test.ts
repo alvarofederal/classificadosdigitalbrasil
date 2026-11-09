@@ -22,6 +22,10 @@ const conteudo: ConteudoDoAnuncio = {
   estilo: ESTILO_PADRAO,
 }
 
+const USUARIO = { id: "usuario-1", email: "dono@exemplo.com" }
+const novo = { ...conteudo, planoCodigo: "SIMPLES", dias: 7 }
+const RENOVA = { email: "dono@exemplo.com", planoCodigo: "SIMPLES", dias: 7 }
+
 function montar() {
   const c = caderno()
   return {
@@ -40,7 +44,7 @@ function montar() {
 describe("Criar anúncio (RF-10, RN-10)", () => {
   it("nasce aguardando pagamento, com código público e uma cobrança de R$ 1,00 por 7 dias", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     expect(r.ok).toBe(true)
     if (!r.ok) return
     const anuncio = (await t.anuncios.buscarPorId(r.valor.anuncioId))!
@@ -52,7 +56,7 @@ describe("Criar anúncio (RF-10, RN-10)", () => {
 
   it("recusa cidade de outra UF e categoria desativada", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", { ...conteudo, cidadeCodigo: GOIANIA, categoriaId: "cat-antiga" })
+    const r = await t.criar.executar(USUARIO, { ...novo, cidadeCodigo: GOIANIA, categoriaId: "cat-antiga" })
     expect(r.ok).toBe(false)
     if (r.ok) return
     expect(r.campos?.cidadeCodigo).toBeDefined()
@@ -63,7 +67,7 @@ describe("Criar anúncio (RF-10, RN-10)", () => {
 describe("Pagamento e tempo no ar (RN-12, RN-21, RN-22)", () => {
   it("confirmar o Pix publica por 7 dias; renovar no ar soma dias", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     if (!r.ok) throw new Error(r.mensagem)
     const primeiro = (await t.pagamentos.pendenteDoAnuncio(r.valor.anuncioId))!
 
@@ -74,7 +78,7 @@ describe("Pagamento e tempo no ar (RN-12, RN-21, RN-22)", () => {
     expect(anuncio.expiraEm!.getTime()).toBe(t.relogio.agora().getTime() + 7 * DIA)
 
     t.relogio.avancarDias(5)
-    const renovacao = await t.renovar.executar({ usuarioId: "usuario-1", anuncioId: anuncio.id })
+    const renovacao = await t.renovar.executar({ ...RENOVA, usuarioId: "usuario-1", anuncioId: anuncio.id })
     if (!renovacao.ok) throw new Error(renovacao.mensagem)
     await t.confirmar.executar({ pagamentoId: renovacao.valor.id, adminId: "admin" })
     anuncio = (await t.anuncios.buscarPorId(anuncio.id))!
@@ -84,7 +88,7 @@ describe("Pagamento e tempo no ar (RN-12, RN-21, RN-22)", () => {
 
   it("não confirma o mesmo pagamento duas vezes", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     if (!r.ok) throw new Error(r.mensagem)
     const pendente = (await t.pagamentos.pendenteDoAnuncio(r.valor.anuncioId))!
     await t.confirmar.executar({ pagamentoId: pendente.id, adminId: "admin" })
@@ -94,24 +98,24 @@ describe("Pagamento e tempo no ar (RN-12, RN-21, RN-22)", () => {
 
   it("renovar com cobrança aberta devolve a mesma cobrança", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     if (!r.ok) throw new Error(r.mensagem)
-    const a = await t.renovar.executar({ usuarioId: "usuario-1", anuncioId: r.valor.anuncioId })
-    const b = await t.renovar.executar({ usuarioId: "usuario-1", anuncioId: r.valor.anuncioId })
+    const a = await t.renovar.executar({ ...RENOVA, usuarioId: "usuario-1", anuncioId: r.valor.anuncioId })
+    const b = await t.renovar.executar({ ...RENOVA, usuarioId: "usuario-1", anuncioId: r.valor.anuncioId })
     expect(a.ok && b.ok && a.valor.id === b.valor.id).toBe(true)
     expect([...t.pagamentos.itens.values()].filter((p) => p.situacao === "PENDENTE")).toHaveLength(1)
   })
 
   it("outro usuário não renova o anúncio alheio", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     if (!r.ok) throw new Error(r.mensagem)
-    expect((await t.renovar.executar({ usuarioId: "intruso", anuncioId: r.valor.anuncioId })).ok).toBe(false)
+    expect((await t.renovar.executar({ ...RENOVA, usuarioId: "intruso", anuncioId: r.valor.anuncioId })).ok).toBe(false)
   })
 
   it("monta o Pix só quando o recebedor está configurado", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     if (!r.ok) throw new Error(r.mensagem)
     const pendente = (await t.pagamentos.pendenteDoAnuncio(r.valor.anuncioId))!
     expect((await t.cobranca.executar(pendente)).copiaECola).toBeNull()
@@ -124,7 +128,7 @@ describe("Pagamento e tempo no ar (RN-12, RN-21, RN-22)", () => {
 describe("Editar, remover e restaurar (RN-11, RN-14)", () => {
   it("só o dono (ou o admin) edita; removido não edita", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     if (!r.ok) throw new Error(r.mensagem)
     const id = r.valor.anuncioId
     expect((await t.editar.executar({ usuarioId: "intruso", perfil: "ANUNCIANTE" }, id, { ...conteudo, titulo: "Outro" })).ok).toBe(false)
@@ -145,7 +149,7 @@ describe("Editar, remover e restaurar (RN-11, RN-14)", () => {
 describe("Mensagens (RN-17, RN-18)", () => {
   it("só anúncio no ar recebe mensagem, com limite por contato", async () => {
     const t = montar()
-    const r = await t.criar.executar("usuario-1", conteudo)
+    const r = await t.criar.executar(USUARIO, novo)
     if (!r.ok) throw new Error(r.mensagem)
     const id = r.valor.anuncioId
     const msg = { nome: "Ana", contato: "61999998888", texto: "Ainda está disponível?" }

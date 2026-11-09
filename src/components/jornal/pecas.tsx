@@ -41,7 +41,16 @@ export function Rodape() {
       <div className="fio-duplo" />
       <div className="flex flex-col items-center justify-between gap-2 py-3 text-center font-titulo text-xs uppercase tracking-wider sm:flex-row sm:text-left">
         <span>{NOME_DO_SITE}</span>
-        <nav className="flex gap-4" aria-label="Institucional">
+        <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1" aria-label="Institucional">
+          <Link href="/#como-funciona" className="hover:underline">
+            Como funciona
+          </Link>
+          <Link href="/#valores" className="hover:underline">
+            Valores
+          </Link>
+          <Link href="/#contato" className="hover:underline">
+            Contato
+          </Link>
           <Link href="/termos" className="hover:underline">
             Termos de uso
           </Link>

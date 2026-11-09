@@ -2,15 +2,23 @@
 // Rodar só quando o IBGE criar ou renomear município: `npm run municipios`.
 //
 // Saídas:
-//   src/infrastructure/localidades/municipios.json  → servidor (validação e endereços /uf/cidade)
-//   public/municipios/<UF>.json                      → navegador (filtro UF → Cidade, baixado sob demanda)
-// Formato de cada cidade: [códigoIBGE, nome, slug]
+//   src/infrastructure/localidades/municipios.json  → servidor: [códigoIBGE, nome, slug, latitude, longitude]
+//   public/municipios/<UF>.json                      → navegador (filtro UF → Cidade): [códigoIBGE, nome, slug]
+// As coordenadas (para "anúncios perto de mim", feature 002) vêm da base pública kelvins/municipios-brasileiros,
+// casadas pelo código do IBGE.
 
 import { mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
 const URL_IBGE = "https://servicodados.ibge.gov.br/api/v1/localidades/municipios?view=nivelado"
+const URL_COORDENADAS = "https://raw.githubusercontent.com/kelvins/municipios-brasileiros/main/json/municipios.json"
 const raiz = path.resolve(import.meta.dirname, "..")
+
+const respostaCoordenadas = await fetch(URL_COORDENADAS)
+if (!respostaCoordenadas.ok) throw new Error(`Base de coordenadas respondeu ${respostaCoordenadas.status}`)
+const coordenadas = new Map(
+  (await respostaCoordenadas.json()).map((m) => [Number(m.codigo_ibge), [Number(m.latitude.toFixed(4)), Number(m.longitude.toFixed(4))]]),
+)
 
 function slug(nome) {
   return nome
@@ -26,11 +34,16 @@ if (!resposta.ok) throw new Error(`IBGE respondeu ${resposta.status}`)
 const lista = await resposta.json()
 
 const porUf = {}
+const semCoordenada = []
 for (const item of lista) {
   const uf = item["UF-sigla"]
+  const codigo = Number(item["municipio-id"])
+  const coordenada = coordenadas.get(codigo)
+  if (!coordenada) semCoordenada.push(`${item["municipio-nome"]}/${uf}`)
   porUf[uf] ??= []
-  porUf[uf].push([Number(item["municipio-id"]), item["municipio-nome"], slug(item["municipio-nome"])])
+  porUf[uf].push([codigo, item["municipio-nome"], slug(item["municipio-nome"]), ...(coordenada ?? [null, null])])
 }
+if (semCoordenada.length > 0) console.log(`• Sem coordenada (fora do "perto de mim"): ${semCoordenada.join(", ")}`)
 
 let total = 0
 for (const [uf, cidades] of Object.entries(porUf)) {
@@ -52,7 +65,7 @@ writeFileSync(path.join(pastaServidor, "municipios.json"), JSON.stringify(ordena
 const pastaPublica = path.join(raiz, "public/municipios")
 mkdirSync(pastaPublica, { recursive: true })
 for (const [uf, cidades] of Object.entries(ordenado)) {
-  writeFileSync(path.join(pastaPublica, `${uf}.json`), JSON.stringify(cidades))
+  writeFileSync(path.join(pastaPublica, `${uf}.json`), JSON.stringify(cidades.map(([codigo, nome, s]) => [codigo, nome, s])))
 }
 
 console.log(`✔ ${total} municípios em ${Object.keys(ordenado).length} UFs`)

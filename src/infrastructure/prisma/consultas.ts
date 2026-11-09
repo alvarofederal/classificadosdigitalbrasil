@@ -2,8 +2,10 @@
 
 import type {
   AnuncioAdminDTO,
+  AnuncioDoPainelDTO,
   AnuncioPublicoDTO,
   CategoriaAdminDTO,
+  ChamadoDTO,
   ClassificadosQuery,
   FiltroDeAnuncios,
   FiltroDePagamento,
@@ -18,8 +20,11 @@ import type {
   UsuarioAdminDTO,
 } from "@/application/queries/consultas"
 import type { Categoria } from "@/domain/categoria/categoria"
+import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
+import type { Plano } from "@/domain/plano/plano"
 import type { Pagamento, Prisma, PrismaClient } from "@/generated/prisma"
-import { centavos, noAr } from "./mapeadores"
+import { ORDEM_DO_CADERNO, centavos, codigoDoPlano, noAr } from "./mapeadores"
+import { emOrdemDeCatalogo, paraPagamento, paraPlano } from "./repositorios-pagamento"
 
 const FOTOS = { select: { id: true, url: true }, orderBy: [{ ordem: "asc" as const }, { criadoEm: "asc" as const }] }
 
@@ -33,6 +38,7 @@ const SELECAO_PUBLICA = {
   estiloTitulo: true,
   alinhamento: true,
   estrelas: true,
+  planoCodigo: true,
   uf: true,
   cidadeCodigo: true,
   expiraEm: true,
@@ -50,6 +56,7 @@ function paraPublico(linha: LinhaPublica): AnuncioPublicoDTO {
     texto: linha.texto,
     precoCentavos: centavos(linha.preco),
     estilo: { moldura: linha.moldura, estiloTitulo: linha.estiloTitulo, alinhamento: linha.alinhamento, estrelas: linha.estrelas },
+    planoCodigo: codigoDoPlano(linha.planoCodigo),
     fotos: linha.fotos,
     uf: linha.uf,
     cidadeCodigo: linha.cidadeCodigo,
@@ -60,14 +67,19 @@ function paraPublico(linha: LinhaPublica): AnuncioPublicoDTO {
 }
 
 function paraPagamentoResumo(linha: Pagamento): PagamentoResumoDTO {
+  const p = paraPagamento(linha)
   return {
-    id: linha.id,
-    codigo: linha.codigo,
-    valorCentavos: centavos(linha.valor) ?? 0,
-    dias: linha.dias,
-    situacao: linha.situacao,
-    criadoEm: linha.criadoEm,
-    confirmadoEm: linha.confirmadoEm,
+    id: p.id,
+    codigo: p.codigo,
+    planoCodigo: p.planoCodigo,
+    valorCentavos: p.valorCentavos,
+    dias: p.dias,
+    situacao: p.situacao,
+    gateway: p.gateway,
+    copiaECola: p.copiaECola,
+    vencimentoEm: p.vencimentoEm,
+    criadoEm: p.criadoEm,
+    confirmadoEm: p.confirmadoEm,
   }
 }
 
@@ -98,7 +110,7 @@ export class PrismaClassificadosQuery implements ClassificadosQuery {
       this.db.anuncio.findMany({
         where,
         // Quem pagou por último aparece primeiro: a expiração mais distante é o pagamento mais recente.
-        orderBy: [{ expiraEm: "desc" }, { id: "asc" }],
+        orderBy: ORDEM_DO_CADERNO,
         skip: (params.pagina - 1) * params.porPagina,
         take: params.porPagina,
         select: SELECAO_PUBLICA,
@@ -113,7 +125,7 @@ export class PrismaClassificadosQuery implements ClassificadosQuery {
       params.categoriaIds.map((categoriaId) =>
         this.db.anuncio.findMany({
           where: { cidadeCodigo: params.cidadeCodigo, categoriaId, ...noAr(params.agora) },
-          orderBy: [{ expiraEm: "desc" }, { id: "asc" }],
+          orderBy: ORDEM_DO_CADERNO,
           take: params.limite,
           select: SELECAO_PUBLICA,
         }),
@@ -125,6 +137,20 @@ export class PrismaClassificadosQuery implements ClassificadosQuery {
   async anuncioNoAr(codigo: string, agora: Date) {
     const linha = await this.db.anuncio.findFirst({ where: { codigo, ...noAr(agora) }, select: SELECAO_PUBLICA })
     return linha ? paraPublico(linha) : null
+  }
+
+  async planosAVenda(): Promise<Plano[]> {
+    return emOrdemDeCatalogo((await this.db.plano.findMany({ where: { ativo: true } })).map(paraPlano))
+  }
+
+  async vitrine(agora: Date, limite: number) {
+    const linhas = await this.db.anuncio.findMany({
+      where: { planoCodigo: "VITRINE", ...noAr(agora) },
+      orderBy: [{ expiraEm: "desc" }, { id: "asc" }],
+      take: limite,
+      select: SELECAO_PUBLICA,
+    })
+    return linhas.map(paraPublico)
   }
 
   async cidadesComAnuncios(agora: Date, limite: number) {
@@ -165,6 +191,8 @@ const SELECAO_MEU_ANUNCIO = {
   alinhamento: true,
   estrelas: true,
   situacao: true,
+  planoCodigo: true,
+  visualizacoes: true,
   publicadoEm: true,
   expiraEm: true,
   criadoEm: true,
@@ -190,6 +218,8 @@ function paraMeuAnuncio(linha: LinhaMeuAnuncio): MeuAnuncioDTO {
     precoCentavos: centavos(linha.preco),
     estilo: { moldura: linha.moldura, estiloTitulo: linha.estiloTitulo, alinhamento: linha.alinhamento, estrelas: linha.estrelas },
     situacao: linha.situacao,
+    planoCodigo: codigoDoPlano(linha.planoCodigo),
+    visualizacoes: linha.visualizacoes,
     publicadoEm: linha.publicadoEm,
     expiraEm: linha.expiraEm,
     criadoEm: linha.criadoEm,
@@ -198,6 +228,20 @@ function paraMeuAnuncio(linha: LinhaMeuAnuncio): MeuAnuncioDTO {
     totalMensagens: linha.mensagens.length,
     pagamentoPendente: linha.pagamentos[0] ? paraPagamentoResumo(linha.pagamentos[0]) : null,
   }
+}
+
+/** Detalhe usado pelo dono (Minha conta) e pelo admin (Painel): mensagens e histórico de pagamentos. */
+async function detalheDoAnuncio(db: PrismaClient, where: Prisma.AnuncioWhereInput): Promise<MeuAnuncioDetalheDTO | null> {
+  const linha = await db.anuncio.findFirst({
+    where,
+    select: {
+      ...SELECAO_MEU_ANUNCIO,
+      mensagens: { orderBy: { criadoEm: "desc" }, select: { id: true, nome: true, contato: true, texto: true, lida: true, criadoEm: true } },
+    },
+  })
+  if (!linha) return null
+  const historico = await db.pagamento.findMany({ where: { anuncioId: linha.id }, orderBy: { criadoEm: "desc" } })
+  return { ...paraMeuAnuncio(linha), mensagens: linha.mensagens, pagamentos: historico.map(paraPagamentoResumo) }
 }
 
 export class PrismaMinhaContaQuery implements MinhaContaQuery {
@@ -213,16 +257,7 @@ export class PrismaMinhaContaQuery implements MinhaContaQuery {
   }
 
   async meuAnuncio(usuarioId: string, anuncioId: string): Promise<MeuAnuncioDetalheDTO | null> {
-    const linha = await this.db.anuncio.findFirst({
-      where: { id: anuncioId, usuarioId, situacao: { not: "REMOVIDO" } },
-      select: {
-        ...SELECAO_MEU_ANUNCIO,
-        mensagens: { orderBy: { criadoEm: "desc" }, select: { id: true, nome: true, contato: true, texto: true, lida: true, criadoEm: true } },
-      },
-    })
-    if (!linha) return null
-    const historico = await this.db.pagamento.findMany({ where: { anuncioId }, orderBy: { criadoEm: "desc" } })
-    return { ...paraMeuAnuncio(linha), mensagens: linha.mensagens, pagamentos: historico.map(paraPagamentoResumo) }
+    return detalheDoAnuncio(this.db, { id: anuncioId, usuarioId, situacao: { not: "REMOVIDO" } })
   }
 
   async perfil(usuarioId: string): Promise<PerfilDTO | null> {
@@ -237,11 +272,12 @@ export class PrismaPainelQuery implements PainelQuery {
   constructor(private readonly db: PrismaClient) {}
 
   async resumo(agora: Date): Promise<ResumoDoPainelDTO> {
-    const [usuarios, anunciosNoAr, aguardandoPagamento, confirmados] = await Promise.all([
+    const [usuarios, anunciosNoAr, aguardandoPagamento, confirmados, chamadosAbertos] = await Promise.all([
       this.db.usuario.count({ where: { perfil: "ANUNCIANTE" } }),
       this.db.anuncio.count({ where: noAr(agora) }),
       this.db.anuncio.count({ where: { situacao: "AGUARDANDO_PAGAMENTO" } }),
       this.db.pagamento.aggregate({ where: { situacao: "CONFIRMADO" }, _count: { _all: true }, _sum: { valor: true } }),
+      this.db.chamado.count({ where: { situacao: "ABERTO" } }),
     ])
     return {
       usuarios,
@@ -249,7 +285,28 @@ export class PrismaPainelQuery implements PainelQuery {
       aguardandoPagamento,
       pagamentosConfirmados: confirmados._count._all,
       valorRecebidoCentavos: centavos(confirmados._sum.valor) ?? 0,
+      chamadosAbertos,
     }
+  }
+
+  async anuncio(id: string): Promise<AnuncioDoPainelDTO | null> {
+    const detalhe = await detalheDoAnuncio(this.db, { id })
+    if (!detalhe) return null
+    const dono = await this.db.anuncio.findUnique({ where: { id }, select: { usuario: { select: { id: true, nome: true, email: true, celular: true } } } })
+    return dono ? { ...detalhe, anunciante: dono.usuario } : null
+  }
+
+  async planos(): Promise<Plano[]> {
+    return emOrdemDeCatalogo((await this.db.plano.findMany()).map(paraPlano))
+  }
+
+  async chamados(params: { pagina: number; porPagina: number; situacao: SituacaoDoChamado | null; assunto: Assunto | null }): Promise<Pagina<ChamadoDTO>> {
+    const where = { ...(params.situacao ? { situacao: params.situacao } : {}), ...(params.assunto ? { assunto: params.assunto } : {}) }
+    const [itens, total] = await Promise.all([
+      this.db.chamado.findMany({ where, orderBy: { criadoEm: "desc" }, skip: (params.pagina - 1) * params.porPagina, take: params.porPagina }),
+      this.db.chamado.count({ where }),
+    ])
+    return { itens, total, pagina: params.pagina, porPagina: params.porPagina }
   }
 
   async usuarios(params: { pagina: number; porPagina: number; busca: string | null; pagamento: FiltroDePagamento }): Promise<Pagina<UsuarioAdminDTO>> {
@@ -332,6 +389,7 @@ export class PrismaPainelQuery implements PainelQuery {
           id: true,
           codigo: true,
           titulo: true,
+          planoCodigo: true,
           uf: true,
           cidadeCodigo: true,
           situacao: true,
@@ -348,6 +406,7 @@ export class PrismaPainelQuery implements PainelQuery {
     ])
     const itens = linhas.map(({ categoria, usuario, _count, pagamentos, ...anuncio }) => ({
       ...anuncio,
+      planoCodigo: codigoDoPlano(anuncio.planoCodigo),
       categoriaNome: categoria.nome,
       anuncianteNome: usuario.nome,
       anuncianteEmail: usuario.email,

@@ -9,6 +9,7 @@ import { ufDe } from "@/domain/localidade/uf"
 import { container } from "@/infrastructure/container"
 import { formatarDia, formatarReais } from "@/lib/formatadores"
 import { paginaDe, parametro } from "@/lib/formularios"
+import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { SeloSituacao } from "../../minha-conta/_componentes/selo-situacao"
 import { BotaoAcao } from "../_componentes/botao-acao"
 import { confirmarPagamentoAction, removerAnuncioAdminAction, restaurarAnuncioAction } from "../actions"
@@ -124,10 +125,12 @@ export default async function Anuncios({ searchParams }: { searchParams: Promise
               return (
                 <tr key={a.id}>
                   <td>
-                    <strong className="font-titulo uppercase">{a.titulo}</strong>
+                    <Link href={`/painel/anuncios/${a.id}`} className="font-titulo font-bold uppercase hover:underline">
+                      {a.titulo}
+                    </Link>
                     <br />
                     <span className="font-mono text-xs text-tinta-suave">
-                      {a.codigo} · {a.totalFotos} foto(s)
+                      {a.codigo} · {NOMES_DOS_PLANOS[a.planoCodigo]} · {a.totalFotos} foto(s)
                     </span>
                   </td>
                   <td>

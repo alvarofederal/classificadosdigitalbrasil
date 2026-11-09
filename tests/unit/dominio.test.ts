@@ -10,7 +10,10 @@ import {
 } from "@/domain/anuncio/anuncio"
 import { slugDaCategoria, validarCategoria } from "@/domain/categoria/categoria"
 import { contatoValido, validarMensagem } from "@/domain/mensagem/mensagem"
-import { validarTabelaDePreco } from "@/domain/pagamento/pagamento"
+import { normalizarChamado, validarChamado } from "@/domain/chamado/chamado"
+import { dentroDoBrasil, distanciaKm } from "@/domain/localidade/geo"
+import { PLANOS_INICIAIS, ehPeriodo, planoTemDestaque, prioridadeDoPlano, validarPlano, valorDoPeriodo } from "@/domain/plano/plano"
+import { CatalogoIbge } from "@/infrastructure/localidades/catalogo-ibge"
 import { chavePixValida, crc16, gerarPixCopiaECola, textoParaPix } from "@/domain/pagamento/pix"
 import { ufDe } from "@/domain/localidade/uf"
 import { cpfValido, mascararCpf } from "@/domain/usuario/cpf"
@@ -143,9 +146,58 @@ describe("Pix copia e cola (ADR-07)", () => {
     expect(textoParaPix("São João d'Aliança", 15)).toBe("SAO JOAO D ALIA")
   })
 
-  it("tabela de preço tem limites", () => {
-    expect(validarTabelaDePreco({ valorAnuncioCentavos: 100, diasDePublicacao: 7 })).toEqual({})
-    expect(Object.keys(validarTabelaDePreco({ valorAnuncioCentavos: 0, diasDePublicacao: 0 })).sort()).toEqual(["diasDePublicacao", "valorAnuncio"])
+})
+
+describe("Planos e tabela de preços (feature 003)", () => {
+  it("tabela inicial: mês = 3 semanas e Vitrine é o mais caro", () => {
+    for (const p of PLANOS_INICIAIS) expect(p.valor30DiasCentavos).toBe(p.valor7DiasCentavos * 3)
+    const maisCaro = [...PLANOS_INICIAIS].sort((a, b) => b.valor30DiasCentavos - a.valor30DiasCentavos)[0]
+    expect(maisCaro.codigo).toBe("VITRINE")
+  })
+  it("valor do período e prioridade na seção (RN-50)", () => {
+    const vitrine = PLANOS_INICIAIS.find((p) => p.codigo === "VITRINE")!
+    expect(valorDoPeriodo(vitrine, 7)).toBe(1000)
+    expect(valorDoPeriodo(vitrine, 30)).toBe(3000)
+    expect(prioridadeDoPlano("VITRINE")).toBeGreaterThan(prioridadeDoPlano("DESTAQUE"))
+    expect(prioridadeDoPlano("DESTAQUE")).toBeGreaterThan(prioridadeDoPlano("FOTOS"))
+    expect(prioridadeDoPlano("FOTOS")).toBeGreaterThan(prioridadeDoPlano("SIMPLES"))
+    expect(planoTemDestaque("DESTAQUE") && planoTemDestaque("VITRINE") && !planoTemDestaque("FOTOS")).toBe(true)
+  })
+  it("só 7 ou 30 dias", () => {
+    expect(ehPeriodo(7) && ehPeriodo(30)).toBe(true)
+    expect(ehPeriodo(15)).toBe(false)
+  })
+  it("edição do admin tem limites", () => {
+    const base = { nome: "Simples", descricao: "Texto e uma foto.", maxFotos: 1, valor7DiasCentavos: 100, valor30DiasCentavos: 300, ativo: true }
+    expect(validarPlano(base)).toEqual({})
+    expect(Object.keys(validarPlano({ ...base, maxFotos: 9, valor7DiasCentavos: 0 })).sort()).toEqual(["maxFotos", "valor7Dias"])
+  })
+})
+
+describe("Perto de mim (feature 002)", () => {
+  it("distância de Brasília a Goiânia fica perto de 175 km", () => {
+    const d = distanciaKm({ latitude: -15.7795, longitude: -47.9297 }, { latitude: -16.6864, longitude: -49.2643 })
+    expect(d).toBeGreaterThan(160)
+    expect(d).toBeLessThan(190)
+  })
+  it("acha a cidade pela coordenada e recusa fora do Brasil (RN-41)", () => {
+    const catalogo = new CatalogoIbge()
+    expect(catalogo.cidadeMaisProxima({ latitude: -15.79, longitude: -47.88 })?.nome).toBe("Brasília")
+    expect(catalogo.cidadeMaisProxima({ latitude: -23.55, longitude: -46.63 })?.nome).toBe("São Paulo")
+    expect(dentroDoBrasil({ latitude: 48.85, longitude: 2.35 })).toBe(false)
+  })
+})
+
+describe("Chamados (feature 004)", () => {
+  const ok = { nome: "Ana Lima", email: "Ana@Exemplo.com ", telefone: "(61) 99999-8888", assunto: "denuncia", mensagem: "Este anúncio parece golpe.", anuncioCodigo: "9tttmq" }
+  it("normaliza e valida", () => {
+    const n = normalizarChamado(ok)
+    expect(n).toMatchObject({ email: "ana@exemplo.com", telefone: "61999998888", assunto: "DENUNCIA", anuncioCodigo: "9TTTMQ" })
+    expect(validarChamado(n)).toEqual({})
+  })
+  it("aponta e-mail, assunto, mensagem curta e código inválido", () => {
+    const erros = validarChamado(normalizarChamado({ ...ok, email: "x", assunto: "nada", mensagem: "oi", anuncioCodigo: "123" }))
+    expect(Object.keys(erros).sort()).toEqual(["anuncioCodigo", "assunto", "email", "mensagem"])
   })
 })
 

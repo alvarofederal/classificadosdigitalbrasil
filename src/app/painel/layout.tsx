@@ -8,6 +8,8 @@ const ITENS = [
   { href: "/painel", rotulo: "Resumo" },
   { href: "/painel/anuncios", rotulo: "Anúncios" },
   { href: "/painel/usuarios", rotulo: "Usuários" },
+  { href: "/painel/chamados", rotulo: "Chamados" },
+  { href: "/painel/planos", rotulo: "Planos" },
   { href: "/painel/categorias", rotulo: "Categorias" },
   { href: "/painel/configuracoes", rotulo: "Configurações" },
 ]

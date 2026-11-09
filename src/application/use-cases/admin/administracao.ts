@@ -1,10 +1,11 @@
-// APLICAÇÃO — o que só o administrador faz: categorias e configuração (RF-30 a RF-32, RF-35).
+// APLICAÇÃO — o que só o administrador faz: categorias, planos, configuração do Pix e chamados (RF-30 a RF-35, RF-51, RF-63).
 
 import { type DadosDaCategoria, slugDaCategoria, validarCategoria } from "@/domain/categoria/categoria"
-import { validarTabelaDePreco } from "@/domain/pagamento/pagamento"
 import { validarRecebedorPix } from "@/domain/pagamento/pix"
+import { type Plano, ehCodigoDePlano, validarPlano } from "@/domain/plano/plano"
 import { type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
-import type { CategoriaRepository, Configuracao, ConfiguracaoRepository } from "../../ports/caderno"
+import type { CategoriaRepository, ChamadoRepository, Configuracao, ConfiguracaoRepository, PlanoRepository } from "../../ports/caderno"
+import type { Relogio } from "../../ports/sistema"
 
 export class CriarCategoriaUseCase {
   constructor(private readonly categorias: CategoriaRepository) {}
@@ -50,23 +51,51 @@ export class RemoverCategoriaUseCase {
   }
 }
 
+/** RF-51: o admin muda preços e textos; o código (e o que ele garante) é fixo (RN-55). */
+export class AtualizarPlanoUseCase {
+  constructor(private readonly planos: PlanoRepository) {}
+
+  async executar(codigo: string, dados: Omit<Plano, "codigo">): Promise<Result<true>> {
+    if (!ehCodigoDePlano(codigo) || !(await this.planos.buscar(codigo))) return falha("NAO_ENCONTRADO", "Plano não encontrado.")
+    const limpo = { ...dados, nome: dados.nome.trim(), descricao: dados.descricao.trim() }
+    const erros = validarPlano(limpo)
+    if (Object.keys(erros).length > 0) return falhaDeValidacao(erros)
+    await this.planos.salvar({ codigo, ...limpo })
+    return ok(true)
+  }
+}
+
 export class AtualizarConfiguracaoUseCase {
   constructor(private readonly configuracao: ConfiguracaoRepository) {}
 
   async executar(entrada: Configuracao): Promise<Result<true>> {
-    const dados: Configuracao = {
-      ...entrada,
-      pixChave: entrada.pixChave.trim(),
-      pixNome: entrada.pixNome.trim(),
-      pixCidade: entrada.pixCidade.trim(),
-    }
-    const erros = validarTabelaDePreco(dados)
-    // A chave pode ficar em branco (cobrança desligada); preenchida, precisa estar completa.
-    if (dados.pixChave || dados.pixNome || dados.pixCidade) {
-      validarRecebedorPix({ chave: dados.pixChave, nomeRecebedor: dados.pixNome, cidadeRecebedor: dados.pixCidade }, erros)
-    }
+    const dados: Configuracao = { pixChave: entrada.pixChave.trim(), pixNome: entrada.pixNome.trim(), pixCidade: entrada.pixCidade.trim() }
+    // A chave pode ficar em branco (Pix estático desligado); preenchida, precisa estar completa.
+    const erros = dados.pixChave || dados.pixNome || dados.pixCidade ? validarRecebedorPix({ chave: dados.pixChave, nomeRecebedor: dados.pixNome, cidadeRecebedor: dados.pixCidade }) : {}
     if (Object.keys(erros).length > 0) return falhaDeValidacao(erros)
     await this.configuracao.salvar(dados)
+    return ok(true)
+  }
+}
+
+/** RF-63: marca o chamado como resolvido (ou reabre), com nota interna opcional. */
+export class AtualizarChamadoUseCase {
+  constructor(
+    private readonly chamados: ChamadoRepository,
+    private readonly relogio: Relogio,
+  ) {}
+
+  async executar(id: string, entrada: { resolvido: boolean; notaInterna: string | null }): Promise<Result<true>> {
+    const chamado = await this.chamados.buscarPorId(id)
+    if (!chamado) return falha("NAO_ENCONTRADO", "Chamado não encontrado.")
+    const nota = entrada.notaInterna?.trim() || null
+    if (nota && nota.length > 2000) return falhaDeValidacao({ notaInterna: "Nota com no máximo 2.000 caracteres." })
+    await this.chamados.atualizar({
+      ...chamado,
+      notaInterna: nota,
+      situacao: entrada.resolvido ? "RESOLVIDO" : "ABERTO",
+      resolvidoEm: entrada.resolvido ? (chamado.resolvidoEm ?? this.relogio.agora()) : null,
+    })
     return ok(true)
   }
 }

@@ -1,6 +1,4 @@
-// DOMÍNIO — pagamento do espaço: R$ 1,00 por 7 dias, por padrão (RN-20 a RN-24).
-
-import type { ErrosDeCampo } from "../shared/result"
+// DOMÍNIO — cobrança do espaço (RN-20 a RN-24; planos na feature 003; gateway na feature 006).
 
 export const SITUACOES_DO_PAGAMENTO = {
   PENDENTE: "Aguardando",
@@ -10,24 +8,17 @@ export const SITUACOES_DO_PAGAMENTO = {
 
 export type SituacaoDoPagamento = keyof typeof SITUACOES_DO_PAGAMENTO
 
-export const VALOR_PADRAO_CENTAVOS = 100
-export const DIAS_PADRAO = 7
+/** De onde veio o pagamento: Pix estático (null), gateway automático ou cortesia do admin (RF-84). */
+export type OrigemDoPagamento = "MERCADO_PAGO" | "CORTESIA" | null
 
-export interface TabelaDePreco {
-  valorAnuncioCentavos: number
-  diasDePublicacao: number
+export const ORIGENS_DO_PAGAMENTO: Record<string, string> = {
+  MERCADO_PAGO: "Pix automático",
+  CORTESIA: "Cortesia",
 }
 
-export function validarTabelaDePreco(tabela: TabelaDePreco, erros: ErrosDeCampo = {}): ErrosDeCampo {
-  if (!Number.isSafeInteger(tabela.valorAnuncioCentavos) || tabela.valorAnuncioCentavos < 1 || tabela.valorAnuncioCentavos > 100_000) {
-    erros.valorAnuncio = "Valor entre R$ 0,01 e R$ 1.000,00."
-  }
-  if (!Number.isInteger(tabela.diasDePublicacao) || tabela.diasDePublicacao < 1 || tabela.diasDePublicacao > 90) {
-    erros.diasDePublicacao = "Entre 1 e 90 dias."
-  }
-  return erros
-}
-
-/** Código do pagamento: vai no campo de identificação do Pix e aparece no extrato do recebedor. */
+/** Código da cobrança: vai no Pix como referência e aparece no extrato do recebedor. */
 export const ALFABETO_DO_PAGAMENTO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 export const TAMANHO_DO_CODIGO_DE_PAGAMENTO = 10
+
+/** RN-83: o Pix dinâmico vence em 24 horas. */
+export const VALIDADE_DO_PIX_MS = 24 * 60 * 60 * 1000

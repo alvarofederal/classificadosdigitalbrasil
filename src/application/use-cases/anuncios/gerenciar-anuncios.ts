@@ -7,7 +7,7 @@ import type { AnuncioRegistro, AnuncioRepository, CategoriaRepository, Pagamento
 import type { Localidades } from "../../ports/localidades"
 import type { GeradorDeCodigo } from "../../ports/sistema"
 import { conferirCidade } from "../acesso/conta"
-import { type DepsDePagamento, abrirCobranca } from "../pagamentos/pagamentos"
+import { type DepsDePagamento, abrirCobranca, conferirPlano } from "../pagamentos/pagamentos"
 
 export interface Ator {
   usuarioId: string
@@ -44,11 +44,17 @@ export class CriarAnuncioUseCase {
     private readonly pagamento: DepsDePagamento,
   ) {}
 
-  /** RN-10: nasce aguardando pagamento, já com a cobrança aberta. */
-  async executar(usuarioId: string, entrada: ConteudoDoAnuncio): Promise<Result<{ anuncioId: string; codigo: string }>> {
-    const conteudo = normalizarConteudo(entrada)
+  /** RN-10: nasce aguardando pagamento, já com a cobrança do plano e período escolhidos (RF-52). */
+  async executar(
+    usuario: { id: string; email: string },
+    entrada: ConteudoDoAnuncio & { planoCodigo: string; dias: number },
+  ): Promise<Result<{ anuncioId: string; codigo: string }>> {
+    const { planoCodigo, dias, ...resto } = entrada
+    const conteudo = normalizarConteudo(resto)
     const erros = await validarComCatalogos(conteudo, this.categorias, this.localidades)
-    if (Object.keys(erros).length > 0) return falhaDeValidacao(erros)
+    const { plano, erros: errosDoPlano } = await conferirPlano(this.pagamento.planos, planoCodigo, dias)
+    Object.assign(erros, errosDoPlano)
+    if (!plano || Object.keys(erros).length > 0) return falhaDeValidacao(erros)
 
     let codigo = this.codigos.codigo(ALFABETO_DO_CODIGO, TAMANHO_DO_CODIGO)
     while (await this.anuncios.existeCodigo(codigo)) codigo = this.codigos.codigo(ALFABETO_DO_CODIGO, TAMANHO_DO_CODIGO)
@@ -56,12 +62,15 @@ export class CriarAnuncioUseCase {
     const anuncioId = await this.anuncios.inserir({
       ...conteudo,
       codigo,
-      usuarioId,
+      usuarioId: usuario.id,
       situacao: "AGUARDANDO_PAGAMENTO",
+      planoCodigo: plano.codigo,
+      prioridade: 0,
       publicadoEm: null,
       expiraEm: null,
     })
-    await abrirCobranca(this.pagamento, { id: anuncioId, usuarioId })
+    const cobranca = await abrirCobranca(this.pagamento, { anuncio: { id: anuncioId, usuarioId: usuario.id }, planoCodigo: plano.codigo, dias, emailDoPagador: usuario.email })
+    if (!cobranca.ok) return cobranca
     return ok({ anuncioId, codigo })
   }
 }
@@ -102,6 +111,15 @@ export class RemoverAnuncioUseCase {
     await this.anuncios.atualizar({ ...anuncio, situacao: "REMOVIDO" })
     await this.pagamentos.cancelarPendentesDoAnuncio(anuncio.id)
     return ok(true)
+  }
+}
+
+/** RF-75: soma uma visita à página do anúncio (sem dados de quem visitou, RN-71). */
+export class RegistrarVisitaUseCase {
+  constructor(private readonly anuncios: AnuncioRepository) {}
+
+  async executar(codigo: string): Promise<void> {
+    await this.anuncios.somarVisita(codigo)
   }
 }
 

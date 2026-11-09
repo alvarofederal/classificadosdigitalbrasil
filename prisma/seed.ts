@@ -6,6 +6,8 @@ import { config } from "dotenv"
 import { PrismaClient } from "../src/generated/prisma"
 import { ALFABETO_DO_CODIGO } from "../src/domain/anuncio/anuncio"
 import { CATEGORIAS_INICIAIS, slugDaCategoria } from "../src/domain/categoria/categoria"
+import { PLANOS_INICIAIS } from "../src/domain/plano/plano"
+import { centavosParaDecimal } from "../src/domain/shared/dinheiro"
 
 config({ quiet: true })
 const prisma = new PrismaClient()
@@ -29,7 +31,25 @@ async function base() {
   }
 
   await prisma.configuracao.upsert({ where: { id: "geral" }, update: {}, create: { id: "geral" } })
-  console.log("✔ Configuração pronta (R$ 1,00 por 7 dias, se ainda não existia)")
+
+  // Planos (feature 003): cria os que faltam com a tabela inicial; nunca sobrescreve preço editado no painel.
+  let criados = 0
+  for (const plano of PLANOS_INICIAIS) {
+    if (await prisma.plano.findUnique({ where: { codigo: plano.codigo } })) continue
+    await prisma.plano.create({
+      data: {
+        codigo: plano.codigo,
+        nome: plano.nome,
+        descricao: plano.descricao,
+        maxFotos: plano.maxFotos,
+        valor7Dias: centavosParaDecimal(plano.valor7DiasCentavos),
+        valor30Dias: centavosParaDecimal(plano.valor30DiasCentavos),
+        ativo: plano.ativo,
+      },
+    })
+    criados++
+  }
+  console.log(criados > 0 ? `✔ ${criados} plano(s) criado(s) com a tabela inicial` : "• Planos já existem: preços mantidos")
 
   if ((await prisma.usuario.count({ where: { perfil: "ADMIN" } })) > 0) {
     console.log("• Já existe administrador: nenhum usuário criado")

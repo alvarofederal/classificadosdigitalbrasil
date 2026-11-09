@@ -3,7 +3,9 @@
 
 import type { EstiloDoAnuncio, Situacao, SituacaoExibida } from "@/domain/anuncio/anuncio"
 import type { Categoria } from "@/domain/categoria/categoria"
-import type { SituacaoDoPagamento } from "@/domain/pagamento/pagamento"
+import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
+import type { OrigemDoPagamento, SituacaoDoPagamento } from "@/domain/pagamento/pagamento"
+import type { CodigoDoPlano, Plano } from "@/domain/plano/plano"
 import type { Perfil } from "@/domain/usuario/usuario"
 
 export interface Pagina<T> {
@@ -13,7 +15,7 @@ export interface Pagina<T> {
   porPagina: number
 }
 
-// ── Site público (RNF-01: sempre UMA cidade + UMA categoria) ──
+// ── Site público (RNF-01: anúncios sempre de UMA cidade + UMA seção; exceção: vitrine, limitada) ──
 
 export interface AnuncioPublicoDTO {
   id: string
@@ -22,6 +24,7 @@ export interface AnuncioPublicoDTO {
   texto: string
   precoCentavos: number | null
   estilo: EstiloDoAnuncio
+  planoCodigo: CodigoDoPlano
   fotos: Array<{ id: string; url: string }>
   uf: string
   cidadeCodigo: number
@@ -32,6 +35,8 @@ export interface AnuncioPublicoDTO {
 
 export interface ClassificadosQuery {
   categoriasAtivas(): Promise<Categoria[]>
+  /** Tabela de preços da capa (RF-45). */
+  planosAVenda(): Promise<Plano[]>
   /** categoriaId → anúncios no ar naquela cidade. */
   contagemPorCategoria(cidadeCodigo: number, agora: Date): Promise<Record<string, number>>
   anunciosDaCategoria(params: { cidadeCodigo: number; categoriaId: string; pagina: number; porPagina: number; agora: Date }): Promise<Pagina<AnuncioPublicoDTO>>
@@ -39,6 +44,8 @@ export interface ClassificadosQuery {
   primeirosPorSecao(params: { cidadeCodigo: number; categoriaIds: string[]; limite: number; agora: Date }): Promise<Record<string, AnuncioPublicoDTO[]>>
   /** Só devolve se o anúncio estiver no ar. */
   anuncioNoAr(codigo: string, agora: Date): Promise<AnuncioPublicoDTO | null>
+  /** Vitrine da capa (RF-47): plano Vitrine no ar, de qualquer cidade. */
+  vitrine(agora: Date, limite: number): Promise<AnuncioPublicoDTO[]>
   cidadesComAnuncios(agora: Date, limite: number): Promise<Array<{ uf: string; cidadeCodigo: number; total: number }>>
   combinacoesNoAr(agora: Date): Promise<Array<{ uf: string; cidadeCodigo: number; categoriaSlug: string }>>
 }
@@ -48,9 +55,13 @@ export interface ClassificadosQuery {
 export interface PagamentoResumoDTO {
   id: string
   codigo: string
+  planoCodigo: CodigoDoPlano
   valorCentavos: number
   dias: number
   situacao: SituacaoDoPagamento
+  gateway: OrigemDoPagamento
+  copiaECola: string | null
+  vencimentoEm: Date | null
   criadoEm: Date
   confirmadoEm: Date | null
 }
@@ -67,10 +78,12 @@ export interface MeuAnuncioDTO {
   texto: string
   precoCentavos: number | null
   estilo: EstiloDoAnuncio
+  planoCodigo: CodigoDoPlano
   situacao: Situacao
   publicadoEm: Date | null
   expiraEm: Date | null
   criadoEm: Date
+  visualizacoes: number
   fotos: Array<{ id: string; url: string }>
   mensagensNaoLidas: number
   totalMensagens: number
@@ -115,6 +128,7 @@ export interface ResumoDoPainelDTO {
   aguardandoPagamento: number
   pagamentosConfirmados: number
   valorRecebidoCentavos: number
+  chamadosAbertos: number
 }
 
 export type FiltroDePagamento = "TODOS" | "PAGOS" | "PENDENTES" | "SEM_PAGAMENTO"
@@ -153,6 +167,7 @@ export interface AnuncioAdminDTO {
   codigo: string
   titulo: string
   categoriaNome: string
+  planoCodigo: CodigoDoPlano
   uf: string
   cidadeCodigo: number
   anuncianteNome: string
@@ -165,13 +180,35 @@ export interface AnuncioAdminDTO {
   pagamentoPendente: { id: string; codigo: string; valorCentavos: number } | null
 }
 
+export interface AnuncioDoPainelDTO extends MeuAnuncioDetalheDTO {
+  anunciante: { id: string; nome: string; email: string; celular: string }
+}
+
 export interface CategoriaAdminDTO extends Categoria {
   totalAnuncios: number
+}
+
+export interface ChamadoDTO {
+  id: string
+  protocolo: string
+  nome: string
+  email: string
+  telefone: string
+  assunto: Assunto
+  mensagem: string
+  anuncioCodigo: string | null
+  situacao: SituacaoDoChamado
+  notaInterna: string | null
+  criadoEm: Date
+  resolvidoEm: Date | null
 }
 
 export interface PainelQuery {
   resumo(agora: Date): Promise<ResumoDoPainelDTO>
   usuarios(params: { pagina: number; porPagina: number; busca: string | null; pagamento: FiltroDePagamento }): Promise<Pagina<UsuarioAdminDTO>>
   anuncios(filtro: FiltroDeAnuncios, agora: Date): Promise<Pagina<AnuncioAdminDTO>>
+  anuncio(id: string): Promise<AnuncioDoPainelDTO | null>
   categorias(): Promise<CategoriaAdminDTO[]>
+  planos(): Promise<Plano[]>
+  chamados(params: { pagina: number; porPagina: number; situacao: SituacaoDoChamado | null; assunto: Assunto | null }): Promise<Pagina<ChamadoDTO>>
 }

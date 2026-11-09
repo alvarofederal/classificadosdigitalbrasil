@@ -18,21 +18,23 @@ export default async function Resumo() {
     { rotulo: "Aguardando pagamento", valor: String(resumo.aguardandoPagamento), href: "/painel/anuncios?situacao=AGUARDANDO_PAGAMENTO" },
     { rotulo: "Pagamentos confirmados", valor: String(resumo.pagamentosConfirmados), href: "/painel/usuarios?pagamento=PAGOS" },
     { rotulo: "Recebido", valor: formatarReais(resumo.valorRecebidoCentavos), href: "/painel/usuarios?pagamento=PAGOS" },
+    { rotulo: "Chamados abertos", valor: String(resumo.chamadosAbertos), href: "/painel/chamados" },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <Faixa como="h1">Resumo</Faixa>
-      {!configuracao.pixChave && (
+      {!c.pixAutomatico && (
         <p className="border-2 border-perigo px-3 py-2">
-          A chave Pix ainda não foi cadastrada: os anunciantes não veem o QR Code.{" "}
+          Pix automático desligado: cada pagamento precisa ser confirmado à mão
+          {configuracao.pixChave ? "" : " e a chave do Pix estático ainda não foi cadastrada (os anunciantes não veem o QR Code)"}.{" "}
           <Link href="/painel/configuracoes" className="link font-bold">
-            Cadastrar agora
+            Ver configurações
           </Link>
           .
         </p>
       )}
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         {numeros.map((n) => (
           <li key={n.rotulo}>
             <Link href={n.href} className="cartao block p-4 hover:bg-papel-escuro">

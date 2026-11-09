@@ -6,8 +6,10 @@ import Link from "next/link"
 import { Fragment } from "react"
 import { AnuncioDaCasa, AnuncioDoCaderno, Caderno, RodapeDaCasa, TarjaSecao, estiloDaCasa } from "@/components/jornal/caderno"
 import { Filtros } from "@/components/jornal/filtros"
+import { LembrarCidade } from "@/components/jornal/perto-de-mim"
 import { container } from "@/infrastructure/container"
-import { formatarReais, plural } from "@/lib/formatadores"
+import { plural } from "@/lib/formatadores"
+import { precoInicial } from "@/lib/planos"
 import { chamadaDaSecao, descricaoDaSecao } from "@/lib/secoes"
 import { caminhoDaSecao } from "@/lib/site"
 import { cidadeDoEndereco } from "../../localizar"
@@ -31,19 +33,20 @@ export default async function PaginaDaCidade({ params }: Props) {
   const cidade = cidadeDoEndereco(uf, slug)
   const c = container()
   const agora = c.relogio.agora()
-  const [secoes, contagem, tabela] = await Promise.all([
+  const [secoes, contagem, planos] = await Promise.all([
     c.classificados.categoriasAtivas(),
     c.classificados.contagemPorCategoria(cidade.codigo, agora),
-    c.configuracao.obter(),
+    c.classificados.planosAVenda(),
   ])
   const comAnuncios = secoes.filter((s) => (contagem[s.id] ?? 0) > 0).map((s) => s.id)
   const anuncios = comAnuncios.length > 0 ? await c.classificados.primeirosPorSecao({ cidadeCodigo: cidade.codigo, categoriaIds: comAnuncios, limite: POR_SECAO, agora }) : {}
   const total = Object.values(contagem).reduce((soma, n) => soma + n, 0)
-  const preco = `${formatarReais(tabela.valorAnuncioCentavos)} por ${plural(tabela.diasDePublicacao, "dia", "dias")}`
+  const preco = `a partir de ${precoInicial(planos)}`
   const anunciarAqui = (categoriaId?: string) => `/minha-conta/anuncios/novo?uf=${cidade.uf}&cidade=${cidade.codigo}${categoriaId ? `&categoria=${categoriaId}` : ""}`
 
   return (
     <div className="pt-3">
+      <LembrarCidade uf={cidade.uf} slug={cidade.slug} nome={cidade.nome} />
       <section aria-label="Procurar anúncios" className="border-b-2 border-tinta pb-3">
         <Filtros secoes={secoes.map(({ id, nome, slug }) => ({ id, nome, slug }))} ufInicial={cidade.uf} cidadeInicial={cidade} />
       </section>

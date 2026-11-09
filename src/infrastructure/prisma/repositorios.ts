@@ -12,20 +12,15 @@ import type {
   AnuncioRegistro,
   AnuncioRepository,
   CategoriaRepository,
-  Configuracao,
-  ConfiguracaoRepository,
   FotoRegistro,
   FotoRepository,
   MensagemRepository,
   NovaFoto,
-  PagamentoRegistro,
-  PagamentoRepository,
 } from "@/application/ports/caderno"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
-import { DIAS_PADRAO, VALOR_PADRAO_CENTAVOS } from "@/domain/pagamento/pagamento"
-import type { Pagamento, PrismaClient, Usuario } from "@/generated/prisma"
-import { centavos, dadosDoAnuncio, decimal, paraAnuncio } from "./mapeadores"
+import type { PrismaClient, Usuario } from "@/generated/prisma"
+import { dadosDoAnuncio, paraAnuncio } from "./mapeadores"
 
 // ── Acesso ──
 
@@ -180,6 +175,10 @@ export class PrismaAnuncioRepository implements AnuncioRepository {
     const { id, ...resto } = anuncio
     await this.db.anuncio.update({ where: { id }, data: dadosDoAnuncio(resto) })
   }
+
+  async somarVisita(codigo: string) {
+    await this.db.anuncio.updateMany({ where: { codigo }, data: { visualizacoes: { increment: 1 } } })
+  }
 }
 
 export class PrismaFotoRepository implements FotoRepository {
@@ -224,85 +223,3 @@ export class PrismaMensagemRepository implements MensagemRepository {
   }
 }
 
-function paraPagamento(linha: Pagamento): PagamentoRegistro {
-  return {
-    id: linha.id,
-    codigo: linha.codigo,
-    anuncioId: linha.anuncioId,
-    usuarioId: linha.usuarioId,
-    valorCentavos: centavos(linha.valor) ?? 0,
-    dias: linha.dias,
-    situacao: linha.situacao,
-    criadoEm: linha.criadoEm,
-    confirmadoEm: linha.confirmadoEm,
-    confirmadoPorId: linha.confirmadoPorId,
-  }
-}
-
-export class PrismaPagamentoRepository implements PagamentoRepository {
-  constructor(private readonly db: PrismaClient) {}
-
-  async buscarPorId(id: string) {
-    const linha = await this.db.pagamento.findUnique({ where: { id } })
-    return linha ? paraPagamento(linha) : null
-  }
-
-  async pendenteDoAnuncio(anuncioId: string) {
-    const linha = await this.db.pagamento.findFirst({ where: { anuncioId, situacao: "PENDENTE" }, orderBy: { criadoEm: "desc" } })
-    return linha ? paraPagamento(linha) : null
-  }
-
-  async existeCodigo(codigo: string) {
-    return (await this.db.pagamento.count({ where: { codigo } })) > 0
-  }
-
-  async inserir(pagamento: Omit<PagamentoRegistro, "id">) {
-    const { valorCentavos, ...resto } = pagamento
-    const { id } = await this.db.pagamento.create({ data: { ...resto, valor: decimal(valorCentavos) ?? "0.00" }, select: { id: true } })
-    return id
-  }
-
-  async cancelarPendentesDoAnuncio(anuncioId: string) {
-    await this.db.pagamento.updateMany({ where: { anuncioId, situacao: "PENDENTE" }, data: { situacao: "CANCELADO" } })
-  }
-
-  async confirmarEPublicar(pagamento: PagamentoRegistro, anuncio: AnuncioRegistro) {
-    const { id: anuncioId, ...resto } = anuncio
-    await this.db.$transaction(async (tx) => {
-      // A condição "ainda pendente" impede confirmar duas vezes em cliques simultâneos.
-      const { count } = await tx.pagamento.updateMany({
-        where: { id: pagamento.id, situacao: "PENDENTE" },
-        data: { situacao: "CONFIRMADO", confirmadoEm: pagamento.confirmadoEm, confirmadoPorId: pagamento.confirmadoPorId },
-      })
-      if (count === 0) throw new Error("Pagamento já processado.")
-      await tx.anuncio.update({ where: { id: anuncioId }, data: dadosDoAnuncio(resto) })
-    })
-  }
-}
-
-export class PrismaConfiguracaoRepository implements ConfiguracaoRepository {
-  constructor(private readonly db: PrismaClient) {}
-
-  async obter(): Promise<Configuracao> {
-    const linha = await this.db.configuracao.findUnique({ where: { id: "geral" } })
-    if (!linha) return { pixChave: "", pixNome: "", pixCidade: "", valorAnuncioCentavos: VALOR_PADRAO_CENTAVOS, diasDePublicacao: DIAS_PADRAO }
-    return {
-      pixChave: linha.pixChave,
-      pixNome: linha.pixNome,
-      pixCidade: linha.pixCidade,
-      valorAnuncioCentavos: centavos(linha.valorAnuncio) ?? VALOR_PADRAO_CENTAVOS,
-      diasDePublicacao: linha.diasDePublicacao,
-    }
-  }
-
-  async salvar(cfg: Configuracao) {
-    const dados = {
-      pixChave: cfg.pixChave,
-      pixNome: cfg.pixNome,
-      pixCidade: cfg.pixCidade,
-      valorAnuncio: decimal(cfg.valorAnuncioCentavos) ?? "1.00",
-      diasDePublicacao: cfg.diasDePublicacao,
-    }
-    await this.db.configuracao.upsert({ where: { id: "geral" }, update: dados, create: { id: "geral", ...dados } })
-  }
-}

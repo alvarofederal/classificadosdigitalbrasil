@@ -4,18 +4,19 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Faixa } from "@/components/jornal/pecas"
-import { situacaoExibida } from "@/domain/anuncio/anuncio"
+import { MAXIMO_FOTOS, situacaoExibida } from "@/domain/anuncio/anuncio"
 import { SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDataHora, formatarDia, formatarReais, plural, reaisParaCampo } from "@/lib/formatadores"
+import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { exigirPerfil } from "@/lib/sessao"
 import { caminhoDaSecao, caminhoDoAnuncio } from "@/lib/site"
 import { AlbumFotos } from "../../_componentes/album-fotos"
-import { BotaoRemover, BotaoRenovar } from "../../_componentes/botoes-anuncio"
+import { BotaoRemover, RenovarComPlano } from "../../_componentes/botoes-anuncio"
 import { CobrancaPixCartao } from "../../_componentes/cobranca-pix"
 import { EditorAnuncio } from "../../_componentes/editor-anuncio"
 import { SeloSituacao } from "../../_componentes/selo-situacao"
-import { editarAnuncioAction } from "../../actions"
+import { adicionarFotosAction, editarAnuncioAction, prepararUploadAction, removerFotoAction, reordenarFotosAction } from "../../actions"
 
 export const metadata: Metadata = { title: "Meu anúncio", robots: { index: false } }
 
@@ -31,10 +32,12 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
   const agora = c.relogio.agora()
   const situacao = situacaoExibida(anuncio.situacao, anuncio.expiraEm, agora)
   const cidade = c.localidades.cidade(anuncio.cidadeCodigo)
-  const [categorias, cobranca] = await Promise.all([
+  const [categorias, planos, cobranca] = await Promise.all([
     c.classificados.categoriasAtivas(),
+    c.classificados.planosAVenda(),
     anuncio.pagamentoPendente ? c.montarCobrancaPix.executar(anuncio.pagamentoPendente) : Promise.resolve(null),
   ])
+  const maximoDeFotos = Math.min(MAXIMO_FOTOS, planos.find((p) => p.codigo === anuncio.planoCodigo)?.maxFotos ?? MAXIMO_FOTOS)
   // A seção atual continua na lista mesmo se o admin a desativou depois.
   const opcoes = categorias.some((cat) => cat.id === anuncio.categoriaId) ? categorias : [{ id: anuncio.categoriaId, nome: anuncio.categoriaNome }, ...categorias]
   if (anuncio.mensagensNaoLidas > 0) await c.marcarMensagensLidas.executar({ usuarioId: usuario.id, perfil: usuario.perfil }, anuncio.id)
@@ -50,15 +53,16 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <SeloSituacao situacao={situacao} />
           <span>
-            {anuncio.categoriaNome} · {cidade ? `${cidade.nome}/${cidade.uf}` : anuncio.uf}
+            {anuncio.categoriaNome} · {cidade ? `${cidade.nome}/${cidade.uf}` : anuncio.uf} · plano {NOMES_DOS_PLANOS[anuncio.planoCodigo]}
           </span>
+          <span>{plural(anuncio.visualizacoes, "visita", "visitas")} na página do anúncio</span>
           {situacao === "NO_AR" && (
             <>
               <span>
                 No ar até {formatarDia(anuncio.expiraEm)} ({plural(diasRestantes(anuncio.expiraEm, agora), "dia", "dias")})
               </span>
-              <Link href={caminhoDoAnuncio(anuncio.codigo)} className="link">
-                Ver no caderno
+              <Link href={caminhoDoAnuncio(anuncio.codigo)} className="link font-bold">
+                Página do anúncio e divulgação
               </Link>
               {cidade && (
                 <Link href={caminhoDaSecao(cidade, anuncio.categoriaSlug)} className="link">
@@ -77,20 +81,19 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
         </p>
       )}
 
-      {cobranca ? (
-        <CobrancaPixCartao cobranca={cobranca} />
-      ) : (
-        (situacao === "NO_AR" || situacao === "EXPIRADO") && (
-          <div className="flex flex-wrap items-center gap-3 border border-fio p-4">
-            <p className="flex-1">
-              {situacao === "NO_AR"
-                ? "Quer mais tempo no caderno? Pagar de novo soma os dias ao que ainda resta."
-                : "O anúncio saiu do caderno. Renove para ele voltar com o mesmo texto e as mesmas fotos."}
-            </p>
-            <BotaoRenovar anuncioId={anuncio.id} rotulo={situacao === "NO_AR" ? "Adicionar mais dias" : "Renovar anúncio"} />
-          </div>
-        )
-      )}
+      {cobranca && <CobrancaPixCartao cobranca={cobranca} anuncioId={anuncio.id} />}
+
+      <details className="border border-fio p-4" open={!cobranca && situacao === "EXPIRADO"}>
+        <summary className="cursor-pointer font-titulo font-bold uppercase">
+          {cobranca ? "Trocar plano ou período desta cobrança" : situacao === "NO_AR" ? "Mais dias ou outro plano" : "Renovar o anúncio"}
+        </summary>
+        <p className="my-3 text-sm">
+          {situacao === "NO_AR"
+            ? "Pagar de novo soma os dias ao que ainda resta. Escolhendo outro plano, ele vale a partir da confirmação."
+            : "Escolha o plano e o período; o anúncio volta ao caderno com o mesmo texto e as mesmas fotos."}
+        </p>
+        <RenovarComPlano anuncioId={anuncio.id} planos={planos} planoAtual={anuncio.planoCodigo} rotulo="Gerar o Pix" />
+      </details>
 
       <section aria-labelledby="titulo-texto" className="flex flex-col gap-3">
         <h2 id="titulo-texto" className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">
@@ -118,7 +121,12 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
         <h2 id="titulo-album" className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">
           Álbum de fotos
         </h2>
-        <AlbumFotos anuncioId={anuncio.id} fotos={anuncio.fotos} />
+        <AlbumFotos
+          anuncioId={anuncio.id}
+          fotos={anuncio.fotos}
+          maximo={maximoDeFotos}
+          acoes={{ preparar: prepararUploadAction, adicionar: adicionarFotosAction, reordenar: reordenarFotosAction, remover: removerFotoAction }}
+        />
       </section>
 
       <section aria-labelledby="titulo-mensagens" className="flex flex-col gap-3">
@@ -157,6 +165,7 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
               <thead>
                 <tr>
                   <th>Código</th>
+                  <th>Plano</th>
                   <th>Valor</th>
                   <th>Período</th>
                   <th>Situação</th>
@@ -168,7 +177,8 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
                 {anuncio.pagamentos.map((p) => (
                   <tr key={p.id}>
                     <td className="font-mono text-xs">{p.codigo}</td>
-                    <td>{formatarReais(p.valorCentavos)}</td>
+                    <td>{NOMES_DOS_PLANOS[p.planoCodigo]}</td>
+                    <td>{p.gateway === "CORTESIA" ? "Cortesia" : formatarReais(p.valorCentavos)}</td>
                     <td>{plural(p.dias, "dia", "dias")}</td>
                     <td>{SITUACOES_DO_PAGAMENTO[p.situacao]}</td>
                     <td>{formatarDataHora(p.criadoEm)}</td>

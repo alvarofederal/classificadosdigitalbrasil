@@ -40,12 +40,23 @@ function ator(usuario: { id: string; perfil: "ANUNCIANTE" | "ADMIN" }) {
   return { usuarioId: usuario.id, perfil: usuario.perfil }
 }
 
+const schemaPlano = z.object({
+  planoCodigo: texto,
+  dias: z
+    .string()
+    .optional()
+    .transform((v) => Number(v ?? 0)),
+})
+
 export async function criarAnuncioAction(formData: FormData): Promise<EstadoFormulario> {
   const usuario = await autorizar("ANUNCIANTE")
   if (!usuario) return NAO_AUTORIZADO
-  const lido = lerFormulario(schemaAnuncio, formData)
+  const lido = lerFormulario(schemaAnuncio.merge(schemaPlano), formData)
   if (!lido.ok) return lido.estado
-  const resultado = await container().criarAnuncio.executar(usuario.id, conteudoDe(lido.dados))
+  const resultado = await container().criarAnuncio.executar(
+    { id: usuario.id, email: usuario.email },
+    { ...conteudoDe(lido.dados), planoCodigo: lido.dados.planoCodigo, dias: lido.dados.dias },
+  )
   if (!resultado.ok) return deResultado(resultado)
   revalidatePath("/minha-conta")
   redirect(`/minha-conta/anuncios/${resultado.valor.anuncioId}?novo=1`)
@@ -70,12 +81,28 @@ export async function removerAnuncioAction(anuncioId: string): Promise<EstadoFor
   redirect("/minha-conta?removido=1")
 }
 
-export async function renovarAnuncioAction(anuncioId: string): Promise<EstadoFormulario> {
+export async function renovarAnuncioAction(anuncioId: string, formData: FormData): Promise<EstadoFormulario> {
   const usuario = await autorizar("ANUNCIANTE")
   if (!usuario) return NAO_AUTORIZADO
-  const resultado = await container().solicitarRenovacao.executar({ usuarioId: usuario.id, anuncioId })
+  const lido = lerFormulario(schemaPlano, formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().solicitarRenovacao.executar({ usuarioId: usuario.id, email: usuario.email, anuncioId, ...lido.dados })
   if (resultado.ok) revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
   return deResultado(resultado, "Cobrança gerada. Pague o Pix abaixo.")
+}
+
+/** RF-82: a tela de pagamento pergunta a cada 5 s; com o gateway, a resposta vem da consulta ao Mercado Pago. */
+export async function verificarPagamentoAction(anuncioId: string): Promise<{ pago: boolean }> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return { pago: false }
+  try {
+    const r = await container().verificarPagamento.executar({ usuarioId: usuario.id, anuncioId })
+    if (r.pago) revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
+    return r
+  } catch (erro) {
+    console.error("[pagamento] falha ao verificar", erro)
+    return { pago: false }
+  }
 }
 
 // ── Álbum (ADR-05) ──

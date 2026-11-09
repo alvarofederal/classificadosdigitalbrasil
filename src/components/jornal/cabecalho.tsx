@@ -2,14 +2,15 @@
 
 import Link from "next/link"
 import { container } from "@/infrastructure/container"
-import { dataPorExtenso, formatarReais, plural } from "@/lib/formatadores"
+import { dataPorExtenso } from "@/lib/formatadores"
+import { precoInicial } from "@/lib/planos"
 import { usuarioAtual } from "@/lib/sessao"
 import { cn } from "@/lib/utils"
 
 export async function Cabecalho({ compacto = false }: { compacto?: boolean }) {
-  const [usuario, tabela] = await Promise.all([usuarioAtual(), container().configuracao.obter().catch(() => null)])
+  const [usuario, planos] = await Promise.all([usuarioAtual(), container().classificados.planosAVenda().catch(() => [])])
   const agora = container().relogio.agora()
-  const preco = tabela ? `${formatarReais(tabela.valorAnuncioCentavos)} por ${plural(tabela.diasDePublicacao, "dia", "dias")}` : "R$ 1,00 por 7 dias"
+  const preco = `a partir de ${precoInicial(planos)}`
   const areaDoUsuario = usuario ? (usuario.perfil === "ADMIN" ? "/painel" : "/minha-conta") : null
 
   return (
@@ -17,6 +18,12 @@ export async function Cabecalho({ compacto = false }: { compacto?: boolean }) {
       <nav className="flex items-center justify-between gap-3 font-titulo text-[0.7rem] uppercase tracking-wider sm:text-xs" aria-label="Conta">
         <span className="hidden sm:inline">{dataPorExtenso(agora)}</span>
         <div className="ml-auto flex items-center gap-3 sm:gap-5">
+          <Link href="/#valores" className="hidden hover:underline md:inline">
+            Valores
+          </Link>
+          <Link href="/#contato" className="hidden hover:underline md:inline">
+            Contato
+          </Link>
           <Link href="/minha-conta/anuncios/novo" className="font-bold hover:underline">
             Anunciar
           </Link>

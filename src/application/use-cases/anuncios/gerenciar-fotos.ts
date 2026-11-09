@@ -1,8 +1,8 @@
-// APLICAÇÃO — álbum do anúncio: até 6 fotos (RF-16, ADR-05).
+// APLICAÇÃO — álbum do anúncio: até as fotos do plano (RF-16, RN-51, ADR-05).
 
 import { MAXIMO_FOTOS } from "@/domain/anuncio/anuncio"
 import { type Result, falha, ok } from "@/domain/shared/result"
-import type { AnuncioRegistro, AnuncioRepository, AssinaturaDeUpload, FotoRepository, FotoStorage, NovaFoto } from "../../ports/caderno"
+import type { AnuncioRegistro, AnuncioRepository, AssinaturaDeUpload, FotoRepository, FotoStorage, NovaFoto, PlanoRepository } from "../../ports/caderno"
 import { type Ator, podeMexer } from "./gerenciar-anuncios"
 
 async function anuncioEditavel(anuncios: AnuncioRepository, ator: Ator, anuncioId: string): Promise<AnuncioRegistro | null> {
@@ -10,20 +10,33 @@ async function anuncioEditavel(anuncios: AnuncioRepository, ator: Ator, anuncioI
   return anuncio && podeMexer(ator, anuncio) && anuncio.situacao !== "REMOVIDO" ? anuncio : null
 }
 
+/** RN-51: o limite é o do plano do anúncio; o admin sempre pode até o máximo do sistema. */
+export async function limiteDeFotos(planos: PlanoRepository, ator: Ator, anuncio: AnuncioRegistro): Promise<number> {
+  if (ator.perfil === "ADMIN") return MAXIMO_FOTOS
+  const plano = await planos.buscar(anuncio.planoCodigo)
+  return Math.min(MAXIMO_FOTOS, plano?.maxFotos ?? MAXIMO_FOTOS)
+}
+
+function mensagemDeLimite(limite: number): string {
+  return limite <= 1 ? "O plano deste anúncio aceita 1 foto. Para o álbum de 6 fotos, renove no plano Com fotos ou acima." : `O álbum deste plano aceita até ${limite} fotos.`
+}
+
 export class PrepararUploadDeFotosUseCase {
   constructor(
     private readonly anuncios: AnuncioRepository,
     private readonly fotos: FotoRepository,
     private readonly storage: FotoStorage,
+    private readonly planos: PlanoRepository,
   ) {}
 
   async executar(ator: Ator, entrada: { anuncioId: string; quantidade: number }): Promise<Result<{ assinaturas: AssinaturaDeUpload[] }>> {
     const anuncio = await anuncioEditavel(this.anuncios, ator, entrada.anuncioId)
     if (!anuncio) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
     if (!Number.isInteger(entrada.quantidade) || entrada.quantidade < 1) return falha("QUANTIDADE_INVALIDA", "Escolha ao menos uma foto.")
-    const vagas = MAXIMO_FOTOS - (await this.fotos.listar(anuncio.id)).length
+    const limite = await limiteDeFotos(this.planos, ator, anuncio)
+    const vagas = limite - (await this.fotos.listar(anuncio.id)).length
     if (entrada.quantidade > vagas) {
-      return falha("LIMITE_DE_FOTOS", vagas > 0 ? `Cabem mais ${vagas} foto(s) neste anúncio.` : `O álbum aceita até ${MAXIMO_FOTOS} fotos.`)
+      return falha("LIMITE_DE_FOTOS", vagas > 0 ? `Cabem mais ${vagas} foto(s) neste anúncio.` : mensagemDeLimite(limite))
     }
     return ok({ assinaturas: this.storage.assinarUploads(this.storage.pastaDoAnuncio(anuncio.id), entrada.quantidade) })
   }
@@ -34,6 +47,7 @@ export class AdicionarFotosUseCase {
     private readonly anuncios: AnuncioRepository,
     private readonly fotos: FotoRepository,
     private readonly storage: FotoStorage,
+    private readonly planos: PlanoRepository,
   ) {}
 
   async executar(ator: Ator, entrada: { anuncioId: string; fotos: NovaFoto[] }): Promise<Result<true>> {
@@ -44,8 +58,9 @@ export class AdicionarFotosUseCase {
     if (entrada.fotos.some((foto) => !this.storage.pertenceAPasta(foto, pasta))) {
       return falha("FOTO_DE_ORIGEM_INVALIDA", "Envie as fotos pelo botão do álbum.")
     }
+    const limite = await limiteDeFotos(this.planos, ator, anuncio)
     const existentes = (await this.fotos.listar(anuncio.id)).length
-    if (existentes + entrada.fotos.length > MAXIMO_FOTOS) return falha("LIMITE_DE_FOTOS", `O álbum aceita até ${MAXIMO_FOTOS} fotos.`)
+    if (existentes + entrada.fotos.length > limite) return falha("LIMITE_DE_FOTOS", mensagemDeLimite(limite))
     await this.fotos.adicionar(anuncio.id, entrada.fotos)
     return ok(true)
   }
