@@ -1,6 +1,6 @@
 # 009 · Tabela de preços por período
 
-**Situação: aguardando validação do Álvaro (2026-11-09).** Nada disto está no sistema ainda.
+**Situação: opção D (meio-termo) aguardando validação do Álvaro (2026-11-09).** Nada disto está no sistema ainda.
 
 ## Spec
 
@@ -52,6 +52,21 @@ Mantém os R$ 25,00 do mês. O simples custa perto de R$ 1,00 por dia, com desco
 
 Aqui o mês de R$ 25,00 vende de verdade (cinco semanas avulsas custariam R$ 32,50), e o "Anuncie por R$ 1,00" continua como chamada.
 
+### Opção D — meio-termo entre B e C (proposta atual, 2026-11-09)
+
+Pedido do Álvaro: ganhar no volume, mas sem o mês barato demais (todo mundo compraria 30 dias, o caderno incha e os anúncios demoram a vencer). Sem 1 dia: a partir de 7.
+
+Regras: o dia nunca fica mais caro num período maior, e o mês sai só um pouco mais barato que 4 semanas avulsas (R$ 1 de diferença no simples, R$ 5 no com foto). Assim cada um compra o período de que precisa.
+
+| Dias | 7 | 10 | 15 | 20 | 30 |
+|---|---|---|---|---|---|
+| Simples | R$ 4,00 | R$ 5,50 | R$ 8,00 | R$ 10,00 | R$ 15,00 |
+| por dia | 0,57 | 0,55 | 0,53 | 0,50 | 0,50 |
+| Com foto | R$ 10,00 | R$ 14,00 | R$ 20,00 | R$ 25,00 | R$ 35,00 |
+| por dia | 1,43 | 1,40 | 1,33 | 1,25 | 1,17 |
+
+Promoção de entrada (opcional): primeira semana do primeiro anúncio de cada conta por **R$ 1,00**, para manter a chamada "Anuncie por R$ 1".
+
 ### Comparação para quem quer 30 dias
 
 | | Simples | Com foto |
@@ -59,6 +74,7 @@ Aqui o mês de R$ 25,00 vende de verdade (cinco semanas avulsas custariam R$ 32,
 | A | paga R$ 5,00 (compra semanas) | paga R$ 50,00 (compra semanas) |
 | B | R$ 3,00 | R$ 30,00 |
 | C | R$ 25,00 | R$ 35,00 |
+| D | R$ 15,00 (4 semanas: R$ 16,00) | R$ 35,00 (4 semanas: R$ 40,00) |
 
 ## Plano (depois da validação)
 
@@ -70,7 +86,7 @@ Aqui o mês de R$ 25,00 vende de verdade (cinco semanas avulsas custariam R$ 32,
 
 ## Tarefas
 
-- [ ] T-110 Álvaro escolhe A, B, C ou ajusta os valores
+- [ ] T-110 Álvaro valida a opção D (meio-termo) ou ajusta os valores
 - [ ] T-111 Tabela `precos` e migração
 - [ ] T-112 Grade de preços no painel
 - [ ] T-113 Períodos no editor e na renovação
