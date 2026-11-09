@@ -50,11 +50,11 @@ import {
 import { PrismaChamadoRepository, PrismaConfiguracaoRepository, PrismaPagamentoRepository, PrismaPlanoRepository } from "./prisma/repositorios-pagamento"
 import { BcryptHashDeSenha, CloudinaryFotoStorage, GeradorDeCodigoAleatorio, RelogioDoSistema, TokenDeSessaoAleatorio } from "./servicos"
 
-/** Endereço público para o aviso do gateway (webhook). */
+/** Endereço público para o aviso do gateway (webhook): o domínio de produção informado pela Vercel. */
 function urlDoSiteNoServidor(): string | null {
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   const configurada = process.env.NEXT_PUBLIC_URL?.trim()
-  if (configurada && !configurada.includes("localhost")) return configurada.replace(/\/$/, "")
-  return process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null
+  return configurada && !configurada.includes("localhost") ? configurada.replace(/\/$/, "") : null
 }
 
 function montar() {
