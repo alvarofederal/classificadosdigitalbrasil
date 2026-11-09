@@ -28,7 +28,7 @@
 | 003 | Planos Simples/Com fotos/Destaque/Vitrine, 7 ou 30 dias, Painel → Planos | Feito |
 | 004 | Contato com protocolo e Painel → Chamados | Feito |
 | 005 | Página do anúncio para divulgar: link curto, prévia de recorte, botões, cartaz com QR, visitas | Feito |
-| 006 | Pix automático (Mercado Pago + webhook) com reserva no Pix estático | Feito no código; **liga quando o Álvaro cadastrar as credenciais** |
+| 006 | Pix automático (Mercado Pago + webhook) com reserva no Pix estático; na API de Orders desde 2026-11-09 (ADR-14) | Feito no código; aplicação, produção e webhook criados no Mercado Pago; **liga quando o Álvaro cadastrar as credenciais na Vercel** |
 | 007 | Gol no plano Vitrine por 30 dias (cortesia) e 18 exemplos em Brasília | Feito; **faltam as fotos do Gol** |
 | 008 | Teste de carga com k6 | Script pronto; falta rodar num ambiente de teste |
 | 009 | Preço por período (7, 10, 15, 20, 30 dias): Simples R$ 1 a R$ 25, Com foto R$ 10 a R$ 250; Destaque e Vitrine fora de venda | Feito |

@@ -18,26 +18,30 @@
 | RN-81 | O webhook é idempotente: o mesmo aviso repetido não confirma duas vezes (a confirmação só vale para cobrança ainda pendente). |
 | RN-82 | O webhook confere a assinatura do gateway quando a chave secreta está configurada. |
 | RN-83 | O Pix do gateway vence em 24 horas; depois disso o anunciante gera outro. |
+| RN-84 | A cobrança é uma ordem da API de Orders. Só a ordem `processed` confirma; `failed`, `canceled`, `refunded`, `charged_back` e `expired` contam como recusada; qualquer outra situação segue pendente. |
+| RN-85 | O valor conferido na RN-80 é o `total_paid_amount` da ordem (na falta dele, o `total_amount`). |
+| RN-86 | O webhook só processa aviso do tipo `order` com identificador de ordem (`ORD…`). Os demais recebem 200 e são ignorados. |
 
-## Plano (ADR-12)
+## Plano (ADR-12 e ADR-14)
 
 **Gateway escolhido para começar: Mercado Pago (Pix 0,99% pela API).** Num anúncio de R$ 1,00 a taxa é R$ 0,01. Aceita conta com CPF, não exige certificado digital (o Efí exige mTLS), webhook com assinatura HMAC. Alternativa avaliada: Woovi/OpenPix (cerca de 0,80%, negociável por volume).
 
-- Porta `GatewayPix` (criar cobrança, consultar pagamento). Adaptador `MercadoPagoGateway` (`POST /v1/payments` com `payment_method_id: pix`, `external_reference` = código da cobrança, `X-Idempotency-Key`). Trocar de gateway = escrever outro adaptador.
-- Webhook `POST /api/pagamentos/mercadopago`: valida `x-signature` (HMAC-SHA256 de `id:…;request-id:…;ts:…;`), consulta o pagamento na API e chama `ProcessarPagamentoDoGateway`.
+- Porta `GatewayPix` (criar cobrança, consultar pagamento). Adaptador `MercadoPagoGateway` (`POST /v1/orders` com `type: online`, `processing_mode: automatic`, Pix em `transactions.payments[].payment_method`, `external_reference` = código da cobrança, `X-Idempotency-Key`). Trocar de gateway = escrever outro adaptador.
+- Webhook `POST /api/pagamentos/mercadopago`: valida `x-signature` (HMAC-SHA256 de `id:…;request-id:…;ts:…;`, com o `data.id` em minúsculas), consulta a ordem em `GET /v1/orders/{id}` e chama `ProcessarPagamentoDoGateway`.
+- Na API de Orders não existe `notification_url` no corpo: o endereço do aviso fica só na aplicação, no painel do Mercado Pago.
 - `pagamentos` ganha `gateway`, `gatewayId`, `copiaECola`, `expiraEm`.
 
 **Passo a passo para ligar (feito pelo Álvaro; o código já está pronto):**
 
 1. **Conta Mercado Pago** (CPF serve) com **uma chave Pix cadastrada** no app (Seu perfil → Pix → Minhas chaves). Sem chave, o Mercado Pago não gera Pix pela API.
-2. **Criar a aplicação**: mercadopago.com.br/developers → Suas integrações → Criar aplicação → tipo *Pagamentos online* → *Checkout Transparente* (API).
-3. **Ativar credenciais de produção**: na aplicação, Produção → Credenciais de produção → informar o site `https://classificadosdigitalbrasil.vercel.app`, aceitar os termos. Copiar o **Access Token** (começa com `APP_USR-`).
-4. **Webhook**: na aplicação, Webhooks → Configurar notificações → modo produção → URL `https://classificadosdigitalbrasil.vercel.app/api/pagamentos/mercadopago` → evento **Pagamentos** → salvar. Copiar a **assinatura secreta**.
+2. **Criar a aplicação**: mercadopago.com.br/developers → Integrações → Criar aplicação → Criar no painel de integração → *Checkout Transparente* → tipo de API **API de Orders**. Feito em 2026-11-09: aplicação *Classificados Digitais do Brasil*.
+3. **Ativar credenciais de produção**: na aplicação, aba Produção → Começar → setor *Outros*, site `https://classificadosdigitalbrasil.vercel.app`, aceitar os termos. Feito em 2026-11-09. Copiar o **Access Token** (começa com `APP_USR-`) em Credenciais.
+4. **Webhook**: na aplicação, Configuração de webhooks → aba Produção → URL `https://classificadosdigitalbrasil.vercel.app/api/pagamentos/mercadopago` → evento **Order (Mercado Pago)** → salvar. Feito em 2026-11-09. Copiar a **assinatura secreta**.
 5. **Vercel** → projeto → Settings → Environment Variables → Production: `MERCADO_PAGO_ACCESS_TOKEN` e `MERCADO_PAGO_WEBHOOK_SECRET`. Depois, **Redeploy**.
 6. **Conferir** em Painel → Configurações: todos os itens marcados ("Conta conectada", "Credencial de produção", "Assinatura secreta", "Endereço do aviso").
 7. **Testar de verdade**: com uma conta de anunciante **de e-mail diferente** do e-mail da conta Mercado Pago (o Mercado Pago recusa cobrança em que pagador e recebedor são a mesma pessoa), criar um anúncio Simples de 7 dias (R$ 1,00), pagar o Pix pelo app de outro banco e ver a tela confirmar sozinha.
 
-O botão "Simular notificação" do Mercado Pago manda um pagamento inexistente; o site responde "recebido" e não muda nada.
+O botão "Simular notificação" do Mercado Pago manda uma ordem inexistente; o site responde "recebido" e não muda nada.
 
 **Escala.** Cada Pix pago gera um aviso; o processamento é uma consulta à API e duas atualizações no banco, em transação. Milhares por dia cabem folgados na Vercel e no MySQL.
 
@@ -48,3 +52,5 @@ O botão "Simular notificação" do Mercado Pago manda um pagamento inexistente;
 - [x] T-82 Acompanhamento automático na tela de pagamento
 - [x] T-83 Cortesia no painel
 - [ ] T-84 Cadastrar as credenciais na Vercel e fazer um Pix real de R$ 1,00 (depende do Álvaro)
+- [x] T-85 Adaptador e webhook na API de Orders (ADR-14; RN-84 a RN-86)
+- [ ] T-86 Cancelar a ordem no Mercado Pago quando a cobrança é cancelada aqui: hoje o Pix antigo continua pagável por até 24 horas e, se for pago, o dinheiro entra e o anúncio não publica

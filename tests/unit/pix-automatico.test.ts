@@ -20,12 +20,15 @@ import {
   contaDoMercadoPago,
   assinaturaDoMercadoPagoConfere,
   centavosDoMercadoPago,
-  dataNoFormatoDoMercadoPago,
+  duracaoAteVencer,
+  ehAvisoDeOrdem,
+  reaisParaOMercadoPago,
   situacaoDoMercadoPago,
 } from "@/infrastructure/pagamentos/mercado-pago"
 import { ChamadosEmMemoria, CodigosEmSequencia, RelogioFixo, caderno, localidades, storageFalso } from "../fakes"
 
 const DIA = 86_400_000
+const ORDEM = "ORD01HRYFWNYRE1MR1E60MW3X0T2P"
 const USUARIO = { id: "dono", email: "dono@exemplo.com" }
 const conteudo = {
   categoriaId: "cat-veiculos",
@@ -199,50 +202,107 @@ describe("Contato e localização (features 002 e 004)", () => {
   })
 })
 
-describe("Adaptador do Mercado Pago (ADR-12)", () => {
-  it("traduz situação, valor e data", () => {
-    expect(situacaoDoMercadoPago("approved")).toBe("APROVADO")
-    expect(situacaoDoMercadoPago("pending")).toBe("PENDENTE")
-    expect(situacaoDoMercadoPago("rejected")).toBe("RECUSADO")
-    expect(centavosDoMercadoPago(1.1)).toBe(110)
-    expect(centavosDoMercadoPago(30)).toBe(3000)
-    expect(dataNoFormatoDoMercadoPago(new Date("2026-11-10T15:00:00Z"))).toBe("2026-11-10T12:00:00.000-03:00")
+describe("Adaptador do Mercado Pago (ADR-12, ADR-14)", () => {
+  it("só a ordem processed confirma (RN-84)", () => {
+    expect(situacaoDoMercadoPago("processed")).toBe("APROVADO")
+    expect(situacaoDoMercadoPago("action_required")).toBe("PENDENTE")
+    expect(situacaoDoMercadoPago("processing")).toBe("PENDENTE")
+    expect(situacaoDoMercadoPago("approved")).toBe("PENDENTE")
+    for (const status of ["failed", "canceled", "refunded", "charged_back", "expired"]) expect(situacaoDoMercadoPago(status)).toBe("RECUSADO")
   })
 
-  it("monta a cobrança com idempotência e lê o código Pix", async () => {
+  it("traduz valor e prazo do Pix (RN-83)", () => {
+    expect(centavosDoMercadoPago("1.10")).toBe(110)
+    expect(centavosDoMercadoPago("30.00")).toBe(3000)
+    expect(reaisParaOMercadoPago(105)).toBe("1.05")
+    expect(reaisParaOMercadoPago(25000)).toBe("250.00")
+    const agora = new Date("2026-11-10T15:00:00Z")
+    expect(duracaoAteVencer(new Date(agora.getTime() + DIA), agora)).toBe("P1D")
+    expect(duracaoAteVencer(new Date(agora.getTime() + 90 * 60_000), agora)).toBe("PT1H30M")
+    expect(duracaoAteVencer(new Date(agora.getTime() + 60_000), agora)).toBe("PT30M")
+    expect(duracaoAteVencer(new Date(agora.getTime() + 60 * DIA), agora)).toBe("P30D")
+  })
+
+  it("cria a ordem Pix com idempotência e lê o código (RN-84)", async () => {
     const chamadas: Array<{ url: string; init: RequestInit }> = []
     const falso = (async (url: string, init: RequestInit) => {
       chamadas.push({ url, init })
-      return new Response(JSON.stringify({ id: 123, status: "pending", transaction_amount: 30, external_reference: "ABCDEFGHJK", point_of_interaction: { transaction_data: { qr_code: "000201pix" } } }), { status: 201 })
+      return new Response(
+        JSON.stringify({ id: ORDEM, status: "action_required", total_amount: "30.00", external_reference: "ABCDEFGHJK", transactions: { payments: [{ payment_method: { id: "pix", type: "bank_transfer", qr_code: "000201pix" } }] } }),
+        { status: 201 },
+      )
     }) as unknown as typeof fetch
-    const gw = new MercadoPagoGateway("token", "https://site/api/pagamentos/mercadopago", falso)
-    const r = await gw.criarCobranca({ referencia: "ABCDEFGHJK", valorCentavos: 3000, descricao: "x", emailDoPagador: "a@b.com", vencimentoEm: new Date("2026-11-10T15:00:00Z") })
-    expect(r).toMatchObject({ gatewayId: "123", copiaECola: "000201pix" })
+    const gw = new MercadoPagoGateway("token", falso)
+    const vencimentoEm = new Date(Date.now() + DIA)
+    const r = await gw.criarCobranca({ referencia: "ABCDEFGHJK", valorCentavos: 3000, descricao: "x", emailDoPagador: "a@b.com", vencimentoEm })
+    expect(r).toEqual({ gatewayId: ORDEM, copiaECola: "000201pix", vencimentoEm })
+    expect(chamadas[0].url).toBe("https://api.mercadopago.com/v1/orders")
     const corpo = JSON.parse(String(chamadas[0].init.body))
-    expect(corpo).toMatchObject({ transaction_amount: 30, payment_method_id: "pix", external_reference: "ABCDEFGHJK", notification_url: "https://site/api/pagamentos/mercadopago" })
+    expect(corpo).toMatchObject({
+      type: "online",
+      processing_mode: "automatic",
+      total_amount: "30.00",
+      external_reference: "ABCDEFGHJK",
+      payer: { email: "a@b.com" },
+      transactions: { payments: [{ amount: "30.00", payment_method: { id: "pix", type: "bank_transfer" }, expiration_time: "P1D" }] },
+    })
+    expect(corpo).not.toHaveProperty("notification_url")
     expect((chamadas[0].init.headers as Record<string, string>)["X-Idempotency-Key"]).toBe("ABCDEFGHJK")
   })
 
-  it("confere a assinatura do webhook (RN-82)", () => {
+  it("sem código Pix na resposta, a cobrança falha e cai no Pix estático (RF-83)", async () => {
+    const falso = (async () => new Response(JSON.stringify({ id: ORDEM, status: "action_required", total_amount: "1.00", external_reference: "A" }), { status: 201 })) as unknown as typeof fetch
+    const gw = new MercadoPagoGateway("token", falso)
+    await expect(gw.criarCobranca({ referencia: "A", valorCentavos: 100, descricao: "x", emailDoPagador: "a@b.com", vencimentoEm: new Date(Date.now() + DIA) })).rejects.toThrow("não devolveu o código Pix")
+  })
+
+  it("consulta a ordem e usa o valor efetivamente pago (RN-85)", async () => {
+    const urls: string[] = []
+    const responder = (ordem: object) =>
+      (async (url: string) => {
+        urls.push(url)
+        return new Response(JSON.stringify(ordem), { status: 200 })
+      }) as unknown as typeof fetch
+    const paga = await new MercadoPagoGateway("token", responder({ id: ORDEM, status: "processed", total_amount: "30.00", total_paid_amount: "29.00", external_reference: "ABC" })).consultar(ORDEM)
+    expect(paga).toEqual({ gatewayId: ORDEM, situacao: "APROVADO", valorCentavos: 2900, referencia: "ABC" })
+    expect(urls[0]).toBe(`https://api.mercadopago.com/v1/orders/${ORDEM}`)
+    const semValorPago = await new MercadoPagoGateway("token", responder({ id: ORDEM, status: "processed", total_amount: "30.00", external_reference: "ABC" })).consultar(ORDEM)
+    expect(semValorPago.valorCentavos).toBe(3000)
+  })
+
+  it("só processa aviso de ordem com identificador válido (RN-86)", () => {
+    expect(ehAvisoDeOrdem("order", ORDEM)).toBe(true)
+    expect(ehAvisoDeOrdem("orders", ORDEM)).toBe(true)
+    expect(ehAvisoDeOrdem("payment", ORDEM)).toBe(false)
+    expect(ehAvisoDeOrdem("order", "123456")).toBe(false)
+    expect(ehAvisoDeOrdem("order", "")).toBe(false)
+    expect(ehAvisoDeOrdem("order", "ORD../users/me")).toBe(false)
+  })
+
+  it("confere a assinatura do webhook com o id da ordem em minúsculas (RN-82)", () => {
     const segredo = "segredo-teste"
     const ts = "1731100000"
-    const v1 = createHmac("sha256", segredo).update(`id:123;request-id:req-1;ts:${ts};`).digest("hex")
-    expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: `ts=${ts},v1=${v1}`, requestId: "req-1", dataId: "123" })).toBe(true)
-    expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: `ts=${ts},v1=${v1}`, requestId: "req-1", dataId: "124" })).toBe(false)
-    expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: null, requestId: "req-1", dataId: "123" })).toBe(false)
+    const v1 = createHmac("sha256", segredo).update(`id:${ORDEM.toLowerCase()};request-id:req-1;ts:${ts};`).digest("hex")
+    expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: `ts=${ts},v1=${v1}`, requestId: "req-1", dataId: ORDEM })).toBe(true)
+    expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: `ts=${ts},v1=${v1}`, requestId: "req-1", dataId: "ORD0" })).toBe(false)
+    expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: null, requestId: "req-1", dataId: ORDEM })).toBe(false)
   })
 })
 
 describe("Ligação com o Mercado Pago (feature 006, T-84)", () => {
-  it("pagamento que o Mercado Pago não conhece vira erro próprio (o webhook responde 'recebido')", async () => {
+  it("ordem que o Mercado Pago não conhece vira erro próprio (o webhook responde 'recebido')", async () => {
     const falso = (async () => new Response("{}", { status: 404 })) as unknown as typeof fetch
-    const gw = new MercadoPagoGateway("token", null, falso)
+    const gw = new MercadoPagoGateway("token", falso)
+    await expect(gw.consultar(ORDEM)).rejects.toBeInstanceOf(PagamentoNaoEncontradoNoMercadoPago)
     await expect(gw.consultar("123")).rejects.toBeInstanceOf(PagamentoNaoEncontradoNoMercadoPago)
   })
   it("verifica a conta do token e diz se é de produção", async () => {
     const falso = (async () => new Response(JSON.stringify({ id: 42, nickname: "CLASSIFICADOS" }), { status: 200 })) as unknown as typeof fetch
     expect(await contaDoMercadoPago("APP_USR-123", falso)).toEqual({ id: 42, apelido: "CLASSIFICADOS", producao: true })
     expect((await contaDoMercadoPago("TEST-123", falso)).producao).toBe(false)
+    const deTeste = (corpo: object) => (async () => new Response(JSON.stringify({ id: 7, ...corpo }), { status: 200 })) as unknown as typeof fetch
+    expect((await contaDoMercadoPago("APP_USR-123", deTeste({ nickname: "x", tags: ["normal", "test_user"] }))).producao).toBe(false)
+    expect((await contaDoMercadoPago("APP_USR-123", deTeste({ nickname: "TESTUSER1234" }))).producao).toBe(false)
     const recusa = (async () => new Response("{}", { status: 401 })) as unknown as typeof fetch
     await expect(contaDoMercadoPago("APP_USR-x", recusa)).rejects.toThrow("recusou o token")
   })

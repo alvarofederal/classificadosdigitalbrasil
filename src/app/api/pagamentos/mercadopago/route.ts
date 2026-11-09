@@ -1,9 +1,9 @@
-// APRESENTAÇÃO — aviso do Mercado Pago quando um Pix muda de situação (feature 006: RF-81, RN-80 a RN-82).
-// Configurar no Mercado Pago: Suas integrações → aplicação → Webhooks → URL deste endereço, evento "Pagamentos".
+// APRESENTAÇÃO — aviso do Mercado Pago quando um Pix muda de situação (feature 006: RF-81, RN-80 a RN-82, RN-86).
+// Configurar no Mercado Pago: Integrações → aplicação → Configuração de webhooks → URL deste endereço, evento "Order (Mercado Pago)".
 
 import { NextResponse } from "next/server"
 import { container } from "@/infrastructure/container"
-import { PagamentoNaoEncontradoNoMercadoPago, assinaturaDoMercadoPagoConfere } from "@/infrastructure/pagamentos/mercado-pago"
+import { PagamentoNaoEncontradoNoMercadoPago, assinaturaDoMercadoPagoConfere, ehAvisoDeOrdem } from "@/infrastructure/pagamentos/mercado-pago"
 
 export const dynamic = "force-dynamic"
 
@@ -13,8 +13,8 @@ export async function POST(request: Request) {
   const dataId = String(url.searchParams.get("data.id") ?? corpo.data?.id ?? "")
   const tipo = url.searchParams.get("type") ?? corpo.type ?? ""
 
-  // Avisos que não são de pagamento (ou sem id) são só confirmados para o Mercado Pago parar de reenviar.
-  if (tipo !== "payment" || !/^\d{1,30}$/.test(dataId)) return NextResponse.json({ ok: true, ignorado: true })
+  // Avisos que não são de ordem (ou sem id válido) são só confirmados para o Mercado Pago parar de reenviar.
+  if (!ehAvisoDeOrdem(tipo, dataId)) return NextResponse.json({ ok: true, ignorado: true })
 
   const segredo = process.env.MERCADO_PAGO_WEBHOOK_SECRET?.trim()
   if (segredo) {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       dataId,
     })
     if (!confere) {
-      console.warn("[webhook mercadopago] assinatura inválida para o pagamento", dataId)
+      console.warn("[webhook mercadopago] assinatura inválida para a ordem", dataId)
       return NextResponse.json({ ok: false }, { status: 401 })
     }
   }
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     // Divergência (valor, referência) é registrada e não volta a ser reenviada; a cobrança fica pendente para o admin olhar.
     return NextResponse.json({ ok: true })
   } catch (erro) {
-    // Pagamento que o Mercado Pago não conhece (ex.: "Simular notificação" no painel dele): recebido, nada a fazer.
+    // Ordem que o Mercado Pago não conhece (ex.: "Simular notificação" no painel dele): recebido, nada a fazer.
     if (erro instanceof PagamentoNaoEncontradoNoMercadoPago) return NextResponse.json({ ok: true, ignorado: true })
     // Falha temporária (API ou banco fora): 500 faz o Mercado Pago tentar de novo mais tarde.
     console.error("[webhook mercadopago] falha ao processar", dataId, erro)

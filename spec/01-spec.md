@@ -69,6 +69,9 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-21 | No máximo uma cobrança pendente por anúncio; o valor é o da tabela no momento da cobrança. |
 | RN-22 | Confirmar o pagamento e publicar o anúncio acontecem na mesma transação; um pagamento não é confirmado duas vezes. |
 | RN-31 | Categoria com anúncios não é excluída, só desativada. Quem já anunciava nela continua podendo editar. |
+| RN-84 | A cobrança automática é uma ordem da API de Orders do Mercado Pago. Só a ordem `processed` confirma; `failed`, `canceled`, `refunded`, `charged_back` e `expired` contam como recusada; qualquer outra situação segue pendente. |
+| RN-85 | O valor conferido na confirmação automática é o `total_paid_amount` da ordem (na falta dele, o `total_amount`). |
+| RN-86 | O webhook só processa aviso do tipo `order` com identificador de ordem (`ORD…`). Os demais recebem 200 e são ignorados. |
 
 ## Requisitos não funcionais
 

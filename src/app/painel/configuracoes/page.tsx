@@ -57,7 +57,7 @@ export default async function Configuracoes() {
           )}
           {conta && (
             <Item ok={conta.producao} alerta={!conta.producao}>
-              {conta.producao ? "Credencial de produção (APP_USR-…): cobra de verdade" : "Credencial de TESTE: troque pela de produção para receber de verdade"}
+              {conta.producao ? "Credencial de produção: cobra de verdade" : "Credencial de TESTE: troque pela de produção para receber de verdade"}
             </Item>
           )}
           <Item ok={mp.temSegredoDoAviso}>

@@ -1,5 +1,5 @@
-// INFRAESTRUTURA — adaptador do Mercado Pago para o Pix automático (feature 006, ADR-12).
-// Documentação: POST /v1/payments (payment_method_id = "pix") e GET /v1/payments/{id}.
+// INFRAESTRUTURA — adaptador do Mercado Pago para o Pix automático (feature 006, ADR-12 e ADR-14).
+// Documentação: POST /v1/orders (Pix em transactions.payments[].payment_method) e GET /v1/orders/{id}.
 
 import { createHmac, timingSafeEqual } from "crypto"
 import type { CobrancaNoGateway, GatewayPix, PagamentoNoGateway, SituacaoNoGateway } from "@/application/ports/caderno"
@@ -8,41 +8,63 @@ const API = "https://api.mercadopago.com"
 
 type Buscar = typeof fetch
 
+/** Identificador de ordem: "ORD" seguido de letras e números. */
+const ID_DE_ORDEM = /^ORD[0-9A-Z]{1,60}$/i
+
+/** O Mercado Pago aceita vencimento entre 30 minutos e 30 dias. */
+const VENCIMENTO_MINIMO_EM_MINUTOS = 30
+const VENCIMENTO_MAXIMO_EM_MINUTOS = 30 * 24 * 60
+
 /** Resposta do Mercado Pago, só com o que usamos. */
-interface PagamentoMP {
-  id: number | string
+interface OrdemMP {
+  id: string
   status: string
-  transaction_amount: number
+  total_amount: string
+  total_paid_amount?: string | null
   external_reference: string | null
-  date_of_expiration?: string | null
-  point_of_interaction?: { transaction_data?: { qr_code?: string } }
+  transactions?: { payments?: Array<{ payment_method?: { qr_code?: string } }> }
 }
 
-/** "approved" → APROVADO; recusado, cancelado, estornado ou vencido → RECUSADO; o resto ainda está pendente. */
+/** RN-84: "processed" → APROVADO; recusada, cancelada, estornada ou vencida → RECUSADO; o resto ainda está pendente. */
 export function situacaoDoMercadoPago(status: string): SituacaoNoGateway {
-  if (status === "approved") return "APROVADO"
-  if (["rejected", "cancelled", "refunded", "charged_back"].includes(status)) return "RECUSADO"
+  if (status === "processed") return "APROVADO"
+  if (["failed", "canceled", "refunded", "charged_back", "expired"].includes(status)) return "RECUSADO"
   return "PENDENTE"
 }
 
-/** Reais com até 2 casas → centavos inteiros, sem erro de ponto flutuante. */
-export function centavosDoMercadoPago(valor: number): number {
-  return Math.round(valor * 100)
+/** "50.00" → centavos inteiros, sem erro de ponto flutuante. */
+export function centavosDoMercadoPago(valor: string): number {
+  return Math.round(Number(valor) * 100)
 }
 
-/** "2026-11-10T13:00:00.000-03:00", formato que o Mercado Pago aceita em date_of_expiration. */
-export function dataNoFormatoDoMercadoPago(instante: Date): string {
-  const brasilia = new Date(instante.getTime() - 3 * 3_600_000)
-  return `${brasilia.toISOString().slice(0, 23)}-03:00`
+/** Centavos inteiros → "50.00", formato de valor da API de Orders. */
+export function reaisParaOMercadoPago(centavos: number): string {
+  return `${Math.floor(centavos / 100)}.${String(centavos % 100).padStart(2, "0")}`
 }
 
-/** O Mercado Pago não conhece este pagamento (por exemplo, o botão "Simular notificação" do painel dele). */
+/** Prazo até o vencimento em duração ISO 8601 ("P1D", "PT1H30M"), dentro do limite do Mercado Pago. */
+export function duracaoAteVencer(vencimentoEm: Date, agora: Date): string {
+  const faltam = Math.ceil((vencimentoEm.getTime() - agora.getTime()) / 60_000)
+  const total = Math.min(Math.max(faltam, VENCIMENTO_MINIMO_EM_MINUTOS), VENCIMENTO_MAXIMO_EM_MINUTOS)
+  const dias = Math.floor(total / 1440)
+  const horas = Math.floor((total % 1440) / 60)
+  const minutos = total % 60
+  const tempo = `${horas ? `${horas}H` : ""}${minutos ? `${minutos}M` : ""}`
+  return `P${dias ? `${dias}D` : ""}${tempo ? `T${tempo}` : ""}`
+}
+
+/** RN-86: só interessa aviso de ordem com identificador válido. A documentação chama o tópico de "order" e de "orders". */
+export function ehAvisoDeOrdem(tipo: string, dataId: string): boolean {
+  return (tipo === "order" || tipo === "orders") && ID_DE_ORDEM.test(dataId)
+}
+
+/** O Mercado Pago não conhece esta ordem (por exemplo, o botão "Simular notificação" do painel dele). */
 export class PagamentoNaoEncontradoNoMercadoPago extends Error {}
 
 export interface ContaDoMercadoPago {
   id: number
   apelido: string
-  /** Token de produção começa com APP_USR-; de teste, com TEST-. */
+  /** Falso para token TEST- e para conta de teste: em aplicação de Orders, o token de teste também começa com APP_USR-. */
   producao: boolean
 }
 
@@ -51,12 +73,12 @@ export class MercadoPagoGateway implements GatewayPix {
 
   constructor(
     private readonly accessToken: string,
-    private readonly urlDeNotificacao: string | null,
     private readonly buscar: Buscar = fetch,
   ) {}
 
   async criarCobranca(params: { referencia: string; valorCentavos: number; descricao: string; emailDoPagador: string; vencimentoEm: Date }): Promise<CobrancaNoGateway> {
-    const resposta = await this.buscar(`${API}/v1/payments`, {
+    const valor = reaisParaOMercadoPago(params.valorCentavos)
+    const resposta = await this.buscar(`${API}/v1/orders`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -65,37 +87,42 @@ export class MercadoPagoGateway implements GatewayPix {
         "X-Idempotency-Key": params.referencia,
       },
       body: JSON.stringify({
-        transaction_amount: params.valorCentavos / 100,
+        type: "online",
+        processing_mode: "automatic",
+        total_amount: valor,
         description: params.descricao,
-        payment_method_id: "pix",
         external_reference: params.referencia,
-        date_of_expiration: dataNoFormatoDoMercadoPago(params.vencimentoEm),
         payer: { email: params.emailDoPagador },
-        ...(this.urlDeNotificacao ? { notification_url: this.urlDeNotificacao } : {}),
+        transactions: {
+          payments: [
+            {
+              amount: valor,
+              payment_method: { id: "pix", type: "bank_transfer" },
+              expiration_time: duracaoAteVencer(params.vencimentoEm, new Date()),
+            },
+          ],
+        },
       }),
     })
     if (!resposta.ok) throw new Error(`Mercado Pago recusou a cobrança (${resposta.status}): ${(await resposta.text()).slice(0, 300)}`)
-    const pagamento = (await resposta.json()) as PagamentoMP
-    const copiaECola = pagamento.point_of_interaction?.transaction_data?.qr_code
+    const ordem = (await resposta.json()) as OrdemMP
+    const copiaECola = ordem.transactions?.payments?.[0]?.payment_method?.qr_code
     if (!copiaECola) throw new Error("Mercado Pago não devolveu o código Pix.")
-    return {
-      gatewayId: String(pagamento.id),
-      copiaECola,
-      vencimentoEm: pagamento.date_of_expiration ? new Date(pagamento.date_of_expiration) : params.vencimentoEm,
-    }
+    // A resposta da ordem não traz a data de vencimento: vale a que pedimos.
+    return { gatewayId: ordem.id, copiaECola, vencimentoEm: params.vencimentoEm }
   }
 
   async consultar(gatewayId: string): Promise<PagamentoNoGateway> {
-    if (!/^\d{1,30}$/.test(gatewayId)) throw new Error("Identificador de pagamento inválido.")
-    const resposta = await this.buscar(`${API}/v1/payments/${gatewayId}`, { headers: { Authorization: `Bearer ${this.accessToken}` }, cache: "no-store" })
-    if (resposta.status === 404) throw new PagamentoNaoEncontradoNoMercadoPago(`Pagamento ${gatewayId} não existe no Mercado Pago.`)
-    if (!resposta.ok) throw new Error(`Mercado Pago não respondeu a consulta do pagamento ${gatewayId} (${resposta.status}).`)
-    const pagamento = (await resposta.json()) as PagamentoMP
+    if (!ID_DE_ORDEM.test(gatewayId)) throw new PagamentoNaoEncontradoNoMercadoPago(`${gatewayId} não é o identificador de uma ordem.`)
+    const resposta = await this.buscar(`${API}/v1/orders/${gatewayId}`, { headers: { Authorization: `Bearer ${this.accessToken}` }, cache: "no-store" })
+    if (resposta.status === 400 || resposta.status === 404) throw new PagamentoNaoEncontradoNoMercadoPago(`Ordem ${gatewayId} não existe no Mercado Pago.`)
+    if (!resposta.ok) throw new Error(`Mercado Pago não respondeu a consulta da ordem ${gatewayId} (${resposta.status}).`)
+    const ordem = (await resposta.json()) as OrdemMP
     return {
-      gatewayId: String(pagamento.id),
-      situacao: situacaoDoMercadoPago(pagamento.status),
-      valorCentavos: centavosDoMercadoPago(pagamento.transaction_amount),
-      referencia: pagamento.external_reference,
+      gatewayId: ordem.id,
+      situacao: situacaoDoMercadoPago(ordem.status),
+      valorCentavos: centavosDoMercadoPago(ordem.total_paid_amount ?? ordem.total_amount),
+      referencia: ordem.external_reference,
     }
   }
 }
@@ -104,13 +131,15 @@ export class MercadoPagoGateway implements GatewayPix {
 export async function contaDoMercadoPago(accessToken: string, buscar: Buscar = fetch): Promise<ContaDoMercadoPago> {
   const resposta = await buscar(`${API}/users/me`, { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" })
   if (!resposta.ok) throw new Error(`O Mercado Pago recusou o token (${resposta.status}).`)
-  const conta = (await resposta.json()) as { id: number; nickname?: string }
-  return { id: conta.id, apelido: conta.nickname ?? String(conta.id), producao: accessToken.startsWith("APP_USR-") }
+  const conta = (await resposta.json()) as { id: number; nickname?: string; tags?: string[] }
+  const contaDeTeste = (conta.tags ?? []).includes("test_user") || /^TESTUSER/i.test(conta.nickname ?? "")
+  return { id: conta.id, apelido: conta.nickname ?? String(conta.id), producao: accessToken.startsWith("APP_USR-") && !contaDeTeste }
 }
 
 /**
  * RN-82: confere a assinatura do aviso. O Mercado Pago manda `x-signature: ts=…,v1=…` e `x-request-id`;
  * v1 é o HMAC-SHA256 de `id:<data.id>;request-id:<x-request-id>;ts:<ts>;` com a chave secreta do webhook.
+ * O id de ordem tem letras maiúsculas e entra no cálculo em minúsculas.
  */
 export function assinaturaDoMercadoPagoConfere(params: { segredo: string; assinatura: string | null; requestId: string | null; dataId: string }): boolean {
   if (!params.assinatura) return false

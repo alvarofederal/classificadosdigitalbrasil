@@ -72,7 +72,7 @@ function montar() {
   // Feature 006 (ADR-12): sem o token, volta ao Pix estático com confirmação no painel (RF-83).
   const tokenMercadoPago = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim()
   const site = urlDoSiteNoServidor()
-  const gateway = tokenMercadoPago ? new MercadoPagoGateway(tokenMercadoPago, site ? `${site}/api/pagamentos/mercadopago` : null) : null
+  const gateway = tokenMercadoPago ? new MercadoPagoGateway(tokenMercadoPago) : null
 
   const usuarios = new PrismaUsuarioRepository(prisma)
   const sessoes = new PrismaSessaoRepository(prisma)
