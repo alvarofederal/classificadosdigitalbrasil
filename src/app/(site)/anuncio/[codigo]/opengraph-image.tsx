@@ -4,21 +4,11 @@ import { ImageResponse } from "next/og"
 import { codigoValido } from "@/domain/anuncio/anuncio"
 import { container } from "@/infrastructure/container"
 import { formatarReais } from "@/lib/formatadores"
+import { carregarFonte } from "@/lib/og"
 
 export const alt = "Anúncio no Classificados Digitais do Brasil"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
-
-/** Busca no Google Fonts só os caracteres usados (padrão do next/og). Se falhar, a imagem sai com a fonte padrão. */
-async function carregarFonte(familia: string, texto: string): Promise<ArrayBuffer | null> {
-  try {
-    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${familia}&text=${encodeURIComponent(texto)}`)).text()
-    const url = css.match(/src: url\((.+?)\) format\('(opentype|truetype)'\)/)?.[1]
-    return url ? await (await fetch(url)).arrayBuffer() : null
-  } catch {
-    return null
-  }
-}
 
 export default async function Imagem({ params }: { params: Promise<{ codigo: string }> }) {
   const codigo = (await params).codigo.toUpperCase()

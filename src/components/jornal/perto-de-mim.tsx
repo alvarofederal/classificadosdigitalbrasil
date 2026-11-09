@@ -41,7 +41,8 @@ export function LembrarCidade({ uf, slug, nome }: CidadeGuardada) {
   return null
 }
 
-export function PertoDeMim() {
+/** `discreto`: link de texto pequeno, para a capa ficar só com o filtro. */
+export function PertoDeMim({ discreto = false }: { discreto?: boolean }) {
   const router = useRouter()
   const [ultima, setUltima] = useState<CidadeGuardada | null>(null)
   const [estado, setEstado] = useState<"parado" | "buscando" | "negado" | "erro">("parado")
@@ -93,9 +94,12 @@ export function PertoDeMim() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className={discreto ? "flex flex-col items-center gap-1 text-center" : "flex flex-wrap items-center gap-x-4 gap-y-2"}>
       {suportado && (
-        <button type="button" onClick={localizar} disabled={estado === "buscando"} className="botao botao-vazado">
+        <button type="button" onClick={localizar}
+          disabled={estado === "buscando"}
+          className={discreto ? "inline-flex items-center gap-1.5 font-titulo text-sm uppercase tracking-wide underline-offset-4 hover:underline disabled:opacity-60" : "botao botao-vazado"}
+        >
           {estado === "buscando" ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <LocateFixed className="size-4" aria-hidden />}
           {estado === "buscando" ? "Procurando sua cidade…" : "Anúncios perto de mim"}
         </button>

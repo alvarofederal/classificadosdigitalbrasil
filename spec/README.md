@@ -38,3 +38,4 @@ Os documentos gerais (`00` a `07`) são a fonte da verdade do sistema inteiro; a
 | `features/006-pix-automatico` | Confirmação automática do Pix por gateway | Entregue; liga com as credenciais do Mercado Pago |
 | `features/007-dados-de-exemplo` | Anúncio do Gol e exemplos em Brasília | Entregue; faltam as fotos do Gol |
 | `features/008-teste-de-carga` | Teste de carga com k6 | Anotado, script pronto |
+| `features/009-tabela-de-precos` | Simples e com foto em 1, 7, 10, 15, 20 e 30 dias | Aguardando validação |

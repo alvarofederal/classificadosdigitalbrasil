@@ -8,15 +8,15 @@
 
 | ID | Requisito |
 |---|---|
-| RF-40 | A capa não lista as seções. Mostra só: manchete, busca (UF → Cidade → Seção), botão "Anúncios perto de mim", vitrine e três atalhos (Como funciona, Valores, Contato). |
-| RF-48 | Página própria `/como-funciona` (pedido do Álvaro em 2026-11-09): para quem anuncia, para quem procura, valores, perguntas frequentes e contato, com âncoras `#anunciar`, `#procurar`, `#valores`, `#perguntas`, `#contato`. O cabeçalho e o rodapé levam a ela. |
+| RF-40 | A capa é limpa: manchete e o filtro Estado → Cidade → Seção → Pesquisar, com o link discreto "Anúncios perto de mim". Nada mais (revisão pedida em 2026-11-09). |
+| RF-48 | `/como-funciona` é a página de divulgação da plataforma, com link próprio para propaganda: abertura com chamada, por que anunciar, para quem anuncia, para quem procura, valores, perguntas frequentes, contato e botões para compartilhar a página; prévia própria no WhatsApp. O cabeçalho e o rodapé levam a ela. |
 | RF-41 | "Anúncios perto de mim" pede a localização ao navegador e abre o caderno da cidade mais próxima. |
 | RF-42 | Se a permissão de localização já foi dada antes, a capa mostra direto o atalho para a cidade (sem perguntar de novo). Se foi negada, só a busca manual aparece. |
 | RF-43 | A última cidade visitada fica guardada no navegador e aparece como atalho "Continuar em Brasília/DF". |
 | RF-44 | *Como funciona* explica em passos curtos para quem anuncia e para quem procura. |
 | RF-45 | *Valores* mostra a tabela de planos vigente (feature 003). |
 | RF-46 | *Contato* tem o formulário de chamados (feature 004). |
-| RF-47 | *Vitrine* mostra os anúncios do plano Vitrine no ar, de qualquer cidade, até 10. Some se não houver nenhum. |
+| RF-47 | ~~Vitrine na capa~~ suspensa em 2026-11-09: volta quando houver anunciantes de verdade. O plano Vitrine está fora de venda. |
 
 | ID | Regra |
 |---|---|

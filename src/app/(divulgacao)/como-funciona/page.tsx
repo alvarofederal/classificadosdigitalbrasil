@@ -1,18 +1,22 @@
-// APRESENTAÇÃO — página "Como funciona" (feature 002, revisão de 2026-11-09): funcionamento, valores,
-// perguntas frequentes e contato numa página própria, para a capa ficar só com a busca e a vitrine.
+// APRESENTAÇÃO — página de divulgação da plataforma: /como-funciona (feature 002, RF-48).
+// Link próprio para propaganda: o que é, por que anunciar, como funciona, valores, perguntas, contato e botões para compartilhar.
 
 import type { Metadata } from "next"
 import Link from "next/link"
+import { CaixaAnuncio } from "@/components/jornal/caixa-anuncio"
+import { Divulgar } from "@/components/jornal/divulgar"
 import { FormularioContato } from "@/components/jornal/formulario-contato"
 import { TabelaDePrecos } from "@/components/jornal/tabela-de-precos"
 import { ASSUNTOS, type Assunto } from "@/domain/chamado/chamado"
 import { container } from "@/infrastructure/container"
 import { precoInicial } from "@/lib/planos"
+import { NOME_DO_SITE, urlDoSite } from "@/lib/site"
 
 export const metadata: Metadata = {
-  title: "Como funciona, valores e contato",
-  description: "Como anunciar e procurar no Classificados Digitais do Brasil, a tabela de planos e o contato com a administração.",
+  title: "Como funciona: anuncie na sua cidade",
+  description: "Classificados por cidade no formato do jornal. Anúncio com página própria, mensagens e cartaz com QR Code, pago por Pix.",
   alternates: { canonical: "/como-funciona" },
+  openGraph: { title: `${NOME_DO_SITE}: anuncie na sua cidade`, description: "Classificados por cidade no formato do jornal, pagos por Pix." },
 }
 
 function Secao({ id, titulo, children }: { id: string; titulo: string; children: React.ReactNode }) {
@@ -38,6 +42,15 @@ function Passo({ numero, titulo, children }: { numero: number; titulo: string; c
   )
 }
 
+function Motivo({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="border border-tinta p-4">
+      <p className="font-titulo text-lg font-bold uppercase">{titulo}</p>
+      <p className="mt-1 text-sm leading-snug">{children}</p>
+    </div>
+  )
+}
+
 function Pergunta({ pergunta, children }: { pergunta: string; children: React.ReactNode }) {
   return (
     <details className="group border-b border-tinta py-3">
@@ -57,36 +70,49 @@ export default async function ComoFunciona({ searchParams }: { searchParams: Pro
   // "Denunciar este anúncio" chega aqui com o assunto e o código preenchidos (RF-61).
   const assuntoInicial = busca.assunto && busca.assunto in ASSUNTOS ? (busca.assunto as Assunto) : "DUVIDA"
   const anuncioCodigo = /^[A-Z0-9]{6}$/i.test(busca.anuncio ?? "") ? busca.anuncio!.toUpperCase() : ""
-  const c = container()
-  const planos = await c.classificados.planosAVenda()
+  const planos = await container().classificados.planosAVenda()
   const preco = precoInicial(planos)
 
   return (
-    <div className="flex flex-col gap-12 pt-4">
-      <header className="flex flex-col gap-3">
-        <h1 className="font-titulo text-3xl font-bold uppercase sm:text-4xl">Como funciona</h1>
-        <p className="max-w-3xl text-lg leading-snug">
-          Classificados por cidade, no formato do caderno de jornal. Quem procura não paga e não precisa de cadastro. Quem anuncia paga a partir de{" "}
-          <strong>{preco}</strong> e ganha uma página própria para divulgar.
-        </p>
-        <nav className="flex flex-wrap gap-2" aria-label="Nesta página">
-          <a href="#anunciar" className="botao botao-vazado botao-pequeno">
-            Para quem anuncia
-          </a>
-          <a href="#procurar" className="botao botao-vazado botao-pequeno">
-            Para quem procura
-          </a>
-          <a href="#valores" className="botao botao-vazado botao-pequeno">
-            Valores
-          </a>
-          <a href="#perguntas" className="botao botao-vazado botao-pequeno">
-            Perguntas frequentes
-          </a>
-          <a href="#contato" className="botao botao-vazado botao-pequeno">
-            Contato
-          </a>
-        </nav>
-      </header>
+    <div className="flex flex-col gap-14 pb-4 pt-8">
+      {/* Abertura */}
+      <section className="grid items-center gap-8 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-4">
+          <h1 className="font-manchete text-[clamp(2.4rem,7vw,4.5rem)] uppercase leading-[0.95]">Anuncie no caderno da sua cidade</h1>
+          <p className="text-lg leading-snug sm:text-xl">
+            O {NOME_DO_SITE} é o classificado do jornal, agora na internet: anúncios por cidade e por seção, a partir de <strong>{preco}</strong>, pagos por
+            Pix. Quem procura não paga e não precisa de cadastro.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/minha-conta/anuncios/novo" className="botao">
+              Anunciar agora
+            </Link>
+            <Link href="/" className="botao botao-vazado">
+              Procurar anúncios
+            </Link>
+          </div>
+        </div>
+        <div className="mx-auto w-full max-w-[17rem] rotate-1">
+          <CaixaAnuncio
+            destaque
+            conteudo={{
+              titulo: "Vendo, alugo, contrato",
+              texto: "Seu anúncio aqui, no formato do jornal, com página própria, mensagens dos interessados e cartaz com QR Code para divulgar.",
+              precoCentavos: null,
+              estilo: { moldura: "DUPLA", estiloTitulo: "TARJA", alinhamento: "CENTRO", estrelas: true },
+            }}
+          />
+        </div>
+      </section>
+
+      <Secao id="por-que" titulo="Por que anunciar aqui">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Motivo titulo="Barato e por Pix">A partir de {preco}. Paga na hora pelo celular, sem cartão e sem mensalidade.</Motivo>
+          <Motivo titulo="Na sua cidade">O anúncio aparece no caderno da cidade e da seção escolhidas, para quem mora perto.</Motivo>
+          <Motivo titulo="Página própria">Cada anúncio tem link curto, prévia no WhatsApp e cartaz com QR Code para imprimir.</Motivo>
+          <Motivo titulo="Sem expor seu número">Os interessados mandam mensagem pela página. Seu CPF, celular e e-mail não aparecem.</Motivo>
+        </div>
+      </Secao>
 
       <div className="grid gap-10 md:grid-cols-2">
         <Secao id="anunciar" titulo="Para quem anuncia">
@@ -98,33 +124,27 @@ export default async function ComoFunciona({ searchParams }: { searchParams: Pro
               Escreva o texto e escolha moldura, título e estrelas vendo a prévia do jeito que sai no caderno.
             </Passo>
             <Passo numero={3} titulo="Escolha o plano e pague o Pix">
-              7 ou 30 dias. O anúncio entra no caderno da cidade assim que o pagamento é confirmado.
+              O anúncio entra no caderno da cidade assim que o pagamento é confirmado.
             </Passo>
             <Passo numero={4} titulo="Divulgue">
-              Cada anúncio tem página própria com link curto, botões para WhatsApp e redes sociais e um cartaz com QR Code para imprimir e colar.
+              Mande o link no WhatsApp e nas redes, ou imprima o cartaz com QR Code e cole onde as pessoas passam.
             </Passo>
             <Passo numero={5} titulo="Receba as mensagens">
-              Os interessados escrevem pela caixa de conversa do anúncio e você responde pelo contato que eles deixaram.
+              Os interessados escrevem pela página do anúncio e você responde pelo contato que eles deixaram.
             </Passo>
           </ol>
-          <Link href="/minha-conta/anuncios/novo" className="botao mt-5">
-            Criar meu anúncio
-          </Link>
         </Secao>
 
         <Secao id="procurar" titulo="Para quem procura">
           <ol className="flex flex-col gap-4">
             <Passo numero={1} titulo="Escolha a cidade">
-              Pelo estado e cidade na busca da capa, ou pelo botão &quot;Anúncios perto de mim&quot;.
+              Estado, cidade e seção na página inicial, ou o link &quot;Anúncios perto de mim&quot;.
             </Passo>
             <Passo numero={2} titulo="Leia o caderno">
               As seções aparecem como no jornal: Imóveis, Veículos, Empregos, Serviços e outras.
             </Passo>
-            <Passo numero={3} titulo="Abra o anúncio">
-              Toque no anúncio para ver as fotos e a página completa, ou use o ícone de mensagem direto no caderno.
-            </Passo>
-            <Passo numero={4} titulo="Fale com o anunciante">
-              Deixe seu nome, um telefone ou e-mail e a mensagem. Não precisa de cadastro.
+            <Passo numero={3} titulo="Fale com o anunciante">
+              Abra o anúncio e deixe seu nome, um telefone ou e-mail e a mensagem. Não precisa de cadastro.
             </Passo>
           </ol>
           <p className="mt-5 border-l-4 border-tinta pl-3 text-sm">
@@ -135,18 +155,18 @@ export default async function ComoFunciona({ searchParams }: { searchParams: Pro
 
       <Secao id="valores" titulo="Valores">
         <TabelaDePrecos planos={planos} />
-        <p className="mt-3 text-sm text-tinta-suave">Pagamento por Pix. Pagar de novo soma os dias ao que ainda resta. O plano de 30 dias sai pelo preço de 3 semanas.</p>
+        <p className="mt-3 text-sm text-tinta-suave">Pagamento por Pix. Pagar de novo soma os dias ao que ainda resta.</p>
       </Secao>
 
       <Secao id="perguntas" titulo="Perguntas frequentes">
         <div className="max-w-3xl">
           <Pergunta pergunta="Preciso de cadastro para procurar ou mandar mensagem?">Não. Cadastro só para quem anuncia.</Pergunta>
           <Pergunta pergunta="Quanto tempo o anúncio fica no ar?">
-            7 ou 30 dias, conforme o período escolhido. Para continuar, renove: os dias novos entram depois dos que ainda restam.
+            Pelo período escolhido no plano. Para continuar, renove: os dias novos entram depois dos que ainda restam.
           </Pergunta>
           <Pergunta pergunta="Quando o anúncio entra no caderno?">Logo depois que o Pix é confirmado. A tela de pagamento avisa quando cai.</Pergunta>
           <Pergunta pergunta="Posso mudar o texto depois de publicado?">Sim. Texto, preço e formatação mudam a qualquer momento, sem pagar de novo.</Pergunta>
-          <Pergunta pergunta="Quantas fotos posso colocar?">Depende do plano: 1 foto no Simples e até 6 a partir do Com fotos. Veja a tabela acima.</Pergunta>
+          <Pergunta pergunta="Quantas fotos posso colocar?">Depende do plano. Veja a tabela de valores.</Pergunta>
           <Pergunta pergunta="Como divulgo meu anúncio?">
             Abra o anúncio e use os botões de divulgar: link curto, WhatsApp, Facebook, Telegram, X e o cartaz com QR Code para imprimir. Quem aponta a
             câmera do celular para o cartaz cai direto no anúncio.
@@ -178,6 +198,11 @@ export default async function ComoFunciona({ searchParams }: { searchParams: Pro
             </p>
           </div>
         </div>
+      </Secao>
+
+      <Secao id="compartilhar" titulo="Compartilhe com quem vende">
+        <p className="mb-3 text-sm">Conhece alguém que vende, aluga ou presta serviço? Mande esta página.</p>
+        <Divulgar titulo={`Anuncie na sua cidade a partir de ${preco}`} link={`${urlDoSite()}/como-funciona`} />
       </Secao>
     </div>
   )

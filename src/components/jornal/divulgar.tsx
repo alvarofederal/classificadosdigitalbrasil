@@ -11,7 +11,8 @@ function abrir(url: string) {
   window.open(url, "_blank", "noopener,noreferrer")
 }
 
-export function Divulgar({ titulo, link, codigo }: { titulo: string; link: string; codigo: string }) {
+/** `codigo`: quando é um anúncio, aparece também o botão do cartaz com QR Code. */
+export function Divulgar({ titulo, link, codigo }: { titulo: string; link: string; codigo?: string }) {
   const [copiado, setCopiado] = useState(false)
   const [temCompartilhar, setTemCompartilhar] = useState(false)
   const texto = `${titulo} — veja no Classificados Digitais do Brasil: ${link}`
@@ -57,10 +58,12 @@ export function Divulgar({ titulo, link, codigo }: { titulo: string; link: strin
             {b.rotulo}
           </button>
         ))}
+        {codigo && (
         <Link href={`/cartaz/${codigo}`} target="_blank" className="botao botao-vazado botao-pequeno">
           <Printer className="size-4" aria-hidden />
           Cartaz com QR Code
         </Link>
+        )}
       </div>
     </div>
   )

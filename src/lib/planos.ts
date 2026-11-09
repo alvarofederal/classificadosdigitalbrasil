@@ -25,6 +25,5 @@ export function vantagensDoPlano(plano: Plano): string[] {
     "Página própria para divulgar",
     ...(recursos.destaque ? ["Moldura de destaque"] : []),
     ...(recursos.prioridade > 0 ? [recursos.vitrine ? "Topo da seção" : "Antes dos planos menores"] : []),
-    ...(recursos.vitrine ? ["Vitrine da capa"] : []),
   ]
 }
