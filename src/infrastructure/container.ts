@@ -35,7 +35,7 @@ import {
 } from "@/application/use-cases/pagamentos/pagamentos"
 import { AbrirChamadoUseCase, LocalizarCidadeUseCase } from "@/application/use-cases/publico/publico"
 import { CatalogoIbge } from "./localidades/catalogo-ibge"
-import { MercadoPagoGateway } from "./pagamentos/mercado-pago"
+import { MercadoPagoGateway, contaDoMercadoPago } from "./pagamentos/mercado-pago"
 import { prisma } from "./prisma/cliente"
 import { PrismaClassificadosQuery, PrismaMinhaContaQuery, PrismaPainelQuery } from "./prisma/consultas"
 import {
@@ -95,6 +95,12 @@ function montar() {
     localidades,
     configuracao,
     pixAutomatico: gateway !== null,
+    /** Painel → Configurações (feature 006): situação da ligação com o Mercado Pago. */
+    mercadoPago: {
+      urlDoAviso: site ? `${site}/api/pagamentos/mercadopago` : null,
+      temSegredoDoAviso: Boolean(process.env.MERCADO_PAGO_WEBHOOK_SECRET?.trim()),
+      conta: tokenMercadoPago ? () => contaDoMercadoPago(tokenMercadoPago) : null,
+    },
 
     autenticar: new AutenticarUsuarioUseCase(usuarios, sessoes, tentativas, hash, tokens, relogio),
     obterSessao: new ObterSessaoUseCase(sessoes, tokens, relogio),

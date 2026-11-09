@@ -27,12 +27,17 @@
 - Webhook `POST /api/pagamentos/mercadopago`: valida `x-signature` (HMAC-SHA256 de `id:…;request-id:…;ts:…;`), consulta o pagamento na API e chama `ProcessarPagamentoDoGateway`.
 - `pagamentos` ganha `gateway`, `gatewayId`, `copiaECola`, `expiraEm`.
 
-**Para ligar (Vercel → Environment Variables, Production):**
+**Passo a passo para ligar (feito pelo Álvaro; o código já está pronto):**
 
-| Variável | Onde pegar |
-|---|---|
-| `MERCADO_PAGO_ACCESS_TOKEN` | Mercado Pago → Suas integrações → aplicação → Credenciais de produção → Access Token |
-| `MERCADO_PAGO_WEBHOOK_SECRET` | Mesma aplicação → Webhooks → configurar a URL `https://classificadosdigitalbrasil.vercel.app/api/pagamentos/mercadopago`, evento *Pagamentos* → Assinatura secreta |
+1. **Conta Mercado Pago** (CPF serve) com **uma chave Pix cadastrada** no app (Seu perfil → Pix → Minhas chaves). Sem chave, o Mercado Pago não gera Pix pela API.
+2. **Criar a aplicação**: mercadopago.com.br/developers → Suas integrações → Criar aplicação → tipo *Pagamentos online* → *Checkout Transparente* (API).
+3. **Ativar credenciais de produção**: na aplicação, Produção → Credenciais de produção → informar o site `https://classificadosdigitalbrasil.vercel.app`, aceitar os termos. Copiar o **Access Token** (começa com `APP_USR-`).
+4. **Webhook**: na aplicação, Webhooks → Configurar notificações → modo produção → URL `https://classificadosdigitalbrasil.vercel.app/api/pagamentos/mercadopago` → evento **Pagamentos** → salvar. Copiar a **assinatura secreta**.
+5. **Vercel** → projeto → Settings → Environment Variables → Production: `MERCADO_PAGO_ACCESS_TOKEN` e `MERCADO_PAGO_WEBHOOK_SECRET`. Depois, **Redeploy**.
+6. **Conferir** em Painel → Configurações: todos os itens marcados ("Conta conectada", "Credencial de produção", "Assinatura secreta", "Endereço do aviso").
+7. **Testar de verdade**: com uma conta de anunciante **de e-mail diferente** do e-mail da conta Mercado Pago (o Mercado Pago recusa cobrança em que pagador e recebedor são a mesma pessoa), criar um anúncio Simples de 7 dias (R$ 1,00), pagar o Pix pelo app de outro banco e ver a tela confirmar sozinha.
+
+O botão "Simular notificação" do Mercado Pago manda um pagamento inexistente; o site responde "recebido" e não muda nada.
 
 **Escala.** Cada Pix pago gera um aviso; o processamento é uma consulta à API e duas atualizações no banco, em transação. Milhares por dia cabem folgados na Vercel e no MySQL.
 

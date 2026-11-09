@@ -3,7 +3,7 @@
 
 import { NextResponse } from "next/server"
 import { container } from "@/infrastructure/container"
-import { assinaturaDoMercadoPagoConfere } from "@/infrastructure/pagamentos/mercado-pago"
+import { PagamentoNaoEncontradoNoMercadoPago, assinaturaDoMercadoPagoConfere } from "@/infrastructure/pagamentos/mercado-pago"
 
 export const dynamic = "force-dynamic"
 
@@ -37,6 +37,8 @@ export async function POST(request: Request) {
     // Divergência (valor, referência) é registrada e não volta a ser reenviada; a cobrança fica pendente para o admin olhar.
     return NextResponse.json({ ok: true })
   } catch (erro) {
+    // Pagamento que o Mercado Pago não conhece (ex.: "Simular notificação" no painel dele): recebido, nada a fazer.
+    if (erro instanceof PagamentoNaoEncontradoNoMercadoPago) return NextResponse.json({ ok: true, ignorado: true })
     // Falha temporária (API ou banco fora): 500 faz o Mercado Pago tentar de novo mais tarde.
     console.error("[webhook mercadopago] falha ao processar", dataId, erro)
     return NextResponse.json({ ok: false }, { status: 500 })

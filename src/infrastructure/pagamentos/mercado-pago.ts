@@ -36,6 +36,16 @@ export function dataNoFormatoDoMercadoPago(instante: Date): string {
   return `${brasilia.toISOString().slice(0, 23)}-03:00`
 }
 
+/** O Mercado Pago não conhece este pagamento (por exemplo, o botão "Simular notificação" do painel dele). */
+export class PagamentoNaoEncontradoNoMercadoPago extends Error {}
+
+export interface ContaDoMercadoPago {
+  id: number
+  apelido: string
+  /** Token de produção começa com APP_USR-; de teste, com TEST-. */
+  producao: boolean
+}
+
 export class MercadoPagoGateway implements GatewayPix {
   readonly nome = "MERCADO_PAGO" as const
 
@@ -78,7 +88,8 @@ export class MercadoPagoGateway implements GatewayPix {
   async consultar(gatewayId: string): Promise<PagamentoNoGateway> {
     if (!/^\d{1,30}$/.test(gatewayId)) throw new Error("Identificador de pagamento inválido.")
     const resposta = await this.buscar(`${API}/v1/payments/${gatewayId}`, { headers: { Authorization: `Bearer ${this.accessToken}` }, cache: "no-store" })
-    if (!resposta.ok) throw new Error(`Mercado Pago não encontrou o pagamento ${gatewayId} (${resposta.status}).`)
+    if (resposta.status === 404) throw new PagamentoNaoEncontradoNoMercadoPago(`Pagamento ${gatewayId} não existe no Mercado Pago.`)
+    if (!resposta.ok) throw new Error(`Mercado Pago não respondeu a consulta do pagamento ${gatewayId} (${resposta.status}).`)
     const pagamento = (await resposta.json()) as PagamentoMP
     return {
       gatewayId: String(pagamento.id),
@@ -87,6 +98,14 @@ export class MercadoPagoGateway implements GatewayPix {
       referencia: pagamento.external_reference,
     }
   }
+}
+
+/** Painel → Configurações: confere se o token funciona e de qual conta é (GET /users/me). */
+export async function contaDoMercadoPago(accessToken: string, buscar: Buscar = fetch): Promise<ContaDoMercadoPago> {
+  const resposta = await buscar(`${API}/users/me`, { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" })
+  if (!resposta.ok) throw new Error(`O Mercado Pago recusou o token (${resposta.status}).`)
+  const conta = (await resposta.json()) as { id: number; nickname?: string }
+  return { id: conta.id, apelido: conta.nickname ?? String(conta.id), producao: accessToken.startsWith("APP_USR-") }
 }
 
 /**

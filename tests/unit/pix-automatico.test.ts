@@ -16,6 +16,8 @@ import {
 import { ESTILO_PADRAO } from "@/domain/anuncio/anuncio"
 import {
   MercadoPagoGateway,
+  PagamentoNaoEncontradoNoMercadoPago,
+  contaDoMercadoPago,
   assinaturaDoMercadoPagoConfere,
   centavosDoMercadoPago,
   dataNoFormatoDoMercadoPago,
@@ -228,5 +230,20 @@ describe("Adaptador do Mercado Pago (ADR-12)", () => {
     expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: `ts=${ts},v1=${v1}`, requestId: "req-1", dataId: "123" })).toBe(true)
     expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: `ts=${ts},v1=${v1}`, requestId: "req-1", dataId: "124" })).toBe(false)
     expect(assinaturaDoMercadoPagoConfere({ segredo, assinatura: null, requestId: "req-1", dataId: "123" })).toBe(false)
+  })
+})
+
+describe("Ligação com o Mercado Pago (feature 006, T-84)", () => {
+  it("pagamento que o Mercado Pago não conhece vira erro próprio (o webhook responde 'recebido')", async () => {
+    const falso = (async () => new Response("{}", { status: 404 })) as unknown as typeof fetch
+    const gw = new MercadoPagoGateway("token", null, falso)
+    await expect(gw.consultar("123")).rejects.toBeInstanceOf(PagamentoNaoEncontradoNoMercadoPago)
+  })
+  it("verifica a conta do token e diz se é de produção", async () => {
+    const falso = (async () => new Response(JSON.stringify({ id: 42, nickname: "CLASSIFICADOS" }), { status: 200 })) as unknown as typeof fetch
+    expect(await contaDoMercadoPago("APP_USR-123", falso)).toEqual({ id: 42, apelido: "CLASSIFICADOS", producao: true })
+    expect((await contaDoMercadoPago("TEST-123", falso)).producao).toBe(false)
+    const recusa = (async () => new Response("{}", { status: 401 })) as unknown as typeof fetch
+    await expect(contaDoMercadoPago("APP_USR-x", recusa)).rejects.toThrow("recusou o token")
   })
 })
