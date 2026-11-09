@@ -45,3 +45,12 @@ Verificado em `tests/unit/arquitetura.test.ts`.
 ## Art. 6 · Desempenho
 
 A lista pública é sempre de uma cidade e uma seção (RNF-01). Não existe consulta "todos os anúncios do Brasil" no site.
+
+## Art. 7 · A spec é a memória do projeto
+
+A conversa com o assistente não é registro: pode sumir sem aviso, como aconteceu em 2026-11-09 (`05-tasks.md`, seção *Continuidade*). O que não está em `spec/` ou no código conta como perdido.
+
+1. Toda decisão vai para `spec/` quando é tomada, não no fim da sessão.
+2. O que foi combinado e ainda não foi feito entra como pendência em `05-tasks.md` ou nas tarefas da funcionalidade.
+3. Ao parar com trabalho pela metade, escrever em *Continuidade* onde parou e qual é o próximo passo.
+4. Código e spec da mesma mudança entram no mesmo commit.

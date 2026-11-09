@@ -35,6 +35,22 @@
 
 Correção na 0.2: o endereço do site passou a vir do domínio de produção da Vercel; a `NEXT_PUBLIC_URL` copiada do Pague Dez mandava link curto, QR e prévia para `paguedez.vercel.app`.
 
+## Continuidade
+
+Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da constituição).
+
+**Situação em 2026-11-09**
+
+- Último commit de código: `5122172` (ADR-14), no `main` e no GitHub.
+- Em andamento: 006 Pix automático. Falta confirmar o passo 5, credenciais na Vercel (ver *Onde parou* em `features/006-pix-automatico/spec.md`).
+- Pendências abertas: T-84 (credenciais e Pix real de R$ 1,00), T-86 (cancelar a ordem no Mercado Pago), T-14 (fluxo com Pix real), fotos do Gol (007), rodar o k6 (008).
+
+**Conversas perdidas em 2026-11-09**
+
+Os arquivos das conversas de duas sessões sumiram do disco: "Classificados Digital" (última atividade às 16:01) e "Classificados Digital · continuação" (última atividade registrada às 18:30). Código e specs não foram afetados. O que foi combinado só nessas conversas e não está em `spec/` precisa ser informado de novo. Causa não identificada; as duas rodavam dentro de `.claude/worktrees`.
+
+Proteção adotada: a tarefa agendada do Windows *Backup conversas Claude* copia as conversas a cada 15 minutos para `%USERPROFILE%\Backup-Claude`. Ela nunca apaga o que já copiou. Fica no mesmo disco, então não cobre falha do disco.
+
 ## Próximas versões
 
 Ver `07-insights.md`: créditos (carteira), e-mail de aviso de vencimento e de nova mensagem, subir para o topo.

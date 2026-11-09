@@ -13,6 +13,10 @@ Toda funcionalidade nova passa por quatro etapas, nesta ordem, e nada vai para o
 
 Os documentos gerais (`00` a `07`) são a fonte da verdade do sistema inteiro; as pastas de `features/` contam a história de cada entrega.
 
+## Retomar o trabalho
+
+A memória do projeto é esta pasta, não a conversa (Art. 7 da constituição). Numa sessão nova, ler `00-constitution.md`, a seção *Continuidade* de `05-tasks.md` e a spec da funcionalidade em andamento, e conferir o `git log`.
+
 ## Documentos gerais
 
 | Arquivo | Conteúdo |
@@ -22,7 +26,7 @@ Os documentos gerais (`00` a `07`) são a fonte da verdade do sistema inteiro; a
 | `02-plan.md` | Stack, camadas e decisões de arquitetura (ADR) |
 | `03-data-model.md` | Tabelas, índices e ciclo de vida do anúncio |
 | `04-design-system.md` | Página branca, tinta, fontes e peças do jornal |
-| `05-tasks.md` | Quadro geral: o que foi feito e o que está pendente |
+| `05-tasks.md` | Quadro geral: o que foi feito, o que está pendente e onde o trabalho parou |
 | `06-test-plan.md` | Testes automáticos, roteiro manual e teste de carga |
 | `07-insights.md` | Decisões de produto, ideia original e próximos passos |
 

@@ -54,3 +54,7 @@ O botão "Simular notificação" do Mercado Pago manda uma ordem inexistente; o 
 - [ ] T-84 Cadastrar as credenciais na Vercel e fazer um Pix real de R$ 1,00 (depende do Álvaro)
 - [x] T-85 Adaptador e webhook na API de Orders (ADR-14; RN-84 a RN-86)
 - [ ] T-86 Cancelar a ordem no Mercado Pago quando a cobrança é cancelada aqui: hoje o Pix antigo continua pagável por até 24 horas e, se for pago, o dinheiro entra e o anúncio não publica
+
+## Onde parou (2026-11-09)
+
+Passos 2 a 4 feitos e adaptador na API de Orders (T-85). A última captura de tela da sessão, às 18:30, mostra a entrada no painel do Mercado Pago parada na validação de conta, que pede um código enviado ao celular do titular. Não há registro de que as credenciais já estejam na Vercel. Próximo passo: o Álvaro entra no painel, copia o Access Token e a assinatura secreta e segue do passo 5 ao 7.
