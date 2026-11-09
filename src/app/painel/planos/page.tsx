@@ -1,8 +1,8 @@
-// APRESENTAÇÃO — tabela de preços editável (feature 003: RF-51).
+// APRESENTAÇÃO — tabela de preços editável: um valor por plano e período (features 003 e 009: RF-51, RN-56).
 
 import type { Metadata } from "next"
 import { Faixa } from "@/components/jornal/pecas"
-import { RECURSOS_DO_PLANO } from "@/domain/plano/plano"
+import { PERIODOS, RECURSOS_DO_PLANO } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
 import { reaisParaCampo } from "@/lib/formatadores"
 import { FormularioPlano } from "./formulario-plano"
@@ -15,21 +15,21 @@ export default async function Planos() {
     <div className="flex flex-col gap-5">
       <Faixa como="h1">Planos e preços</Faixa>
       <p className="max-w-3xl text-sm">
-        Os quatro planos são fixos; você muda nome, descrição, preço de 7 e de 30 dias, fotos e se o plano está à venda. Mudanças valem para as próximas
-        cobranças: Pix já gerado mantém o valor da época. Sugestão: 30 dias = 3 semanas, para o plano mensal sair mais barato por dia.
+        Um preço por período ({PERIODOS.join(", ")} dias). Deixe o campo em branco para não vender aquele período no plano. Mudanças valem para as próximas
+        cobranças: Pix já gerado mantém o valor da época. Plano fora de venda some da tabela e do cadastro de anúncios.
       </p>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-2">
         {planos.map((plano) => (
           <FormularioPlano
-            key={`${plano.codigo}-${plano.valor7DiasCentavos}-${plano.valor30DiasCentavos}-${plano.ativo}`}
+            key={`${plano.codigo}-${JSON.stringify(plano.precos)}-${plano.ativo}-${plano.maxFotos}`}
             codigo={plano.codigo}
             recursos={RECURSOS_DO_PLANO[plano.codigo]}
+            periodos={[...PERIODOS]}
             iniciais={{
               nome: plano.nome,
               descricao: plano.descricao,
               maxFotos: String(plano.maxFotos),
-              valor7Dias: reaisParaCampo(plano.valor7DiasCentavos),
-              valor30Dias: reaisParaCampo(plano.valor30DiasCentavos),
+              precos: Object.fromEntries(PERIODOS.map((dias) => [dias, plano.precos[dias] ? reaisParaCampo(plano.precos[dias]!) : ""])),
               ativo: plano.ativo,
             }}
           />

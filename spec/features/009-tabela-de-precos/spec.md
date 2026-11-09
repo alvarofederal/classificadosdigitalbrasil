@@ -1,6 +1,22 @@
 # 009 · Tabela de preços por período
 
-**Situação: opção D (meio-termo) aguardando validação do Álvaro (2026-11-09).** Nada disto está no sistema ainda.
+## Decisão do Álvaro (2026-11-09)
+
+"7 dias a partir de 1 real, e 30 dias 25, sem 1 dia." Vale a **opção A sem o período de 1 dia**: as âncoras dele e os valores do meio na mesma proporção. Os alertas sobre o mês (seção abaixo) ficaram registrados; os valores mudam a qualquer hora em Painel → Planos.
+
+| Plano | 7 dias | 10 dias | 15 dias | 20 dias | 30 dias |
+|---|---|---|---|---|---|
+| Simples (texto, página própria e chat, sem foto) | R$ 1,00 | R$ 4,00 | R$ 9,50 | R$ 14,50 | R$ 25,00 |
+| Com foto (6 fotos, página própria e chat) | R$ 10,00 | R$ 40,00 | R$ 95,00 | R$ 145,00 | R$ 250,00 |
+
+Destaque e Vitrine ficam fora de venda (voltam quando houver anunciantes de verdade).
+
+| ID | Regra |
+|---|---|
+| RN-56 | Períodos à venda: 7, 10, 15, 20 e 30 dias. Cada plano tem um preço por período; período sem preço não aparece para o anunciante. |
+| RN-57 | O plano Simples não tem fotos; o Com foto aceita até 6. |
+
+## Histórico da discussão
 
 ## Spec
 
@@ -86,8 +102,8 @@ Promoção de entrada (opcional): primeira semana do primeiro anúncio de cada c
 
 ## Tarefas
 
-- [ ] T-110 Álvaro valida a opção D (meio-termo) ou ajusta os valores
-- [ ] T-111 Tabela `precos` e migração
-- [ ] T-112 Grade de preços no painel
-- [ ] T-113 Períodos no editor e na renovação
-- [ ] T-114 Promoção da primeira semana (se C)
+- [x] T-110 Álvaro decidiu: opção A sem 1 dia
+- [x] T-111 Tabela `precos` e migração `20261109120000_precos_por_periodo` (copia os preços antigos e grava a tabela decidida)
+- [x] T-112 Grade de preços no painel (campo em branco = período fora de venda)
+- [x] T-113 Períodos no editor, na renovação e na tabela de valores; Simples sem álbum
+- [ ] T-114 Promoção da primeira semana (não pedida; fica como ideia)

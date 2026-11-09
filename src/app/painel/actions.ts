@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import type { NovaFoto } from "@/application/ports/caderno"
 import { ALINHAMENTOS, ESTILOS_DE_TITULO, MOLDURAS } from "@/domain/anuncio/anuncio"
+import type { Precos } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
 import { type EstadoFormulario, checkbox, codigoIbge, deResultado, inteiro, lerFormulario, reais, reaisOpcional, texto, umDe } from "@/lib/formularios"
 import { NAO_AUTORIZADO, autorizar } from "@/lib/sessao"
@@ -85,12 +86,17 @@ export async function salvarConfiguracaoAction(formData: FormData): Promise<Esta
 
 // ── Planos (feature 003: RF-51) ──
 
+const VALOR_INVALIDO = "Valor inválido. Ex.: 9,50"
 const schemaPlano = z.object({
   nome: texto,
   descricao: texto,
   maxFotos: inteiro("Entre 0 e 6 fotos."),
-  valor7Dias: reais("Informe o valor de 7 dias. Ex.: 1,00"),
-  valor30Dias: reais("Informe o valor de 30 dias. Ex.: 3,00"),
+  // Feature 009: um campo por período; em branco = período fora de venda.
+  preco7: reaisOpcional(VALOR_INVALIDO),
+  preco10: reaisOpcional(VALOR_INVALIDO),
+  preco15: reaisOpcional(VALOR_INVALIDO),
+  preco20: reaisOpcional(VALOR_INVALIDO),
+  preco30: reaisOpcional(VALOR_INVALIDO),
   ativo: checkbox,
 })
 
@@ -99,8 +105,12 @@ export async function salvarPlanoAction(codigo: string, formData: FormData): Pro
   if (!admin) return NAO_AUTORIZADO
   const lido = lerFormulario(schemaPlano, formData)
   if (!lido.ok) return lido.estado
-  const { valor7Dias, valor30Dias, ...resto } = lido.dados
-  const resultado = await container().atualizarPlano.executar(codigo, { ...resto, valor7DiasCentavos: valor7Dias, valor30DiasCentavos: valor30Dias })
+  const { preco7, preco10, preco15, preco20, preco30, ...resto } = lido.dados
+  const precos: Precos = {}
+  for (const [dias, valor] of [[7, preco7], [10, preco10], [15, preco15], [20, preco20], [30, preco30]] as const) {
+    if (valor !== null) precos[dias] = valor
+  }
+  const resultado = await container().atualizarPlano.executar(codigo, { ...resto, precos })
   if (resultado.ok) revalidatePath("/", "layout")
   return deResultado(resultado, "Plano salvo. Vale para as próximas cobranças.")
 }

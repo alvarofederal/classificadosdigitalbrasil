@@ -32,12 +32,14 @@ export interface PedidoDeCobranca {
   emailDoPagador: string
 }
 
-/** Plano à venda e período válido (7 ou 30 dias). */
+/** Plano à venda e período com preço na grade do plano (RN-56). */
 export async function conferirPlano(planos: PlanoRepository, planoCodigo: string, dias: number) {
   const erros: Record<string, string> = {}
   const plano = ehCodigoDePlano(planoCodigo) ? await planos.buscar(planoCodigo) : null
   if (!plano || !plano.ativo) erros.planoCodigo = "Escolha um plano disponível."
-  if (!ehPeriodo(dias)) erros.dias = "Escolha 7 ou 30 dias."
+  // RN-56: o período precisa existir na grade do plano escolhido.
+  if (!ehPeriodo(dias)) erros.dias = "Escolha 7, 10, 15, 20 ou 30 dias."
+  else if (plano && !erros.planoCodigo && valorDoPeriodo(plano, dias) === null) erros.dias = "Este plano não tem esse período."
   return { plano, erros }
 }
 
@@ -65,7 +67,7 @@ export async function abrirCobranca(deps: DepsDePagamento, pedido: PedidoDeCobra
   }
 
   const codigo = await novoCodigo(deps)
-  const valorCentavos = valorDoPeriodo(plano, dias)
+  const valorCentavos = valorDoPeriodo(plano, dias)!
   let doGateway: Pick<PagamentoRegistro, "gateway" | "gatewayId" | "copiaECola" | "vencimentoEm"> = {
     gateway: null,
     gatewayId: null,

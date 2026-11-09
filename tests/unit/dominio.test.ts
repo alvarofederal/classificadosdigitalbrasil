@@ -12,7 +12,7 @@ import { slugDaCategoria, validarCategoria } from "@/domain/categoria/categoria"
 import { contatoValido, validarMensagem } from "@/domain/mensagem/mensagem"
 import { normalizarChamado, validarChamado } from "@/domain/chamado/chamado"
 import { dentroDoBrasil, distanciaKm } from "@/domain/localidade/geo"
-import { PLANOS_INICIAIS, ehPeriodo, planoTemDestaque, prioridadeDoPlano, validarPlano, valorDoPeriodo } from "@/domain/plano/plano"
+import { PERIODOS, PLANOS_INICIAIS, ehPeriodo, menorPreco, periodosDoPlano, planoTemDestaque, prioridadeDoPlano, validarPlano, valorDoPeriodo } from "@/domain/plano/plano"
 import { CatalogoIbge } from "@/infrastructure/localidades/catalogo-ibge"
 import { chavePixValida, crc16, gerarPixCopiaECola, textoParaPix } from "@/domain/pagamento/pix"
 import { ufDe } from "@/domain/localidade/uf"
@@ -148,29 +148,35 @@ describe("Pix copia e cola (ADR-07)", () => {
 
 })
 
-describe("Planos e tabela de preços (feature 003)", () => {
-  it("tabela inicial: mês = 3 semanas e Vitrine é o mais caro", () => {
-    for (const p of PLANOS_INICIAIS) expect(p.valor30DiasCentavos).toBe(p.valor7DiasCentavos * 3)
-    const maisCaro = [...PLANOS_INICIAIS].sort((a, b) => b.valor30DiasCentavos - a.valor30DiasCentavos)[0]
-    expect(maisCaro.codigo).toBe("VITRINE")
+describe("Planos e tabela de preços (features 003 e 009)", () => {
+  it("tabela decidida em 2026-11-09: Simples R$ 1 / 7 dias e R$ 25 / 30 dias, sem 1 dia (RN-56)", () => {
+    const simples = PLANOS_INICIAIS.find((p) => p.codigo === "SIMPLES")!
+    const foto = PLANOS_INICIAIS.find((p) => p.codigo === "FOTOS")!
+    expect(simples.precos).toEqual({ 7: 100, 10: 400, 15: 950, 20: 1450, 30: 2500 })
+    expect(foto.precos).toEqual({ 7: 1000, 10: 4000, 15: 9500, 20: 14500, 30: 25000 })
+    expect(simples.maxFotos).toBe(0)
+    expect(foto.maxFotos).toBe(6)
+    expect(PLANOS_INICIAIS.filter((p) => p.ativo).map((p) => p.codigo)).toEqual(["SIMPLES", "FOTOS"])
   })
-  it("valor do período e prioridade na seção (RN-50)", () => {
-    const vitrine = PLANOS_INICIAIS.find((p) => p.codigo === "VITRINE")!
-    expect(valorDoPeriodo(vitrine, 7)).toBe(1000)
-    expect(valorDoPeriodo(vitrine, 30)).toBe(3000)
+  it("períodos, valor do período e menor preço", () => {
+    expect(PERIODOS).toEqual([7, 10, 15, 20, 30])
+    expect(ehPeriodo(1)).toBe(false)
+    const destaque = PLANOS_INICIAIS.find((p) => p.codigo === "DESTAQUE")!
+    expect(periodosDoPlano(destaque)).toEqual([7, 30])
+    expect(valorDoPeriodo(destaque, 15)).toBeNull()
+    expect(menorPreco(PLANOS_INICIAIS.filter((p) => p.ativo))).toEqual({ valorCentavos: 100, dias: 7 })
+  })
+  it("prioridade na seção (RN-50)", () => {
     expect(prioridadeDoPlano("VITRINE")).toBeGreaterThan(prioridadeDoPlano("DESTAQUE"))
     expect(prioridadeDoPlano("DESTAQUE")).toBeGreaterThan(prioridadeDoPlano("FOTOS"))
     expect(prioridadeDoPlano("FOTOS")).toBeGreaterThan(prioridadeDoPlano("SIMPLES"))
     expect(planoTemDestaque("DESTAQUE") && planoTemDestaque("VITRINE") && !planoTemDestaque("FOTOS")).toBe(true)
   })
-  it("só 7 ou 30 dias", () => {
-    expect(ehPeriodo(7) && ehPeriodo(30)).toBe(true)
-    expect(ehPeriodo(15)).toBe(false)
-  })
-  it("edição do admin tem limites", () => {
-    const base = { nome: "Simples", descricao: "Texto e uma foto.", maxFotos: 1, valor7DiasCentavos: 100, valor30DiasCentavos: 300, ativo: true }
+  it("edição do admin tem limites e exige ao menos um período", () => {
+    const base = { nome: "Simples", descricao: "Texto e chat.", maxFotos: 0, precos: { 7: 100, 30: 2500 }, ativo: true }
     expect(validarPlano(base)).toEqual({})
-    expect(Object.keys(validarPlano({ ...base, maxFotos: 9, valor7DiasCentavos: 0 })).sort()).toEqual(["maxFotos", "valor7Dias"])
+    expect(Object.keys(validarPlano({ ...base, maxFotos: 9, precos: { 7: 0, 30: 2500 } })).sort()).toEqual(["maxFotos", "preco7"])
+    expect(validarPlano({ ...base, precos: {} }).preco7).toBeDefined()
   })
 })
 

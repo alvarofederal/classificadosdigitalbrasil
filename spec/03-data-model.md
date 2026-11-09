@@ -12,7 +12,8 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `fotos_anuncio` | Álbum (até 6) | url, publicId (Cloudinary), ordem |
 | `mensagens` | Contato do visitante | nome, contato, texto, lida |
 | `pagamentos` | Cobrança do espaço | codigo (10, único, vai no Pix), planoCodigo, valor, dias, situacao (PENDENTE, CONFIRMADO, CANCELADO), gateway (MERCADO_PAGO, CORTESIA ou nulo = Pix estático), gatewayId, copiaECola, vencimentoEm, confirmadoEm, confirmadoPorId (nulo quando confirmado pelo gateway) |
-| `planos` | Tabela de preços (feature 003) | codigo (SIMPLES, FOTOS, DESTAQUE, VITRINE), nome, descricao, maxFotos, valor7Dias, valor30Dias, ativo |
+| `planos` | Planos (feature 003) | codigo (SIMPLES, FOTOS, DESTAQUE, VITRINE), nome, descricao, maxFotos, ativo |
+| `precos` | Preço por plano e período (feature 009) | planoCodigo + dias (7, 10, 15, 20, 30) como chave, valor |
 | `chamados` | Contato com o admin (feature 004) | protocolo (8, único), nome, email, telefone, assunto, mensagem, anuncioCodigo, situacao (ABERTO, RESOLVIDO), notaInterna, resolvidoEm |
 | `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
 

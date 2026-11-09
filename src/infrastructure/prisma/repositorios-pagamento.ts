@@ -11,20 +11,26 @@ import type {
   PlanoRepository,
 } from "@/application/ports/caderno"
 import type { OrigemDoPagamento } from "@/domain/pagamento/pagamento"
-import { CODIGOS_DE_PLANO, type Plano } from "@/domain/plano/plano"
-import type { Pagamento, Plano as LinhaPlano, PrismaClient } from "@/generated/prisma"
+import { CODIGOS_DE_PLANO, PERIODOS, type Plano, type Precos, ehPeriodo } from "@/domain/plano/plano"
+import type { Pagamento, Plano as LinhaPlano, Prisma, PrismaClient } from "@/generated/prisma"
 import { centavos, codigoDoPlano, dadosDoAnuncio, decimal } from "./mapeadores"
 
 // ── Planos ──
 
-export function paraPlano(linha: LinhaPlano): Plano {
+/** Linha do plano com os preços por período (feature 009). */
+export type LinhaPlanoComPrecos = LinhaPlano & { precos: Array<{ dias: number; valor: Prisma.Decimal }> }
+
+export const COM_PRECOS = { include: { precos: true } } as const
+
+export function paraPlano(linha: LinhaPlanoComPrecos): Plano {
+  const precos: Precos = {}
+  for (const p of linha.precos) if (ehPeriodo(p.dias)) precos[p.dias] = centavos(p.valor) ?? 0
   return {
     codigo: codigoDoPlano(linha.codigo),
     nome: linha.nome,
     descricao: linha.descricao,
     maxFotos: linha.maxFotos,
-    valor7DiasCentavos: centavos(linha.valor7Dias) ?? 0,
-    valor30DiasCentavos: centavos(linha.valor30Dias) ?? 0,
+    precos,
     ativo: linha.ativo,
   }
 }
@@ -38,24 +44,26 @@ export class PrismaPlanoRepository implements PlanoRepository {
   constructor(private readonly db: PrismaClient) {}
 
   async listar() {
-    return emOrdemDeCatalogo((await this.db.plano.findMany()).map(paraPlano))
+    return emOrdemDeCatalogo((await this.db.plano.findMany(COM_PRECOS)).map(paraPlano))
   }
 
   async buscar(codigo: string) {
-    const linha = await this.db.plano.findUnique({ where: { codigo } })
+    const linha = await this.db.plano.findUnique({ where: { codigo }, ...COM_PRECOS })
     return linha ? paraPlano(linha) : null
   }
 
+  /** Grava o plano e troca a grade de preços inteira na mesma transação. */
   async salvar(plano: Plano) {
-    const dados = {
-      nome: plano.nome,
-      descricao: plano.descricao,
-      maxFotos: plano.maxFotos,
-      valor7Dias: decimal(plano.valor7DiasCentavos) ?? "0.00",
-      valor30Dias: decimal(plano.valor30DiasCentavos) ?? "0.00",
-      ativo: plano.ativo,
-    }
-    await this.db.plano.upsert({ where: { codigo: plano.codigo }, update: dados, create: { codigo: plano.codigo, ...dados } })
+    const dados = { nome: plano.nome, descricao: plano.descricao, maxFotos: plano.maxFotos, ativo: plano.ativo }
+    const precos = PERIODOS.flatMap((dias) => {
+      const valor = plano.precos[dias]
+      return valor && valor > 0 ? [{ planoCodigo: plano.codigo, dias, valor: decimal(valor) ?? "0.00" }] : []
+    })
+    await this.db.$transaction([
+      this.db.plano.upsert({ where: { codigo: plano.codigo }, update: dados, create: { codigo: plano.codigo, ...dados } }),
+      this.db.preco.deleteMany({ where: { planoCodigo: plano.codigo } }),
+      this.db.preco.createMany({ data: precos }),
+    ])
   }
 }
 

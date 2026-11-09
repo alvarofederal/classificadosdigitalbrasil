@@ -59,20 +59,23 @@ async function anuncioNoPlano(t: ReturnType<typeof montar>, planoCodigo: string,
 }
 
 describe("Plano e período na cobrança (RN-53)", () => {
-  it("Vitrine 30 dias custa R$ 30,00 e o Pix vem do gateway", async () => {
+  it("Com foto 30 dias custa R$ 250,00 e o Pix vem do gateway", async () => {
     const t = montar()
-    const { pendente } = await anuncioNoPlano(t, "VITRINE", 30)
-    expect(pendente).toMatchObject({ planoCodigo: "VITRINE", dias: 30, valorCentavos: 3000, gateway: "MERCADO_PAGO" })
+    const { pendente } = await anuncioNoPlano(t, "FOTOS", 30)
+    expect(pendente).toMatchObject({ planoCodigo: "FOTOS", dias: 30, valorCentavos: 25000, gateway: "MERCADO_PAGO" })
     expect(pendente.copiaECola).toContain(pendente.codigo)
     expect(t.gateway!.cobrancas).toHaveLength(1)
     expect((await t.cobranca.executar(pendente)).automatico).toBe(true)
   })
 
-  it("recusa período fora de 7/30 e plano fora de venda", async () => {
+  it("recusa 1 dia, plano fora de venda e período que o plano não vende (RN-56)", async () => {
     const t = montar()
-    t.planos.itens = t.planos.itens.map((p) => (p.codigo === "DESTAQUE" ? { ...p, ativo: false } : p))
-    const r = await t.criar.executar(USUARIO, { ...conteudo, planoCodigo: "DESTAQUE", dias: 15 })
+    const r = await t.criar.executar(USUARIO, { ...conteudo, planoCodigo: "VITRINE", dias: 1 })
     expect(!r.ok && Object.keys(r.campos ?? {}).sort()).toEqual(["dias", "planoCodigo"])
+    t.planos.itens = t.planos.itens.map((p) => (p.codigo === "FOTOS" ? { ...p, precos: { 7: 1000 } } : p))
+    const semPeriodo = await t.criar.executar(USUARIO, { ...conteudo, planoCodigo: "FOTOS", dias: 15 })
+    expect(!semPeriodo.ok && semPeriodo.campos?.dias).toBe("Este plano não tem esse período.")
+    expect((await t.criar.executar(USUARIO, { ...conteudo, planoCodigo: "SIMPLES", dias: 15 })).ok).toBe(true)
   })
 
   it("gateway fora do ar cai no Pix estático (RF-83)", async () => {
@@ -86,21 +89,21 @@ describe("Plano e período na cobrança (RN-53)", () => {
   it("trocar o plano na renovação cancela a cobrança anterior e cobra o novo valor", async () => {
     const t = montar()
     const { anuncioId, pendente } = await anuncioNoPlano(t, "SIMPLES", 7)
-    const r = await t.renovar.executar({ usuarioId: USUARIO.id, email: USUARIO.email, anuncioId, planoCodigo: "DESTAQUE", dias: 30 })
-    expect(r.ok && r.valor.valorCentavos).toBe(1500)
+    const r = await t.renovar.executar({ usuarioId: USUARIO.id, email: USUARIO.email, anuncioId, planoCodigo: "FOTOS", dias: 10 })
+    expect(r.ok && r.valor.valorCentavos).toBe(4000)
     expect((await t.pagamentos.buscarPorId(pendente.id))!.situacao).toBe("CANCELADO")
   })
 })
 
 describe("Webhook e confirmação automática (RN-80, RN-81)", () => {
-  it("Pix aprovado publica no plano pago, com prioridade de Vitrine", async () => {
+  it("Pix aprovado publica no plano pago, com a prioridade dele", async () => {
     const t = montar()
-    const { anuncioId, pendente } = await anuncioNoPlano(t, "VITRINE", 30)
+    const { anuncioId, pendente } = await anuncioNoPlano(t, "FOTOS", 30)
     t.gateway!.pagar(pendente.gatewayId!)
     const r = await t.processar.executar(pendente.gatewayId!)
     expect(r.ok && r.valor).toBe("CONFIRMADO")
     const anuncio = (await t.anuncios.buscarPorId(anuncioId))!
-    expect(anuncio).toMatchObject({ situacao: "PUBLICADO", planoCodigo: "VITRINE", prioridade: 3 })
+    expect(anuncio).toMatchObject({ situacao: "PUBLICADO", planoCodigo: "FOTOS", prioridade: 1 })
     expect(anuncio.expiraEm!.getTime()).toBe(t.relogio.agora().getTime() + 30 * DIA)
     expect((await t.pagamentos.buscarPorId(pendente.id))!.confirmadoPorId).toBeNull()
   })
@@ -117,7 +120,7 @@ describe("Webhook e confirmação automática (RN-80, RN-81)", () => {
 
   it("valor pago diferente do cobrado fica pendente", async () => {
     const t = montar()
-    const { anuncioId, pendente } = await anuncioNoPlano(t, "VITRINE", 30)
+    const { anuncioId, pendente } = await anuncioNoPlano(t, "FOTOS", 30)
     t.gateway!.pagar(pendente.gatewayId!, 100)
     const r = await t.processar.executar(pendente.gatewayId!)
     expect(!r.ok && r.codigo).toBe("VALOR_DIVERGENTE")
@@ -149,18 +152,19 @@ describe("Cortesia do admin (RF-84)", () => {
 })
 
 describe("Fotos por plano (RN-51)", () => {
-  it("Simples aceita 1 foto; o admin sobe até 6", async () => {
+  it("Simples não tem foto (RN-57); Com foto aceita 6; o admin sobe fotos em qualquer plano", async () => {
     const t = montar(false)
     const { anuncioId } = await anuncioNoPlano(t, "SIMPLES", 7)
     const preparar = new PrepararUploadDeFotosUseCase(t.anuncios, t.fotos, storageFalso, t.planos)
     const adicionar = new AdicionarFotosUseCase(t.anuncios, t.fotos, storageFalso, t.planos)
     const dono = { usuarioId: USUARIO.id, perfil: "ANUNCIANTE" as const }
-    expect((await preparar.executar(dono, { anuncioId, quantidade: 2 })).ok).toBe(false)
-    expect((await preparar.executar(dono, { anuncioId, quantidade: 1 })).ok).toBe(true)
+    expect((await preparar.executar(dono, { anuncioId, quantidade: 1 })).ok).toBe(false)
     const foto = (n: number) => ({ url: `https://res.cloudinary.com/x/image/upload/teste/anuncios/${anuncioId}/${n}`, publicId: `teste/anuncios/${anuncioId}/${n}` })
-    expect((await adicionar.executar(dono, { anuncioId, fotos: [foto(1)] })).ok).toBe(true)
-    expect((await adicionar.executar(dono, { anuncioId, fotos: [foto(2)] })).ok).toBe(false)
+    expect((await adicionar.executar(dono, { anuncioId, fotos: [foto(1)] })).ok).toBe(false)
     expect((await adicionar.executar({ usuarioId: "admin", perfil: "ADMIN" }, { anuncioId, fotos: [foto(2), foto(3)] })).ok).toBe(true)
+    const comFoto = await anuncioNoPlano(t, "FOTOS", 7)
+    expect((await preparar.executar(dono, { anuncioId: comFoto.anuncioId, quantidade: 6 })).ok).toBe(true)
+    expect((await preparar.executar(dono, { anuncioId: comFoto.anuncioId, quantidade: 7 })).ok).toBe(false)
   })
 })
 
@@ -169,8 +173,8 @@ describe("Tabela de preços no painel (RF-51)", () => {
     const t = montar(false)
     const atualizar = new AtualizarPlanoUseCase(t.planos)
     const simples = (await t.planos.buscar("SIMPLES"))!
-    expect((await atualizar.executar("SIMPLES", { ...simples, valor7DiasCentavos: 150 })).ok).toBe(true)
-    expect((await t.planos.buscar("SIMPLES"))!.valor7DiasCentavos).toBe(150)
+    expect((await atualizar.executar("SIMPLES", { ...simples, precos: { ...simples.precos, 7: 150 } })).ok).toBe(true)
+    expect((await t.planos.buscar("SIMPLES"))!.precos[7]).toBe(150)
     expect((await atualizar.executar("OURO", { ...simples })).ok).toBe(false)
   })
 })

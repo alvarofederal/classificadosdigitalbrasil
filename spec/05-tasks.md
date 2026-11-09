@@ -31,6 +31,7 @@
 | 006 | Pix automático (Mercado Pago + webhook) com reserva no Pix estático | Feito no código; **liga quando o Álvaro cadastrar as credenciais** |
 | 007 | Gol no plano Vitrine por 30 dias (cortesia) e 18 exemplos em Brasília | Feito; **faltam as fotos do Gol** |
 | 008 | Teste de carga com k6 | Script pronto; falta rodar num ambiente de teste |
+| 009 | Preço por período (7, 10, 15, 20, 30 dias): Simples R$ 1 a R$ 25, Com foto R$ 10 a R$ 250; Destaque e Vitrine fora de venda | Feito |
 
 Correção na 0.2: o endereço do site passou a vir do domínio de produção da Vercel; a `NEXT_PUBLIC_URL` copiada do Pague Dez mandava link curto, QR e prévia para `paguedez.vercel.app`.
 

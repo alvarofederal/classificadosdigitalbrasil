@@ -32,7 +32,7 @@ async function base() {
 
   await prisma.configuracao.upsert({ where: { id: "geral" }, update: {}, create: { id: "geral" } })
 
-  // Planos (feature 003): cria os que faltam com a tabela inicial; nunca sobrescreve preço editado no painel.
+  // Planos (features 003 e 009): cria os que faltam com a tabela inicial; nunca sobrescreve preço editado no painel.
   let criados = 0
   for (const plano of PLANOS_INICIAIS) {
     if (await prisma.plano.findUnique({ where: { codigo: plano.codigo } })) continue
@@ -42,9 +42,10 @@ async function base() {
         nome: plano.nome,
         descricao: plano.descricao,
         maxFotos: plano.maxFotos,
-        valor7Dias: centavosParaDecimal(plano.valor7DiasCentavos),
-        valor30Dias: centavosParaDecimal(plano.valor30DiasCentavos),
         ativo: plano.ativo,
+        precos: {
+          create: Object.entries(plano.precos).map(([dias, valor]) => ({ dias: Number(dias), valor: centavosParaDecimal(valor!) })),
+        },
       },
     })
     criados++

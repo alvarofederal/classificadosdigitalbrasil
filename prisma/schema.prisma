@@ -189,12 +189,24 @@ model Plano {
   nome         String   @db.VarChar(40)
   descricao    String   @db.VarChar(200)
   maxFotos     Int
-  valor7Dias   Decimal  @db.Decimal(10, 2)
-  valor30Dias  Decimal  @db.Decimal(10, 2)
   ativo        Boolean  @default(true)
   atualizadoEm DateTime @updatedAt
 
+  precos Preco[]
+
   @@map("planos")
+}
+
+// Feature 009 (RN-56): um preço por plano e período (7, 10, 15, 20, 30 dias).
+model Preco {
+  planoCodigo String  @db.VarChar(20)
+  dias        Int
+  valor       Decimal @db.Decimal(10, 2)
+
+  plano Plano @relation(fields: [planoCodigo], references: [codigo], onDelete: Cascade)
+
+  @@id([planoCodigo, dias])
+  @@map("precos")
 }
 
 enum SituacaoPagamento {

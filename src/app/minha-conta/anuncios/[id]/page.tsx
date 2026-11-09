@@ -121,12 +121,18 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
         <h2 id="titulo-album" className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">
           Álbum de fotos
         </h2>
+        {maximoDeFotos === 0 && anuncio.fotos.length === 0 ? (
+          <p className="border border-dashed border-tinta p-4 text-sm">
+            O plano {NOMES_DOS_PLANOS[anuncio.planoCodigo]} não tem fotos. Para colocar fotos, use &quot;Mais dias ou outro plano&quot; acima e escolha o plano Com foto.
+          </p>
+        ) : (
         <AlbumFotos
           anuncioId={anuncio.id}
           fotos={anuncio.fotos}
           maximo={maximoDeFotos}
           acoes={{ preparar: prepararUploadAction, adicionar: adicionarFotosAction, reordenar: reordenarFotosAction, remover: removerFotoAction }}
         />
+        )}
       </section>
 
       <section aria-labelledby="titulo-mensagens" className="flex flex-col gap-3">

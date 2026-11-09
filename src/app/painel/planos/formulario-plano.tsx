@@ -6,15 +6,17 @@ import { salvarPlanoAction } from "../actions"
 export function FormularioPlano({
   codigo,
   recursos,
+  periodos,
   iniciais,
 }: {
   codigo: string
   recursos: { prioridade: number; destaque: boolean; vitrine: boolean }
-  iniciais: { nome: string; descricao: string; maxFotos: string; valor7Dias: string; valor30Dias: string; ativo: boolean }
+  periodos: number[]
+  iniciais: { nome: string; descricao: string; maxFotos: string; precos: Record<string, string>; ativo: boolean }
 }) {
   const { estado, pendente, onSubmit, formRef, erro } = useFormularioAcao(salvarPlanoAction.bind(null, codigo))
   const id = (campo: string) => `${codigo}-${campo}`
-  const fixo = [`prioridade ${recursos.prioridade}`, recursos.destaque && "moldura de destaque", recursos.vitrine && "vitrine da capa"].filter(Boolean).join(" · ")
+  const fixo = [`prioridade ${recursos.prioridade}`, recursos.destaque && "moldura de destaque", recursos.vitrine && "topo da seção"].filter(Boolean).join(" · ")
 
   return (
     <form ref={formRef} onSubmit={onSubmit} className={recursos.destaque ? "flex flex-col gap-3 border-[3px] border-double border-tinta p-4" : "flex flex-col gap-3 border border-tinta p-4"} noValidate>
@@ -34,14 +36,21 @@ export function FormularioPlano({
       <Campo rotulo="Descrição" nome={id("descricao")} erro={erro("descricao")}>
         <textarea {...aria(id("descricao"), erro("descricao"))} name="descricao" className="campo min-h-16" defaultValue={iniciais.descricao} maxLength={200} />
       </Campo>
-      <div className="grid grid-cols-2 gap-3">
-        <Campo rotulo="7 dias (R$)" nome={id("valor7Dias")} erro={erro("valor7Dias")}>
-          <input {...aria(id("valor7Dias"), erro("valor7Dias"))} name="valor7Dias" className="campo" defaultValue={iniciais.valor7Dias} inputMode="decimal" />
-        </Campo>
-        <Campo rotulo="30 dias (R$)" nome={id("valor30Dias")} erro={erro("valor30Dias")}>
-          <input {...aria(id("valor30Dias"), erro("valor30Dias"))} name="valor30Dias" className="campo" defaultValue={iniciais.valor30Dias} inputMode="decimal" />
-        </Campo>
-      </div>
+      <fieldset className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <legend className="rotulo mb-1">Preço por período (R$)</legend>
+        {periodos.map((dias) => (
+          <Campo key={dias} rotulo={`${dias} dias`} nome={id(`preco${dias}`)} erro={erro(`preco${dias}`)}>
+            <input
+              {...aria(id(`preco${dias}`), erro(`preco${dias}`))}
+              name={`preco${dias}`}
+              className="campo"
+              defaultValue={iniciais.precos[dias] ?? ""}
+              inputMode="decimal"
+              placeholder="—"
+            />
+          </Campo>
+        ))}
+      </fieldset>
       <div className="flex items-center justify-between gap-3">
         <label className="flex items-center gap-2">
           <input type="checkbox" name="ativo" defaultChecked={iniciais.ativo} className="size-4 accent-tinta" />

@@ -24,7 +24,7 @@ import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
 import type { Plano } from "@/domain/plano/plano"
 import type { Pagamento, Prisma, PrismaClient } from "@/generated/prisma"
 import { ORDEM_DO_CADERNO, centavos, codigoDoPlano, noAr } from "./mapeadores"
-import { emOrdemDeCatalogo, paraPagamento, paraPlano } from "./repositorios-pagamento"
+import { COM_PRECOS, emOrdemDeCatalogo, paraPagamento, paraPlano } from "./repositorios-pagamento"
 
 const FOTOS = { select: { id: true, url: true }, orderBy: [{ ordem: "asc" as const }, { criadoEm: "asc" as const }] }
 
@@ -140,7 +140,7 @@ export class PrismaClassificadosQuery implements ClassificadosQuery {
   }
 
   async planosAVenda(): Promise<Plano[]> {
-    return emOrdemDeCatalogo((await this.db.plano.findMany({ where: { ativo: true } })).map(paraPlano))
+    return emOrdemDeCatalogo((await this.db.plano.findMany({ where: { ativo: true }, ...COM_PRECOS })).map(paraPlano))
   }
 
   async vitrine(agora: Date, limite: number) {
@@ -297,7 +297,7 @@ export class PrismaPainelQuery implements PainelQuery {
   }
 
   async planos(): Promise<Plano[]> {
-    return emOrdemDeCatalogo((await this.db.plano.findMany()).map(paraPlano))
+    return emOrdemDeCatalogo((await this.db.plano.findMany(COM_PRECOS)).map(paraPlano))
   }
 
   async chamados(params: { pagina: number; porPagina: number; situacao: SituacaoDoChamado | null; assunto: Assunto | null }): Promise<Pagina<ChamadoDTO>> {
