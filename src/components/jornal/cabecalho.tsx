@@ -18,10 +18,13 @@ export async function Cabecalho({ compacto = false }: { compacto?: boolean }) {
       <nav className="flex items-center justify-between gap-3 font-titulo text-[0.7rem] uppercase tracking-wider sm:text-xs" aria-label="Conta">
         <span className="hidden sm:inline">{dataPorExtenso(agora)}</span>
         <div className="ml-auto flex items-center gap-3 sm:gap-5">
-          <Link href="/#valores" className="hidden hover:underline md:inline">
+          <Link href="/como-funciona" className="hover:underline">
+            Como funciona
+          </Link>
+          <Link href="/como-funciona#valores" className="hidden hover:underline md:inline">
             Valores
           </Link>
-          <Link href="/#contato" className="hidden hover:underline md:inline">
+          <Link href="/como-funciona#contato" className="hidden hover:underline md:inline">
             Contato
           </Link>
           <Link href="/minha-conta/anuncios/novo" className="font-bold hover:underline">

@@ -84,7 +84,7 @@ export default async function PaginaDoAnuncio({ params }: Props) {
         />
         <p className="font-titulo text-xs uppercase tracking-wider text-tinta-suave">
           Código {anuncio.codigo} · no ar até {formatarDia(anuncio.expiraEm)} ·{" "}
-          <Link href={`/?assunto=DENUNCIA&anuncio=${anuncio.codigo}#contato`} className="underline hover:no-underline">
+          <Link href={`/como-funciona?assunto=DENUNCIA&anuncio=${anuncio.codigo}#contato`} className="underline hover:no-underline">
             Denunciar este anúncio
           </Link>
         </p>

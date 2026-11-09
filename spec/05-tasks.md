@@ -17,9 +17,23 @@
 | T-11 | Build da Vercel com migração só em produção | ADR-09 | Feito |
 | T-12 | Testes de unidade e da regra de dependência | 06-test-plan | Feito (56) |
 | T-13 | Banco da Hostinger acessível pela Vercel e primeiro deploy | — | Feito (2026-11-08): migration aplicada, 18 categorias |
-| T-14 | Teste ponta a ponta no navegador | — | Pendente: falta o admin (conta a promover) e a chave Pix |
+| T-14 | Teste ponta a ponta no navegador | — | Parcial: site público, página do anúncio, cartaz, link curto e webhook conferidos em produção (2026-11-09); falta o fluxo com Pix real |
 | T-15 | Visual da página impressa de referência: página branca, 5 colunas densas, tarjas nas colunas, capa e cidade como página inteira, fontes carregando | RF-04, RF-05, 04-design-system | Feito |
+
+## Versão 0.2 (2026-11-09) — detalhes em `spec/features/`
+
+| # | Funcionalidade | Situação |
+|---|---|---|
+| 002 | Capa organizada: busca, perto de mim, vitrine, como funciona, valores, contato | Feito |
+| 003 | Planos Simples/Com fotos/Destaque/Vitrine, 7 ou 30 dias, Painel → Planos | Feito |
+| 004 | Contato com protocolo e Painel → Chamados | Feito |
+| 005 | Página do anúncio para divulgar: link curto, prévia de recorte, botões, cartaz com QR, visitas | Feito |
+| 006 | Pix automático (Mercado Pago + webhook) com reserva no Pix estático | Feito no código; **liga quando o Álvaro cadastrar as credenciais** |
+| 007 | Gol no plano Vitrine por 30 dias (cortesia) e 18 exemplos em Brasília | Feito; **faltam as fotos do Gol** |
+| 008 | Teste de carga com k6 | Script pronto; falta rodar num ambiente de teste |
+
+Correção na 0.2: o endereço do site passou a vir do domínio de produção da Vercel; a `NEXT_PUBLIC_URL` copiada do Pague Dez mandava link curto, QR e prévia para `paguedez.vercel.app`.
 
 ## Próximas versões
 
-Ver `07-insights.md`: gateway Pix com webhook, créditos, e-mail de aviso de vencimento, destaque pago.
+Ver `07-insights.md`: créditos (carteira), e-mail de aviso de vencimento e de nova mensagem, subir para o topo.

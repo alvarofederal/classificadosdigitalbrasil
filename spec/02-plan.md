@@ -43,4 +43,10 @@ src/
 
 **ADR-09 · Banco alterado só no deploy de produção.** `scripts/vercel-build.mjs` roda `preparar-banco-producao.ts`, `prisma migrate deploy` e o seed apenas com `VERCEL_ENV=production`. Previews não tocam no banco.
 
-**ADR-10 · Ordem dos anúncios.** Mais recente primeiro pela data de expiração (quem pagou por último expira por último). Sem coluna extra, usando o próprio índice.
+**ADR-10 · Ordem dos anúncios.** Mais recente primeiro pela data de expiração (quem pagou por último expira por último). Sem coluna extra, usando o próprio índice. *Atualizado pela feature 003:* antes vem a prioridade do plano (`anuncios.prioridade`, gravada na confirmação do pagamento).
+
+**ADR-11 · Capa sem consulta por seção.** A capa não lista seções vazias nem consulta anúncios por seção; a única consulta nacional é a vitrine (plano Vitrine), limitada a 10 e apoiada no índice `(planoCodigo, situacao, expiraEm)`. "Perto de mim" calcula a cidade mais próxima no servidor a partir das coordenadas das 5.571 sedes municipais (base pública *kelvins/municipios-brasileiros*), sem serviço externo e sem gravar a localização.
+
+**ADR-12 · Pix automático com gateway trocável.** Porta `GatewayPix` na aplicação; adaptador `MercadoPagoGateway` (Pix 0,99%, conta com CPF, sem certificado). O webhook só confirma se o gateway diz aprovado, a referência é uma cobrança nossa pendente e o valor bate; a confirmação é idempotente (atualização condicionada a "ainda pendente"). Sem credenciais, o sistema volta ao Pix estático do ADR-07. Trocar para Woovi/Efí = outro adaptador.
+
+**ADR-13 · Endereço do site.** Na Vercel, o endereço público vem de `VERCEL_PROJECT_PRODUCTION_URL` (vira o domínio próprio quando houver); `NEXT_PUBLIC_URL` só vale fora da Vercel. Motivo: uma variável copiada de outro projeto mandava links e QR Codes para o site errado.

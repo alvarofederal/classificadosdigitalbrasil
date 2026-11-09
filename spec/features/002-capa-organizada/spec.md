@@ -8,7 +8,8 @@
 
 | ID | Requisito |
 |---|---|
-| RF-40 | A capa não lista as seções. Mostra, em ordem: manchete, busca (UF → Cidade → Seção), botão "Anúncios perto de mim", vitrine, *Como funciona*, *Valores*, *Contato*. |
+| RF-40 | A capa não lista as seções. Mostra só: manchete, busca (UF → Cidade → Seção), botão "Anúncios perto de mim", vitrine e três atalhos (Como funciona, Valores, Contato). |
+| RF-48 | Página própria `/como-funciona` (pedido do Álvaro em 2026-11-09): para quem anuncia, para quem procura, valores, perguntas frequentes e contato, com âncoras `#anunciar`, `#procurar`, `#valores`, `#perguntas`, `#contato`. O cabeçalho e o rodapé levam a ela. |
 | RF-41 | "Anúncios perto de mim" pede a localização ao navegador e abre o caderno da cidade mais próxima. |
 | RF-42 | Se a permissão de localização já foi dada antes, a capa mostra direto o atalho para a cidade (sem perguntar de novo). Se foi negada, só a busca manual aparece. |
 | RF-43 | A última cidade visitada fica guardada no navegador e aparece como atalho "Continuar em Brasília/DF". |
@@ -36,4 +37,5 @@
 - [x] T-40 Coordenadas no gerador de municípios e no catálogo
 - [x] T-41 `cidadeMaisProxima` com teste
 - [x] T-42 Componente "Anúncios perto de mim" e atalho da última cidade
-- [x] T-43 Capa nova com vitrine, como funciona, valores e contato
+- [x] T-43 Capa nova com busca, perto de mim e vitrine
+- [x] T-44 Página /como-funciona com funcionamento, valores, perguntas frequentes e contato

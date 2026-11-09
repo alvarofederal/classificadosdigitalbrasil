@@ -36,7 +36,18 @@ Variáveis na Vercel:
 | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_SENHA`, `SEED_ADMIN_NOME` | Admin inicial, criado só se ainda não houver admin; troca de senha no 1º acesso |
 | `SEED_DEMO=1` | Cria os anúncios de demonstração |
 | `SEED_LIMPAR_DEMO=1` | Remove a demonstração (tire o `SEED_DEMO` antes) |
-| `NEXT_PUBLIC_URL` | Endereço público, quando houver domínio próprio |
+| `MERCADO_PAGO_ACCESS_TOKEN` | Liga o Pix automático (feature 006) |
+| `MERCADO_PAGO_WEBHOOK_SECRET` | Confere a assinatura do aviso do Mercado Pago |
+
+Na Vercel o endereço público vem do domínio de produção (ADR-13); `NEXT_PUBLIC_URL` só vale fora dela.
+
+## Dados de exemplo
+
+`npx tsx scripts/dados-de-exemplo.ts` publica o anúncio do Gol no plano Vitrine (30 dias, cortesia) e um exemplo por seção em Brasília/DF. Idempotente; os exemplos saem pelo painel.
+
+## Teste de carga
+
+`k6 run -e BASE=https://endereco-de-teste tests/carga/caderno.js` (ver `spec/features/008-teste-de-carga`).
 
 ## Municípios
 

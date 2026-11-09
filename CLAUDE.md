@@ -1,6 +1,10 @@
 # CLAUDE.md · Classificados Digitais do Brasil
 
-Antes de mudar código, leia `spec/` (comece por `00-constitution.md` e `05-tasks.md`).
+Antes de mudar código, leia `spec/` (comece por `00-constitution.md`, `05-tasks.md` e `spec/README.md`).
+
+## Spec-Driven Development (obrigatório)
+
+Toda funcionalidade nova segue: **especificar → planejar → quebrar em tarefas → implementar e verificar**, numa pasta `spec/features/NNN-nome/spec.md` (seções Spec, Plano, Tarefas). Requisitos com ID (RF-xx, RN-xx), testes que citam esses IDs, ADR novo em `spec/02-plan.md` quando a arquitetura muda, e `spec/05-tasks.md` atualizado com o que foi feito de fato.
 
 ## Regras do projeto
 

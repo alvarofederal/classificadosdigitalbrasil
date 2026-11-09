@@ -11,14 +11,20 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `anuncios` | O quadrado | codigo (6, único), categoriaId, uf, cidadeCodigo, titulo (40), texto, preco, moldura, estiloTitulo, alinhamento, estrelas, situacao, publicadoEm, expiraEm |
 | `fotos_anuncio` | Álbum (até 6) | url, publicId (Cloudinary), ordem |
 | `mensagens` | Contato do visitante | nome, contato, texto, lida |
-| `pagamentos` | Cobrança do espaço | codigo (10, único, vai no Pix), valor, dias, situacao (PENDENTE, CONFIRMADO, CANCELADO), confirmadoEm, confirmadoPorId |
-| `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade, valorAnuncio, diasDePublicacao |
+| `pagamentos` | Cobrança do espaço | codigo (10, único, vai no Pix), planoCodigo, valor, dias, situacao (PENDENTE, CONFIRMADO, CANCELADO), gateway (MERCADO_PAGO, CORTESIA ou nulo = Pix estático), gatewayId, copiaECola, vencimentoEm, confirmadoEm, confirmadoPorId (nulo quando confirmado pelo gateway) |
+| `planos` | Tabela de preços (feature 003) | codigo (SIMPLES, FOTOS, DESTAQUE, VITRINE), nome, descricao, maxFotos, valor7Dias, valor30Dias, ativo |
+| `chamados` | Contato com o admin (feature 004) | protocolo (8, único), nome, email, telefone, assunto, mensagem, anuncioCodigo, situacao (ABERTO, RESOLVIDO), notaInterna, resolvidoEm |
+| `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
+
+`anuncios` ganhou na migração `20261109000000_planos_chamados_gateway`: `planoCodigo`, `prioridade` (0 a 3, RN-50) e `visualizacoes` (RF-75). `configuracoes` perdeu `valorAnuncio` e `diasDePublicacao` (viraram a tabela `planos`).
 
 ## Índices que importam
 
 - `anuncios (cidadeCodigo, categoriaId, situacao, expiraEm)`: a lista pública e a contagem por seção (RNF-01).
 - `anuncios (uf, cidadeCodigo)` e `anuncios (criadoEm)`: filtros do painel.
 - `pagamentos (anuncioId, situacao)`: cobrança pendente do anúncio.
+- `anuncios (planoCodigo, situacao, expiraEm)`: vitrine da capa.
+- `pagamentos (gatewayId)`: aviso do gateway.
 
 ## Situação do anúncio
 

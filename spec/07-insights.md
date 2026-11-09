@@ -10,12 +10,20 @@
 - **Pagamento**: Pix estático com identificador e confirmação manual no painel (ADR-07). Sem taxa de gateway sobre o R$ 1,00.
 - **Mensagem**: interna, por modal, sem cadastro de quem procura.
 
+## O que a versão 0.2 decidiu (2026-11-09)
+
+- **Primeira visita**: a capa explica antes de mostrar (como funciona, valores, contato) e não lista seções vazias. A localização do navegador leva ao caderno da cidade.
+- **Planos**: Simples R$ 1/R$ 3, Com fotos R$ 3/R$ 9, Destaque R$ 5/R$ 15, Vitrine R$ 10/R$ 30 (7/30 dias, mês = 3 semanas). Proposta inicial; o Álvaro ajusta em Painel → Planos.
+- **Boca a boca**: cada anúncio é uma página própria para divulgar. Melhorias sobre a ideia original: link curto, prévia de recorte de jornal no WhatsApp, botões de compartilhar, **cartaz A4 com QR Code** (o anúncio sai da tela e vai para o vidro do carro, o mural da igreja e a padaria), contador de visitas para o dono e o convite "Anuncie você também" no rodapé de todo anúncio.
+- **Escala do pagamento**: Pix confirmado pelo gateway (Mercado Pago, 0,99%), sem ninguém validar à mão. O anúncio do Gol é o primeiro exemplo da plataforma, publicado como cortesia.
+
 ## Próximos passos sugeridos
 
-1. Gateway com taxa percentual e webhook para confirmar o Pix sozinho (a confirmação manual não escala).
+1. Ligar o Mercado Pago e fazer um Pix real de R$ 1,00 (feature 006, T-84).
 2. Créditos (carteira) para renovar com um clique.
 3. E-mail de "seu anúncio vence amanhã" e de "nova mensagem".
-4. Destaque pago e "subir para o topo".
+4. "Subir para o topo" por um valor pequeno.
+5. Rodar o teste de carga num ambiente de teste (feature 008).
 
 ---
 

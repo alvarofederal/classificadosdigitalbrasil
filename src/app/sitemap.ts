@@ -9,7 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = urlDoSite()
   const c = container()
   const combinacoes = await c.classificados.combinacoesNoAr(c.relogio.agora()).catch(() => [])
-  const enderecos = new Set<string>(["/"])
+  const enderecos = new Set<string>(["/", "/como-funciona"])
   for (const item of combinacoes) {
     const cidade = c.localidades.cidade(item.cidadeCodigo)
     if (!cidade) continue
