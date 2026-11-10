@@ -32,7 +32,8 @@ export async function POST(request: Request) {
 
   try {
     const resultado = await container().processarPagamentoDoGateway.executar(dataId)
-    if (!resultado.ok) console.warn("[webhook mercadopago]", resultado.codigo, resultado.mensagem)
+    // RN-89: Pix pago em cobrança cancelada pede ação do admin; por isso vai como erro, e não como aviso.
+    if (!resultado.ok) (resultado.codigo === "PAGO_APOS_CANCELAMENTO" ? console.error : console.warn)("[webhook mercadopago]", resultado.codigo, resultado.mensagem)
     else if (resultado.valor === "CONFIRMADO") console.log("[webhook mercadopago] pagamento confirmado", dataId)
     // Divergência (valor, referência) é registrada e não volta a ser reenviada; a cobrança fica pendente para o admin olhar.
     return NextResponse.json({ ok: true })

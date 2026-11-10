@@ -1,8 +1,8 @@
 // INFRAESTRUTURA — adaptador do Mercado Pago para o Pix automático (feature 006, ADR-12 e ADR-14).
-// Documentação: POST /v1/orders (Pix em transactions.payments[].payment_method) e GET /v1/orders/{id}.
+// Documentação: POST /v1/orders (Pix em transactions.payments[].payment_method), GET /v1/orders/{id} e POST /v1/orders/{id}/cancel.
 
 import { createHmac, timingSafeEqual } from "crypto"
-import type { CobrancaNoGateway, GatewayPix, PagamentoNoGateway, SituacaoNoGateway } from "@/application/ports/caderno"
+import type { CancelamentoNoGateway, CobrancaNoGateway, GatewayPix, PagamentoNoGateway, SituacaoNoGateway } from "@/application/ports/caderno"
 
 const API = "https://api.mercadopago.com"
 
@@ -123,6 +123,36 @@ export class MercadoPagoGateway implements GatewayPix {
       situacao: situacaoDoMercadoPago(ordem.status),
       valorCentavos: centavosDoMercadoPago(ordem.total_paid_amount ?? ordem.total_amount),
       referencia: ordem.external_reference,
+    }
+  }
+
+  /**
+   * RN-87: o Mercado Pago só cancela ordem em "action_required" ou "created" (Pix ainda não pago).
+   * Nas outras situações ele responde 409, e a consulta diz se o Pix foi pago (RN-88) ou se já não pode ser pago.
+   */
+  async cancelar(gatewayId: string): Promise<CancelamentoNoGateway> {
+    // Identificador que não é de ordem não tem Pix pagável no Mercado Pago.
+    if (!ID_DE_ORDEM.test(gatewayId)) return "CANCELADA"
+    try {
+      const resposta = await this.buscar(`${API}/v1/orders/${gatewayId}/cancel`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          "Content-Type": "application/json",
+          // Chave própria: a de criação é o código da cobrança e não pode ser reaproveitada.
+          "X-Idempotency-Key": `cancelar-${gatewayId}`,
+        },
+        // O cancelamento é tentativa: Mercado Pago lento não pode prender a troca de plano nem a remoção.
+        signal: AbortSignal.timeout(8_000),
+      })
+      if (resposta.ok || resposta.status === 404) return "CANCELADA"
+      if (resposta.status !== 409) return "FALHOU"
+      const ordem = await this.consultar(gatewayId)
+      if (ordem.situacao === "APROVADO") return "JA_PAGA"
+      return ordem.situacao === "RECUSADO" ? "CANCELADA" : "FALHOU"
+    } catch (erro) {
+      console.error("[mercado pago] falha ao cancelar a ordem", gatewayId, erro)
+      return "FALHOU"
     }
   }
 }

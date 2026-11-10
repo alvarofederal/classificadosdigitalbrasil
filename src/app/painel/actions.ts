@@ -1,6 +1,6 @@
 "use server"
 
-// APRESENTAÇÃO — ações do administrador (RF-30 a RF-35, RF-51, RF-63, RF-84, RF-93).
+// APRESENTAÇÃO — ações do administrador (RF-30 a RF-35, RF-51, RF-63, RF-84, RF-93, RF-103).
 
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
@@ -212,4 +212,12 @@ export async function removerFotoAdminAction(anuncioId: string, fotoId: string):
   const r = await container().removerFoto.executar(ADMIN(admin.id), { anuncioId, fotoId })
   if (r.ok) revalidatePath("/", "layout")
   return deResultado(r)
+}
+
+/** RF-103: manda um e-mail de teste para o próprio administrador e mostra o que o servidor respondeu. */
+export async function enviarEmailDeTesteAction(): Promise<EstadoFormulario> {
+  const admin = await autorizar("ADMIN")
+  if (!admin) return NAO_AUTORIZADO
+  const resultado = await container().enviarEmailDeTeste.executar({ nome: admin.nome, email: admin.email })
+  return deResultado(resultado, `E-mail de teste enviado para ${admin.email}. Confira a caixa de entrada e o spam.`)
 }

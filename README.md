@@ -38,6 +38,8 @@ Variáveis na Vercel:
 | `SEED_LIMPAR_DEMO=1` | Remove a demonstração (tire o `SEED_DEMO` antes) |
 | `MERCADO_PAGO_ACCESS_TOKEN` | Liga o Pix automático (feature 006) |
 | `MERCADO_PAGO_WEBHOOK_SECRET` | Confere a assinatura do aviso do Mercado Pago |
+| `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` | Ligam o aviso de mensagem por e-mail (feature 010) |
+| `SMTP_PORT`, `SMTP_FROM` | Opcionais: porta (padrão 465) e endereço do remetente |
 
 Na Vercel o endereço público vem do domínio de produção (ADR-13); `NEXT_PUBLIC_URL` só vale fora dela.
 

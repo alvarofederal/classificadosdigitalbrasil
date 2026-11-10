@@ -4,6 +4,7 @@ import type { GeradorDeToken, HashDeSenha, NovoUsuario, SessaoRepository, Sessao
 import type {
   AnuncioRegistro,
   AnuncioRepository,
+  CancelamentoNoGateway,
   CategoriaRepository,
   ChamadoRegistro,
   ChamadoRepository,
@@ -21,10 +22,13 @@ import type {
   PagamentoRepository,
   PlanoRepository,
 } from "@/application/ports/caderno"
-import type { GeradorDeCodigo, Relogio } from "@/application/ports/sistema"
+import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
+import type { GeradorDeCodigo, Relogio, SegundoPlano } from "@/application/ports/sistema"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
 import { PLANOS_INICIAIS, type Plano } from "@/domain/plano/plano"
+import type { Carta, Destinatario } from "@/domain/shared/carta"
+import { type Result, falha, ok } from "@/domain/shared/result"
 import { CatalogoIbge } from "@/infrastructure/localidades/catalogo-ibge"
 
 export class RelogioFixo implements Relogio {
@@ -171,6 +175,17 @@ export class GatewayFalso implements GatewayPix {
     const p = this.pagamentos.get(gatewayId)!
     this.pagamentos.set(gatewayId, { ...p, situacao: "APROVADO", valorCentavos: valorCentavos ?? p.valorCentavos })
   }
+  canceladas: string[] = []
+  falharAoCancelar = false
+  async cancelar(gatewayId: string): Promise<CancelamentoNoGateway> {
+    if (this.falharAoCancelar) return "FALHOU"
+    const p = this.pagamentos.get(gatewayId)
+    if (!p) return "CANCELADA"
+    if (p.situacao === "APROVADO") return "JA_PAGA"
+    this.pagamentos.set(gatewayId, { ...p, situacao: "RECUSADO" })
+    this.canceladas.push(gatewayId)
+    return "CANCELADA"
+  }
 }
 
 export class ConfiguracaoEmMemoria implements ConfiguracaoRepository {
@@ -192,9 +207,48 @@ export class MensagensEmMemoria implements MensagemRepository {
   async contarDoContatoDesde(anuncioId: string, contato: string, desde: Date) {
     return this.itens.filter((m) => m.anuncioId === anuncioId && m.contato === contato && m.criadoEm >= desde).length
   }
+  async contarDoAnuncioDesde(anuncioId: string, desde: Date) {
+    return this.itens.filter((m) => m.anuncioId === anuncioId && m.criadoEm >= desde).length
+  }
   async marcarComoLidas(anuncioId: string) {
     for (const m of this.itens) if (m.anuncioId === anuncioId) m.lida = true
   }
+}
+
+/** Correio de mentira: guarda as cartas "enviadas" e deixa o teste desligar o servidor ou derrubá-lo. */
+export class CorreioFalso implements Correio {
+  ligado = true
+  falhar = false
+  enviadas: Array<{ para: Destinatario; carta: Carta }> = []
+  async enviar(para: Destinatario, carta: Carta): Promise<Result<{ id: string }>> {
+    if (this.falhar) return falha("ENVIO_FALHOU", "servidor de e-mail fora do ar")
+    this.enviadas.push({ para, carta })
+    return ok({ id: `email-${this.enviadas.length}` })
+  }
+  async conferir(): Promise<Result<true>> {
+    return this.falhar ? falha("CONEXAO_FALHOU", "servidor de e-mail fora do ar") : ok(true)
+  }
+}
+
+/** Segundo plano de teste: guarda as tarefas e só roda quando o teste manda, como o "depois da resposta". */
+export class SegundoPlanoManual implements SegundoPlano {
+  private fila: Array<() => Promise<unknown>> = []
+  get pendentes() {
+    return this.fila.length
+  }
+  executar(tarefa: () => Promise<unknown>) {
+    this.fila.push(tarefa)
+  }
+  /** Roda o que ficou para depois. Erro de tarefa não volta para quem chamou, como em produção. */
+  async concluir() {
+    const tarefas = this.fila
+    this.fila = []
+    for (const tarefa of tarefas) await tarefa().catch(() => undefined)
+  }
+}
+
+export const enderecosDeTeste: EnderecosDoSite = {
+  mensagensDoAnuncio: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}#titulo-mensagens`,
 }
 
 export class FotosEmMemoria implements FotoRepository {
@@ -305,6 +359,9 @@ export function caderno({ comGateway = false } = {}) {
   const mensagens = new MensagensEmMemoria(relogio)
   const fotos = new FotosEmMemoria()
   const gateway = comGateway ? new GatewayFalso() : null
+  const usuarios = new UsuariosEmMemoria()
+  const correio = new CorreioFalso()
+  const segundoPlano = new SegundoPlanoManual()
   return {
     relogio,
     codigos,
@@ -316,6 +373,9 @@ export function caderno({ comGateway = false } = {}) {
     mensagens,
     fotos,
     gateway,
+    usuarios,
+    correio,
+    segundoPlano,
     depsDePagamento: { pagamentos, planos, codigos, relogio, gateway },
   }
 }

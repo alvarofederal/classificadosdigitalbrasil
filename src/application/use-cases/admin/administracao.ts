@@ -1,10 +1,13 @@
-// APLICAÇÃO — o que só o administrador faz: categorias, planos, configuração do Pix e chamados (RF-30 a RF-35, RF-51, RF-63).
+// APLICAÇÃO — o que só o administrador faz: categorias, planos, configuração do Pix, chamados e teste do e-mail (RF-30 a RF-35, RF-51, RF-63, RF-103).
 
 import { type DadosDaCategoria, slugDaCategoria, validarCategoria } from "@/domain/categoria/categoria"
+import { montarEmailDeTeste } from "@/domain/mensagem/aviso"
 import { validarRecebedorPix } from "@/domain/pagamento/pix"
 import { type Plano, ehCodigoDePlano, validarPlano } from "@/domain/plano/plano"
+import type { Destinatario } from "@/domain/shared/carta"
 import { type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
 import type { CategoriaRepository, ChamadoRepository, Configuracao, ConfiguracaoRepository, PlanoRepository } from "../../ports/caderno"
+import type { Correio } from "../../ports/correio"
 import type { Relogio } from "../../ports/sistema"
 
 export class CriarCategoriaUseCase {
@@ -97,5 +100,16 @@ export class AtualizarChamadoUseCase {
       resolvidoEm: entrada.resolvido ? (chamado.resolvidoEm ?? this.relogio.agora()) : null,
     })
     return ok(true)
+  }
+}
+
+/** RF-103: o admin manda um e-mail para si mesmo e vê na hora se o servidor de envio está certo. */
+export class EnviarEmailDeTesteUseCase {
+  constructor(private readonly correio: Correio) {}
+
+  async executar(para: Destinatario): Promise<Result<true>> {
+    if (!this.correio.ligado) return falha("SEM_CORREIO", "O servidor de e-mail ainda não está cadastrado na Vercel.")
+    const envio = await this.correio.enviar(para, montarEmailDeTeste(para.nome))
+    return envio.ok ? ok(true) : envio
   }
 }

@@ -17,11 +17,18 @@
 - **Boca a boca**: cada anúncio é uma página própria para divulgar. Melhorias sobre a ideia original: link curto, prévia de recorte de jornal no WhatsApp, botões de compartilhar, **cartaz A4 com QR Code** (o anúncio sai da tela e vai para o vidro do carro, o mural da igreja e a padaria), contador de visitas para o dono e o convite "Anuncie você também" no rodapé de todo anúncio.
 - **Escala do pagamento**: Pix confirmado pelo gateway (Mercado Pago, 0,99%), sem ninguém validar à mão. O anúncio do Gol é o primeiro exemplo da plataforma, publicado como cortesia.
 
+## O que a versão 0.3 decidiu (2026-11-10)
+
+- **Antes de divulgar**: o Álvaro decidiu resolver primeiro os dois pontos que fazem o primeiro usuário desistir: o anunciante não ficava sabendo da mensagem, e o Pix automático não estava conferido.
+- **Aviso de mensagem**: por e-mail, para o endereço da conta, com o texto e o contato de quem escreveu. Resposta direta quando o contato é e-mail; link do WhatsApp quando é telefone. No máximo 10 avisos por anúncio em 24 horas.
+- **Envio**: SMTP com uma caixa comum enquanto não há domínio próprio (ADR-15).
+- **Pix**: cobrança cancelada aqui passa a ser cancelada também no Mercado Pago (T-86), para não entrar dinheiro sem publicar anúncio.
+
 ## Próximos passos sugeridos
 
-1. Ligar o Mercado Pago e fazer um Pix real de R$ 1,00 (feature 006, T-84).
+1. Conferir o painel e fazer um Pix real de R$ 1,00 (feature 006, T-84); cadastrar o SMTP e testar o aviso (feature 010, T-125).
 2. Créditos (carteira) para renovar com um clique.
-3. E-mail de "seu anúncio vence amanhã" e de "nova mensagem".
+3. E-mail de "seu anúncio vence amanhã" e de "seu anúncio está no ar", e aviso de chamado novo para o administrador (o de "nova mensagem" é a feature 010).
 4. "Subir para o topo" por um valor pequeno.
 5. Rodar o teste de carga num ambiente de teste (feature 008).
 

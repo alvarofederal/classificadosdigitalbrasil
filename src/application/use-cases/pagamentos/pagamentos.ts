@@ -1,4 +1,4 @@
-// APLICAÇÃO — cobrança do espaço por plano, Pix automático e confirmação (RF-14, RF-15, RF-80 a RF-84; RN-12, RN-21, RN-22, RN-53, RN-54, RN-80, RN-81).
+// APLICAÇÃO — cobrança do espaço por plano, Pix automático e confirmação (RF-14, RF-15, RF-80 a RF-84; RN-12, RN-21, RN-22, RN-53, RN-54, RN-80, RN-81, RN-87 a RN-89).
 
 import { novaExpiracao } from "@/domain/anuncio/anuncio"
 import { ALFABETO_DO_PAGAMENTO, TAMANHO_DO_CODIGO_DE_PAGAMENTO, VALIDADE_DO_PIX_MS } from "@/domain/pagamento/pagamento"
@@ -8,6 +8,7 @@ import { type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result
 import type {
   AnuncioRegistro,
   AnuncioRepository,
+  CancelamentoNoGateway,
   ConfiguracaoRepository,
   GatewayPix,
   PagamentoRegistro,
@@ -50,6 +51,22 @@ async function novoCodigo(deps: DepsDePagamento): Promise<string> {
 }
 
 /**
+ * RN-87: cobrança cancelada aqui deixa de ser pagável no gateway. Antes disso o Pix antigo seguia valendo por até
+ * 24 horas e, se fosse pago, o dinheiro entrava sem publicar nada. Pix estático não tem o que cancelar lá.
+ */
+export async function cancelarNoGateway(
+  gateway: GatewayPix | null,
+  pagamento: Pick<PagamentoRegistro, "codigo" | "gateway" | "gatewayId">,
+): Promise<CancelamentoNoGateway | "SEM_GATEWAY"> {
+  if (!gateway || pagamento.gateway !== gateway.nome || !pagamento.gatewayId) return "SEM_GATEWAY"
+  const resultado = await gateway.cancelar(pagamento.gatewayId)
+  if (resultado === "FALHOU") {
+    console.warn(`[pagamento] o gateway não cancelou a cobrança ${pagamento.codigo}: o Pix antigo segue pagável até vencer (RN-89).`)
+  }
+  return resultado
+}
+
+/**
  * RN-21: no máximo uma cobrança pendente por anúncio. Mesma escolha e Pix ainda válido: devolve a mesma.
  * Escolha diferente (ou Pix vencido): cancela a anterior e gera outra com o valor da tabela de agora (RN-53).
  */
@@ -63,6 +80,10 @@ export async function abrirCobranca(deps: DepsDePagamento, pedido: PedidoDeCobra
   if (pendente) {
     const vencido = pendente.vencimentoEm !== null && pendente.vencimentoEm.getTime() <= agora.getTime()
     if (pendente.planoCodigo === plano.codigo && pendente.dias === dias && !vencido) return ok(pendente)
+    // RN-87 e RN-88: o Pix antigo sai do gateway antes de nascer o novo; se já foi pago, nada é cancelado.
+    if ((await cancelarNoGateway(deps.gateway, pendente)) === "JA_PAGA") {
+      return falha("PIX_JA_PAGO", "O Pix desta cobrança já foi pago. A confirmação aparece em instantes; depois dela você pode escolher outro plano.")
+    }
     await deps.pagamentos.cancelar(pendente.id)
   }
 
@@ -175,6 +196,13 @@ export class ProcessarPagamentoDoGatewayUseCase {
     if (noGateway.situacao !== "APROVADO") return ok("AINDA_PENDENTE")
     const pagamento = noGateway.referencia ? await this.pagamentos.buscarPorCodigo(noGateway.referencia) : null
     if (!pagamento) return falha("REFERENCIA_DESCONHECIDA", `Pagamento ${gatewayId} sem cobrança correspondente.`)
+    if (pagamento.situacao === "CANCELADO") {
+      // RN-89: o dinheiro entrou numa cobrança que já estava cancelada aqui. Nada é publicado; fica o registro para o admin.
+      return falha(
+        "PAGO_APOS_CANCELAMENTO",
+        `A cobrança ${pagamento.codigo} foi paga depois de cancelada (ordem ${gatewayId}). Devolva o Pix no Mercado Pago ou publique o anúncio por cortesia.`,
+      )
+    }
     if (pagamento.situacao !== "PENDENTE") return ok("JA_PROCESSADO")
     if (noGateway.valorCentavos !== pagamento.valorCentavos) {
       return falha("VALOR_DIVERGENTE", `Cobrança ${pagamento.codigo}: esperado ${pagamento.valorCentavos}, pago ${noGateway.valorCentavos} (centavos).`)
@@ -208,7 +236,7 @@ export class VerificarPagamentoUseCase {
 export class PublicarCortesiaUseCase {
   constructor(
     private readonly anuncios: AnuncioRepository,
-    private readonly deps: Omit<DepsDePagamento, "gateway">,
+    private readonly deps: DepsDePagamento,
     private readonly confirmar: ConfirmarPagamentoUseCase,
   ) {}
 
@@ -220,6 +248,11 @@ export class PublicarCortesiaUseCase {
     if (!plano) return falhaDeValidacao({ planoCodigo: "Escolha o plano." })
     if (!Number.isInteger(entrada.dias) || entrada.dias < 1 || entrada.dias > 365) return falhaDeValidacao({ dias: "Entre 1 e 365 dias." })
 
+    // RN-87 e RN-88: o Pix pendente sai do gateway; se o anunciante já pagou, a cortesia espera a confirmação.
+    const pendente = await this.deps.pagamentos.pendenteDoAnuncio(anuncio.id)
+    if (pendente && (await cancelarNoGateway(this.deps.gateway, pendente)) === "JA_PAGA") {
+      return falha("PIX_JA_PAGO", "O anunciante já pagou o Pix deste anúncio. Aguarde a confirmação antes de dar a cortesia.")
+    }
     await this.deps.pagamentos.cancelarPendentesDoAnuncio(anuncio.id)
     let codigo = this.deps.codigos.codigo(ALFABETO_DO_PAGAMENTO, TAMANHO_DO_CODIGO_DE_PAGAMENTO)
     while (await this.deps.pagamentos.existeCodigo(codigo)) codigo = this.deps.codigos.codigo(ALFABETO_DO_PAGAMENTO, TAMANHO_DO_CODIGO_DE_PAGAMENTO)

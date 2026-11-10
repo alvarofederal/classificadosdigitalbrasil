@@ -218,6 +218,11 @@ export class PrismaMensagemRepository implements MensagemRepository {
     return this.db.mensagem.count({ where: { anuncioId, contato, criadoEm: { gte: desde } } })
   }
 
+  async contarDoAnuncioDesde(anuncioId: string, desde: Date) {
+    // Usa o índice (anuncioId, criadoEm).
+    return this.db.mensagem.count({ where: { anuncioId, criadoEm: { gte: desde } } })
+  }
+
   async marcarComoLidas(anuncioId: string) {
     await this.db.mensagem.updateMany({ where: { anuncioId, lida: false }, data: { lida: true } })
   }

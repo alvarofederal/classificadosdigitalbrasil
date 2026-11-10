@@ -3,7 +3,7 @@ import { createHmac } from "crypto"
 import { describe, expect, it } from "vitest"
 import { AbrirChamadoUseCase, LocalizarCidadeUseCase } from "@/application/use-cases/publico/publico"
 import { AtualizarPlanoUseCase } from "@/application/use-cases/admin/administracao"
-import { CriarAnuncioUseCase } from "@/application/use-cases/anuncios/gerenciar-anuncios"
+import { CriarAnuncioUseCase, RemoverAnuncioUseCase } from "@/application/use-cases/anuncios/gerenciar-anuncios"
 import { AdicionarFotosUseCase, PrepararUploadDeFotosUseCase } from "@/application/use-cases/anuncios/gerenciar-fotos"
 import {
   ConfirmarPagamentoUseCase,
@@ -51,7 +51,8 @@ function montar(comGateway = true) {
     confirmar,
     processar,
     verificar: new VerificarPagamentoUseCase(c.anuncios, c.pagamentos, processar),
-    cortesia: new PublicarCortesiaUseCase(c.anuncios, { pagamentos: c.pagamentos, planos: c.planos, codigos: c.codigos, relogio: c.relogio }, confirmar),
+    cortesia: new PublicarCortesiaUseCase(c.anuncios, c.depsDePagamento, confirmar),
+    remover: new RemoverAnuncioUseCase(c.anuncios, c.pagamentos, c.gateway),
     cobranca: new MontarCobrancaPixUseCase(c.configuracao),
   }
 }

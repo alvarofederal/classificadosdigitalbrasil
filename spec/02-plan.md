@@ -2,7 +2,7 @@
 
 ## Stack
 
-Next.js 16 (App Router, Server Actions, `proxy.ts`), React 19, TypeScript, Tailwind 4, Prisma 5.17 com MySQL (Hostinger), Cloudinary para fotos, Vercel para hospedagem, Vitest para testes.
+Next.js 16 (App Router, Server Actions, `proxy.ts`), React 19, TypeScript, Tailwind 4, Prisma 5.17 com MySQL (Hostinger), Cloudinary para fotos, nodemailer para e-mail por SMTP, Vercel para hospedagem, Vitest para testes.
 
 ## Camadas
 
@@ -16,7 +16,10 @@ src/
   infrastructure/
     prisma/        repositórios e consultas
     localidades/   catálogo do IBGE (JSON gerado)
+    email/         carta em HTML e em texto, correio SMTP
+    pagamentos/    adaptador do Mercado Pago
     servicos.ts    relógio, códigos, bcrypt, tokens, Cloudinary
+    segundo-plano.ts  tarefa depois da resposta (after do Next)
     container.ts   composition root
   lib/             sessão, formulários (Zod), formatadores, endereços
   components/      jornal (cabeçalho, filtros, caixa do anúncio, ações), formulários, modal
@@ -47,8 +50,10 @@ src/
 
 **ADR-11 · Capa sem consulta por seção.** A capa não lista seções vazias nem consulta anúncios por seção; a única consulta nacional é a vitrine (plano Vitrine), limitada a 10 e apoiada no índice `(planoCodigo, situacao, expiraEm)`. "Perto de mim" calcula a cidade mais próxima no servidor a partir das coordenadas das 5.571 sedes municipais (base pública *kelvins/municipios-brasileiros*), sem serviço externo e sem gravar a localização.
 
-**ADR-12 · Pix automático com gateway trocável.** Porta `GatewayPix` na aplicação; adaptador `MercadoPagoGateway` (Pix 0,99%, conta com CPF, sem certificado). O webhook só confirma se o gateway diz aprovado, a referência é uma cobrança nossa pendente e o valor bate; a confirmação é idempotente (atualização condicionada a "ainda pendente"). Sem credenciais, o sistema volta ao Pix estático do ADR-07. Trocar para Woovi/Efí = outro adaptador.
+**ADR-12 · Pix automático com gateway trocável.** Porta `GatewayPix` na aplicação; adaptador `MercadoPagoGateway` (Pix 0,99%, conta com CPF, sem certificado). O webhook só confirma se o gateway diz aprovado, a referência é uma cobrança nossa pendente e o valor bate; a confirmação é idempotente (atualização condicionada a "ainda pendente"). Sem credenciais, o sistema volta ao Pix estático do ADR-07. Trocar para Woovi/Efí = outro adaptador. *Atualizado em 2026-11-10 (T-86):* a porta ganhou `cancelar`; cobrança cancelada aqui é cancelada também no gateway, e Pix aprovado em cobrança já cancelada volta como `PAGO_APOS_CANCELAMENTO` (RN-87 a RN-89).
 
 **ADR-13 · Endereço do site.** Na Vercel, o endereço público vem de `VERCEL_PROJECT_PRODUCTION_URL` (vira o domínio próprio quando houver); `NEXT_PUBLIC_URL` só vale fora da Vercel. Motivo: uma variável copiada de outro projeto mandava links e QR Codes para o site errado.
 
 **ADR-14 · Pix pela API de Orders do Mercado Pago (2026-11-09).** O adaptador passa de `/v1/payments` para `/v1/orders`, e o webhook, do tópico `payment` para `order`. Motivo: o painel do Mercado Pago avisa que a API de Payments "será descontinuada em breve", e a documentação a chama de legada e recomenda Orders para integração nova. Como nenhum pagamento havia passado pelo gateway, trocar agora evita migrar com o site cobrando. A porta `GatewayPix` e os casos de uso não mudam; o `gatewayId` passa a ser o id da ordem (`ORD…`). Em aplicação de Orders o token de teste também começa com `APP_USR-`, então o painel marca como teste também a conta com a etiqueta `test_user` ou apelido `TESTUSER…` em `/users/me`.
+
+**ADR-15 · E-mail por SMTP, enviado depois da resposta (2026-11-10).** Porta `Correio` na aplicação e adaptador `CorreioSmtp` com `nodemailer`; sem as variáveis `SMTP_*` entra o `CorreioDesligado` e o site segue como antes. SMTP, e não a API de um provedor, porque o site ainda não tem domínio próprio: uma caixa comum (Gmail com senha de app) já envia, e com domínio basta trocar as variáveis por Brevo, Resend ou SES. TLS sempre: direto na porta 465 e STARTTLS obrigatório nas outras, para a senha nunca ir em claro. O `nodemailer` fica fixado na 10.2.1: as versões anteriores à 10.1.4 têm avisos de segurança no interpretador de endereços, e a 10.5.0 tinha saído no dia da escolha. O conteúdo do e-mail é uma `Carta` montada no domínio, sem HTML; a infraestrutura dá a cara de jornal e escapa tudo. O envio roda pela porta `SegundoPlano` (adaptador com o `after` do Next): quem pediu recebe a resposta antes, e a falha do envio fica no log, sem derrubar o que já foi gravado.

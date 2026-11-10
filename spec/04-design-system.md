@@ -39,3 +39,4 @@ As variáveis das fontes do `next/font` ficam em `<html>` (não no `<body>`): é
 - **Caixa do anúncio** (`components/jornal/caixa-anuncio.tsx`): moldura, título, texto, preço, estrelas e o rodapé com ícone de conversa, código e ícone de álbum. É a mesma peça no caderno, na prévia do editor e na página do anúncio.
 - **Campos e botões**: cantos retos, fio preto, foco com contorno preto.
 - **Modal**: borda dupla de tinta com sombra deslocada, como um recorte.
+- **E-mail** (`infrastructure/email/modelo.ts`): a mesma página branca e tinta preta, com fio grosso, manchete e fio duplo. Fontes da web não carregam em e-mail; valem as parecidas que todo programa tem (Impact na manchete, Arial Narrow nos rótulos, Georgia no texto). A mensagem de quem escreveu vem numa caixa de fio simples e o botão é uma tarja preta.

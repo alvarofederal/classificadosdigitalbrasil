@@ -37,7 +37,8 @@ export default function Termos() {
         prevenção de fraude; ele nunca aparece no anúncio. E-mail e celular não são exibidos publicamente.
       </p>
       <p>
-        Quem manda mensagem a um anunciante informa nome e um contato. Esses dados vão apenas para o anunciante daquele anúncio.
+        Quem manda mensagem a um anunciante informa nome e um contato. Esses dados vão apenas para o anunciante daquele anúncio: ficam na
+        área dele no site e seguem por e-mail para o endereço da conta dele.
       </p>
       <p>
         Registros de acesso são mantidos pelo prazo exigido pelo Marco Civil da Internet. Para corrigir ou excluir seus dados, use a área

@@ -39,7 +39,8 @@ A memória do projeto é esta pasta, não a conversa (Art. 7 da constituição).
 | `features/003-planos-e-precos` | Planos, tabela de preços editável, ordem por plano | Entregue (2026-11-09) |
 | `features/004-contato-e-chamados` | Formulário de contato e chamados no painel | Entregue (2026-11-09) |
 | `features/005-pagina-de-divulgacao` | Página individual do anúncio para divulgar | Entregue (2026-11-09) |
-| `features/006-pix-automatico` | Confirmação automática do Pix por gateway | Entregue; liga com as credenciais do Mercado Pago |
+| `features/006-pix-automatico` | Confirmação automática do Pix por gateway | Entregue; credenciais na Vercel, falta conferir o painel e fazer o Pix real |
 | `features/007-dados-de-exemplo` | Anúncio do Gol e exemplos em Brasília | Entregue; faltam as fotos do Gol |
 | `features/008-teste-de-carga` | Teste de carga com k6 | Anotado, script pronto |
 | `features/009-tabela-de-precos` | Simples e com foto em 7, 10, 15, 20 e 30 dias | Entregue (2026-11-09) |
+| `features/010-aviso-de-mensagem` | Aviso por e-mail ao dono quando chega mensagem | Entregue no código (2026-11-10); liga com as variáveis `SMTP_*` |

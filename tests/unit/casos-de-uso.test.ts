@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest"
 import { CadastrarAnuncianteUseCase } from "@/application/use-cases/acesso/conta"
 import { RemoverCategoriaUseCase } from "@/application/use-cases/admin/administracao"
 import { CriarAnuncioUseCase, EditarAnuncioUseCase, RemoverAnuncioUseCase, RestaurarAnuncioUseCase } from "@/application/use-cases/anuncios/gerenciar-anuncios"
-import { EnviarMensagemUseCase } from "@/application/use-cases/anuncios/mensagens"
+import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase } from "@/application/use-cases/anuncios/mensagens"
 import { ConfirmarPagamentoUseCase, MontarCobrancaPixUseCase, SolicitarRenovacaoUseCase } from "@/application/use-cases/pagamentos/pagamentos"
 import type { ConteudoDoAnuncio } from "@/domain/anuncio/anuncio"
 import { ESTILO_PADRAO } from "@/domain/anuncio/anuncio"
-import { SessoesEmMemoria, UsuariosEmMemoria, caderno, hashFalso, localidades, tokensFalsos } from "../fakes"
+import { SessoesEmMemoria, UsuariosEmMemoria, caderno, enderecosDeTeste, hashFalso, localidades, tokensFalsos } from "../fakes"
 
 const DIA = 86_400_000
 const BRASILIA = 5300108
@@ -32,11 +32,17 @@ function montar() {
     ...c,
     criar: new CriarAnuncioUseCase(c.anuncios, c.categorias, localidades, c.codigos, c.depsDePagamento),
     editar: new EditarAnuncioUseCase(c.anuncios, c.categorias, localidades),
-    remover: new RemoverAnuncioUseCase(c.anuncios, c.pagamentos),
+    remover: new RemoverAnuncioUseCase(c.anuncios, c.pagamentos, c.gateway),
     restaurar: new RestaurarAnuncioUseCase(c.anuncios),
     confirmar: new ConfirmarPagamentoUseCase(c.anuncios, c.pagamentos, c.relogio),
     renovar: new SolicitarRenovacaoUseCase(c.anuncios, c.depsDePagamento),
-    mensagem: new EnviarMensagemUseCase(c.anuncios, c.mensagens, c.relogio),
+    mensagem: new EnviarMensagemUseCase(
+      c.anuncios,
+      c.mensagens,
+      c.relogio,
+      new AvisarMensagemNovaUseCase(c.usuarios, c.mensagens, c.correio, c.relogio, enderecosDeTeste),
+      c.segundoPlano,
+    ),
     cobranca: new MontarCobrancaPixUseCase(c.configuracao),
   }
 }

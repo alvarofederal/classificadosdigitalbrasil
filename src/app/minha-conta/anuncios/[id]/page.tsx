@@ -139,6 +139,11 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
         <h2 id="titulo-mensagens" className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">
           Mensagens recebidas ({anuncio.mensagens.length})
         </h2>
+        {c.correio.ligado && (
+          <p className="text-sm">
+            Quando chega mensagem, avisamos em <strong>{usuario.email}</strong>.
+          </p>
+        )}
         {anuncio.mensagens.length === 0 ? (
           <p className="text-sm text-tinta-suave">Nenhuma mensagem ainda. Elas aparecem aqui quando alguém usa o botão de mensagem do anúncio.</p>
         ) : (

@@ -95,6 +95,8 @@ export interface FotoStorage {
 export interface MensagemRepository {
   inserir(anuncioId: string, mensagem: NovaMensagem): Promise<void>
   contarDoContatoDesde(anuncioId: string, contato: string, desde: Date): Promise<number>
+  /** RN-101: quantas mensagens o anúncio recebeu desde o instante informado. */
+  contarDoAnuncioDesde(anuncioId: string, desde: Date): Promise<number>
   marcarComoLidas(anuncioId: string): Promise<void>
 }
 
@@ -151,10 +153,19 @@ export interface PagamentoNoGateway {
   referencia: string | null
 }
 
+/** RN-87 e RN-88: o que o gateway respondeu ao pedido de cancelar uma cobrança. */
+export type CancelamentoNoGateway = "CANCELADA" | "JA_PAGA" | "FALHOU"
+
 export interface GatewayPix {
   readonly nome: "MERCADO_PAGO"
   criarCobranca(params: { referencia: string; valorCentavos: number; descricao: string; emailDoPagador: string; vencimentoEm: Date }): Promise<CobrancaNoGateway>
   consultar(gatewayId: string): Promise<PagamentoNoGateway>
+  /**
+   * RN-87: cancela a cobrança no gateway, para o Pix deixar de ser pagável. Nunca lança.
+   * "CANCELADA" também vale para cobrança que já não pode ser paga (vencida, recusada, inexistente);
+   * "JA_PAGA" quando o dinheiro já entrou; "FALHOU" quando o gateway não respondeu.
+   */
+  cancelar(gatewayId: string): Promise<CancelamentoNoGateway>
 }
 
 // ── Chamados (feature 004) ──

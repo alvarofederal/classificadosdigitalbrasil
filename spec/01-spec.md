@@ -50,6 +50,17 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-34 | Confirmar o Pix de um anúncio, remover e restaurar anúncios. |
 | RF-35 | Configurar chave Pix, nome e cidade do recebedor, valor e dias do anúncio. |
 
+### Avisos por e-mail (feature 010)
+
+| ID | Requisito |
+|---|---|
+| RF-100 | Quando alguém manda mensagem a um anúncio no ar, o dono recebe um e-mail no endereço da conta, com o anúncio, quem escreveu, o texto, o contato e o link para Minha conta. |
+| RF-101 | Contato em e-mail vira o endereço de resposta do aviso; contato em telefone ganha o link do WhatsApp. |
+| RF-102 | Quem escreve não espera o envio do e-mail: o aviso sai depois da resposta. |
+| RF-103 | Painel → Configurações mostra a situação do aviso por e-mail e envia um e-mail de teste ao administrador. |
+| RF-104 | Sem servidor de e-mail configurado, a mensagem fica só em Minha conta, como antes. |
+| RF-105 | Minha conta diz em que endereço o dono é avisado. |
+
 ## Regras de negócio
 
 | ID | Regra |
@@ -72,6 +83,15 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-84 | A cobrança automática é uma ordem da API de Orders do Mercado Pago. Só a ordem `processed` confirma; `failed`, `canceled`, `refunded`, `charged_back` e `expired` contam como recusada; qualquer outra situação segue pendente. |
 | RN-85 | O valor conferido na confirmação automática é o `total_paid_amount` da ordem (na falta dele, o `total_amount`). |
 | RN-86 | O webhook só processa aviso do tipo `order` com identificador de ordem (`ORD…`). Os demais recebem 200 e são ignorados. |
+| RN-87 | Cobrança do gateway cancelada aqui (troca de plano ou período, Pix vencido, anúncio removido, cortesia) é cancelada também no Mercado Pago. Falha do gateway não impede o cancelamento daqui. |
+| RN-88 | Se o Pix já foi pago, a cobrança não é cancelada: troca de plano e cortesia são recusadas e a confirmação segue o caminho normal. |
+| RN-89 | Pix aprovado em cobrança já cancelada aqui não publica nada e fica registrado como `PAGO_APOS_CANCELAMENTO` para o admin resolver. |
+| RN-100 | O aviso por e-mail nunca impede a mensagem: falha no envio vai para o log e a mensagem continua gravada. |
+| RN-101 | No máximo 10 avisos por anúncio em 24 horas, contados pelas mensagens recebidas; o décimo diz que as próximas ficam só em Minha conta. |
+| RN-102 | O aviso vai só para o e-mail da conta do dono e não leva CPF nem celular dele. |
+| RN-103 | Nome e texto de quem escreveu entram no e-mail como texto, nunca como HTML; o endereço de resposta só é usado em formato simples. |
+| RN-104 | Dono com a conta desativada não recebe aviso. |
+| RN-105 | Todo aviso traz o lembrete: o site não pede pagamento, código nem senha por mensagem. |
 
 ## Requisitos não funcionais
 

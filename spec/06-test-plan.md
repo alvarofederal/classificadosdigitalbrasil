@@ -2,7 +2,7 @@
 
 `npm test` roda os testes de unidade (Vitest), sem banco e sem rede. Os casos de uso rodam contra `tests/fakes.ts` (repositórios e gateway em memória) e o catálogo real do IBGE.
 
-## Cobertos (89 testes, todos passando em 2026-11-09)
+## Cobertos (137 testes, todos passando em 2026-11-10)
 
 | Arquivo | O que verifica |
 |---|---|
@@ -10,6 +10,12 @@
 | `tests/unit/dominio.test.ts` | CPF; cadastro; anúncio (normalização, validação, situação, RN-12, código); Pix BR Code (CRC16 `29B1`, montagem, chaves); mensagem; categoria; UF; planos (mês = 3 semanas, Vitrine o mais caro, prioridade, períodos, edição); distância e cidade mais próxima (Brasília, São Paulo, fora do Brasil); chamado (normalização e validação). |
 | `tests/unit/casos-de-uso.test.ts` | Anúncio nasce com cobrança; cidade de outra UF e seção desativada recusadas; confirmar publica e renovar soma dias; confirmação dupla recusada; uma cobrança pendente por vez; renovação alheia recusada; Pix estático só com recebedor; edição só do dono; remover cancela pendências; só admin restaura; mensagem só no ar e com limite; cadastro e duplicidades; categoria em uso. |
 | `tests/unit/pix-automatico.test.ts` | Vitrine 30 dias = R$ 30,00 com Pix do gateway; período e plano inválidos; gateway fora do ar cai no Pix estático; troca de plano cancela a cobrança anterior; webhook aprovado publica no plano pago com prioridade 3; aviso repetido não confirma duas vezes; valor divergente fica pendente; tela do dono vê quando cai; cortesia com valor zero; fotos por plano (Simples 1, admin 6); tabela editável; chamado com protocolo e limite por hora; localização fora do Brasil; adaptador do Mercado Pago na API de Orders (situação da ordem, centavos, prazo, corpo, idempotência, valor pago, filtro do aviso, assinatura HMAC com id em minúsculas). |
+| `tests/unit/aviso-de-mensagem.test.ts` | Feature 010: carta do aviso (conteúdo, WhatsApp, endereço de resposta só em formato simples, lembrete de segurança, décimo aviso); aviso só para o e-mail do dono, sem CPF nem celular; mensagem confirmada antes do envio; servidor fora e erro inesperado não derrubam a mensagem; correio desligado; limite de 10 por anúncio em 24 horas; conta desativada; e-mail de teste; modelo do e-mail (escape de HTML, links só https, http ou mailto, texto puro, assunto em uma linha); adaptador SMTP (remetente, destino, resposta, falha como valor sem expor a senha, endereço recusado, leitura das variáveis); tarefa depois da resposta. |
+| `tests/unit/pix-cancelamento.test.ts` | T-86: troca de plano, Pix vencido, remoção e cortesia cancelam a ordem no gateway; a mesma cobrança não cancela nada; Pix estático; gateway fora no cancelamento; Pix já pago recusa a troca e a cortesia, e a confirmação publica; Pix pago depois do cancelamento volta como falha própria; adaptador (`POST /v1/orders/{id}/cancel`, idempotência, 409 com consulta, 404, 500, rede fora, identificador inválido). |
+
+## Conferido fora dos testes (2026-11-10)
+
+Envio real do aviso pelo `CorreioSmtp` contra um servidor SMTP local de teste: TLS direto (465) e STARTTLS (587) entregaram; a senha só trafegou depois do TLS; certificado não confiável foi recusado; senha errada e porta sem servidor viraram mensagem clara. O e-mail saiu em texto e HTML, em UTF-8, com assunto, remetente, destino e endereço de resposta certos; o HTML foi conferido em 600 e em 375 px. `/termos` conferido no navegador. Em produção: site e endereço do aviso do Mercado Pago respondendo; variáveis do Mercado Pago presentes na Vercel.
 
 ## Conferido em produção (2026-11-09)
 
@@ -22,6 +28,8 @@ Migração aplicada e 4 planos criados no deploy; 19 anúncios no ar em Brasíli
 3. Painel → Chamados: enviar um contato pela capa e resolver.
 4. "Anúncios perto de mim" no celular (permitir a localização).
 5. Prévia do link do anúncio colado no WhatsApp.
+6. Com o SMTP ligado: Painel → Configurações → Enviar e-mail de teste; depois mandar uma mensagem num anúncio no ar e ver o aviso chegar ao dono (feature 010, T-125).
+7. Com o Mercado Pago ligado: gerar um Pix, trocar de plano antes de pagar e conferir no Mercado Pago que a ordem antiga aparece cancelada (T-86).
 
 ## Teste de carga (feature 008)
 

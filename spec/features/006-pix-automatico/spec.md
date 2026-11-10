@@ -21,6 +21,9 @@
 | RN-84 | A cobrança é uma ordem da API de Orders. Só a ordem `processed` confirma; `failed`, `canceled`, `refunded`, `charged_back` e `expired` contam como recusada; qualquer outra situação segue pendente. |
 | RN-85 | O valor conferido na RN-80 é o `total_paid_amount` da ordem (na falta dele, o `total_amount`). |
 | RN-86 | O webhook só processa aviso do tipo `order` com identificador de ordem (`ORD…`). Os demais recebem 200 e são ignorados. |
+| RN-87 | Cobrança do gateway cancelada aqui (troca de plano ou período, Pix vencido, anúncio removido, cortesia) é cancelada também no Mercado Pago, para o Pix antigo deixar de ser pagável. Se o Mercado Pago não responder, o cancelamento daqui segue e o caso fica no log. |
+| RN-88 | Se o Mercado Pago responde que o Pix já foi pago, a cobrança não é cancelada: a troca de plano e a cortesia são recusadas com "este Pix já foi pago" e a confirmação segue o caminho normal. A remoção do anúncio segue, com registro no log. |
+| RN-89 | Pix aprovado numa cobrança que já estava cancelada aqui não publica nada e fica registrado como `PAGO_APOS_CANCELAMENTO`, para o admin devolver o valor ou publicar por cortesia. |
 
 ## Plano (ADR-12 e ADR-14)
 
@@ -30,6 +33,7 @@
 - Webhook `POST /api/pagamentos/mercadopago`: valida `x-signature` (HMAC-SHA256 de `id:…;request-id:…;ts:…;`, com o `data.id` em minúsculas), consulta a ordem em `GET /v1/orders/{id}` e chama `ProcessarPagamentoDoGateway`.
 - Na API de Orders não existe `notification_url` no corpo: o endereço do aviso fica só na aplicação, no painel do Mercado Pago.
 - `pagamentos` ganha `gateway`, `gatewayId`, `copiaECola`, `expiraEm`.
+- Cancelamento (T-86): a porta `GatewayPix` ganha `cancelar`. O adaptador chama `POST /v1/orders/{id}/cancel` com `X-Idempotency-Key: cancelar-<id>` (a chave de criação é o código da cobrança e não pode ser repetida). O Mercado Pago só cancela ordem em `action_required` ou `created`; nas outras responde 409, e a consulta da ordem diz se o Pix foi pago (RN-88) ou se já não pode ser pago.
 
 **Passo a passo para ligar (feito pelo Álvaro; o código já está pronto):**
 
@@ -40,6 +44,7 @@
 5. **Vercel** → projeto → Settings → Environment Variables → Production: `MERCADO_PAGO_ACCESS_TOKEN` e `MERCADO_PAGO_WEBHOOK_SECRET`. Depois, **Redeploy**.
 6. **Conferir** em Painel → Configurações: todos os itens marcados ("Conta conectada", "Credencial de produção", "Assinatura secreta", "Endereço do aviso").
 7. **Testar de verdade**: com uma conta de anunciante **de e-mail diferente** do e-mail da conta Mercado Pago (o Mercado Pago recusa cobrança em que pagador e recebedor são a mesma pessoa), criar um anúncio Simples de 7 dias (R$ 1,00), pagar o Pix pelo app de outro banco e ver a tela confirmar sozinha.
+8. **Conferir o cancelamento** (depois do deploy do T-86): gerar um Pix, trocar de plano antes de pagar e ver no Mercado Pago (Atividade ou a ordem na aplicação) que a ordem antiga aparece cancelada.
 
 O botão "Simular notificação" do Mercado Pago manda uma ordem inexistente; o site responde "recebido" e não muda nada.
 
@@ -51,10 +56,17 @@ O botão "Simular notificação" do Mercado Pago manda uma ordem inexistente; o 
 - [x] T-81 Webhook com assinatura e caso de uso idempotente
 - [x] T-82 Acompanhamento automático na tela de pagamento
 - [x] T-83 Cortesia no painel
-- [ ] T-84 Cadastrar as credenciais na Vercel e fazer um Pix real de R$ 1,00 (depende do Álvaro)
+- [ ] T-84 Cadastrar as credenciais na Vercel e fazer um Pix real de R$ 1,00 (depende do Álvaro). Credenciais na Vercel: feito, conferido em 2026-11-10. Faltam conferir o painel (passo 6) e o Pix real (passo 7)
 - [x] T-85 Adaptador e webhook na API de Orders (ADR-14; RN-84 a RN-86)
-- [ ] T-86 Cancelar a ordem no Mercado Pago quando a cobrança é cancelada aqui: hoje o Pix antigo continua pagável por até 24 horas e, se for pago, o dinheiro entra e o anúncio não publica
+- [x] T-86 Cancelar a ordem no Mercado Pago quando a cobrança é cancelada aqui (RN-87 a RN-89; `tests/unit/pix-cancelamento.test.ts`). Antes o Pix antigo continuava pagável por até 24 horas e, se fosse pago, o dinheiro entrava e o anúncio não publicava. Feito em 2026-11-10, sem chamada real ao Mercado Pago: confere no passo 8
 
-## Onde parou (2026-11-09)
+## Onde parou (2026-11-10)
 
-Passos 2 a 4 feitos e adaptador na API de Orders (T-85). A última captura de tela da sessão, às 18:30, mostra a entrada no painel do Mercado Pago parada na validação de conta, que pede um código enviado ao celular do titular. Não há registro de que as credenciais já estejam na Vercel. Próximo passo: o Álvaro entra no painel, copia o Access Token e a assinatura secreta e segue do passo 5 ao 7.
+**Passo 5 feito.** Em 2026-11-10 a lista de variáveis de produção da Vercel mostra `MERCADO_PAGO_ACCESS_TOKEN` e `MERCADO_PAGO_WEBHOOK_SECRET`, criadas há 1 dia (a Vercel não mostra a hora), antes do deploy de produção em vigor (commit `3b1b900`, de 2026-11-09 às 20:48). O site em produção já roda com elas. O endereço do aviso responde: um `POST` que não é de ordem devolve `{"ok":true,"ignorado":true}`.
+
+**Falta, e só o Álvaro pode fazer:**
+
+- **Passo 6**: abrir Painel → Configurações e conferir os itens. É ali que se vê se o token é de produção ou de teste; pela lista da Vercel não dá para saber.
+- **Passo 7**: o Pix real de R$ 1,00, com uma conta de anunciante de e-mail diferente do da conta Mercado Pago.
+
+O T-86 (cancelar a ordem no Mercado Pago) está no código e entra no ar no próximo deploy de produção. O passo 8 confere com o Mercado Pago de verdade.

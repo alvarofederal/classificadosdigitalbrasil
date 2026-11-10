@@ -1,13 +1,13 @@
-// APLICAÇÃO — criar, editar, remover e restaurar anúncios (RF-10 a RF-13, RF-34, RN-10, RN-11, RN-14).
+// APLICAÇÃO — criar, editar, remover e restaurar anúncios (RF-10 a RF-13, RF-34, RN-10, RN-11, RN-14, RN-87).
 
 import { ALFABETO_DO_CODIGO, type ConteudoDoAnuncio, TAMANHO_DO_CODIGO, normalizarConteudo, validarConteudo } from "@/domain/anuncio/anuncio"
 import { type ErrosDeCampo, type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
 import type { Perfil } from "@/domain/usuario/usuario"
-import type { AnuncioRegistro, AnuncioRepository, CategoriaRepository, PagamentoRepository } from "../../ports/caderno"
+import type { AnuncioRegistro, AnuncioRepository, CategoriaRepository, GatewayPix, PagamentoRepository } from "../../ports/caderno"
 import type { Localidades } from "../../ports/localidades"
 import type { GeradorDeCodigo } from "../../ports/sistema"
 import { conferirCidade } from "../acesso/conta"
-import { type DepsDePagamento, abrirCobranca, conferirPlano } from "../pagamentos/pagamentos"
+import { type DepsDePagamento, abrirCobranca, cancelarNoGateway, conferirPlano } from "../pagamentos/pagamentos"
 
 export interface Ator {
   usuarioId: string
@@ -101,6 +101,8 @@ export class RemoverAnuncioUseCase {
   constructor(
     private readonly anuncios: AnuncioRepository,
     private readonly pagamentos: PagamentoRepository,
+    /** null = sem Pix automático: não há cobrança para cancelar no gateway. */
+    private readonly gateway: GatewayPix | null,
   ) {}
 
   /** RN-14: sai do caderno na hora; o histórico de pagamentos fica. */
@@ -109,6 +111,11 @@ export class RemoverAnuncioUseCase {
     if (!anuncio || !podeMexer(ator, anuncio)) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
     if (anuncio.situacao === "REMOVIDO") return ok(true)
     await this.anuncios.atualizar({ ...anuncio, situacao: "REMOVIDO" })
+    // RN-87: o Pix pendente deixa de ser pagável no gateway. A remoção não depende disso.
+    const pendente = await this.pagamentos.pendenteDoAnuncio(anuncio.id)
+    if (pendente && (await cancelarNoGateway(this.gateway, pendente)) === "JA_PAGA") {
+      console.warn(`[pagamento] anúncio ${anuncio.codigo} removido com o Pix da cobrança ${pendente.codigo} já pago: devolver no Mercado Pago, se for o caso.`)
+    }
     await this.pagamentos.cancelarPendentesDoAnuncio(anuncio.id)
     return ok(true)
   }
