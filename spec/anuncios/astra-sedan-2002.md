@@ -1,21 +1,34 @@
 # Anúncio do Astra Sedan Expression 2002 (prata)
 
-Carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11. O anúncio do site está no item 3.4 de `../08-lancamento.md`; este arquivo guarda a versão para a OLX.
+Carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11; dados do carro passados por ele no mesmo dia. Este arquivo guarda a versão para a OLX e a versão para o Classificados Digitais (item 3.4 de `../08-lancamento.md`).
 
-Tudo entre colchetes ainda não foi confirmado pelo Álvaro. Nada sobre o carro entra no anúncio sem ele confirmar.
+## Dados passados pelo Álvaro (2026-11-11)
 
-## O que se sabe
+- Motor e câmbio em ordem. 230.000 km. Preço pedido: R$ 20.000,00. Anúncio só em Brasília.
+- Tem: direção hidráulica, vidros elétricos, travas elétricas, som e rodas de liga leve. O ar-condicionado está instalado, mas não funciona.
+- Pneus meia-vida. Lataria com pequena avaria na porta traseira direita. Pintura queimada.
+- Bancos de courino meia-vida, forro em bom estado, painel com desgaste de tempo e sol.
+- A fazer: regular e trocar a fechadura do porta-malas, consertar o ar e trocar a máquina do vidro traseiro direito.
+- IPVA 2026 pago, licenciamento em dia, sem multas e sem restrição.
 
-- Chevrolet Astra Sedan Expression, ano 2002, prata, 4 portas.
-- A versão Expression de 2002 sai com o motor 2.0 8V a gasolina. Na tabela FIPE ela aparece como "Astra Sedan 2.0/CD/Expres./GLS 2.0 8V 4p". Conferir no documento do carro.
-- Referência de preço: a FIPE dessa versão estava perto de R$ 20 mil em setembro de 2026, segundo sites que republicam a tabela. Conferir o valor do mês no site da FIPE antes de fechar o preço.
+## A confirmar
+
+- **Câmbio manual.** Ele não disse se é manual ou automático; os textos usam "manual" porque a versão Expression aparece assim nas tabelas.
+- **"Avaria" na porta.** Ele escreveu "pequeno grave"; os textos usam "pequena avaria". Se for amassado ou risco, trocar a palavra.
+- Não informados, e por isso fora dos textos: número de donos, final de placa, se aceita proposta ou troca, manual e chave reserva.
+- Fotos: até 6 no Classificados Digitais.
+
+## Referências
+
+- A versão Expression de 2002 sai com o motor 2.0 8V a gasolina. Na tabela FIPE ela aparece como "Astra Sedan 2.0/CD/Expres./GLS 2.0 8V 4p".
+- A FIPE dessa versão estava perto de R$ 20 mil em setembro de 2026, segundo sites que republicam a tabela. O valor do mês não foi conferido.
 
 ## Versão para a OLX
 
-**Título**
+**Título** (53 letras)
 
 ```
-Astra Sedan Expression 2.0 2002 prata
+Astra Sedan Expression 2.0 2002 prata, IPVA 2026 pago
 ```
 
 **Descrição**
@@ -24,38 +37,39 @@ Astra Sedan Expression 2.0 2002 prata
 Vendo Chevrolet Astra Sedan Expression 2.0 8V, ano 2002, prata, 4 portas, gasolina.
 
 O CARRO
-- Motor 2.0 8V, câmbio [manual de 5 marchas]
-- [000.000] km
-- [Segundo] dono
-- Final de placa [0]
+- Motor 2.0 8V, câmbio manual
+- 230.000 km
+- Motor e câmbio em ordem
 
 O QUE TEM
-- [Ar-condicionado]
-- [Direção hidráulica]
-- [Vidros elétricos]
-- [Travas elétricas]
-- [Alarme]
-- [Som]
-- [Rodas de liga leve]
+- Direção hidráulica
+- Vidros elétricos
+- Travas elétricas
+- Som
+- Rodas de liga leve
+- Ar-condicionado instalado, mas não está funcionando
 
 ESTADO
-- [Mecânica: o que foi revisado ou trocado, e quando]
-- [Pneus: estado]
-- [Lataria e pintura: como estão, com os detalhes que existirem]
-- [Interior: bancos, forro e painel]
-- [O que precisa de reparo, se houver]
+- Pneus meia-vida
+- Lataria com pequena avaria na porta traseira direita
+- Pintura queimada
+- Bancos de courino meia-vida
+- Forro em bom estado
+- Painel com desgaste de tempo e sol
+
+O QUE PRECISA FAZER
+- Consertar o ar-condicionado
+- Trocar a máquina do vidro traseiro direito
+- Regular e trocar a fechadura do porta-malas
 
 DOCUMENTOS
-- [IPVA 2026 pago]
-- [Licenciamento em dia]
-- [Sem multas e sem restrição]
-- [Manual e chave reserva]
+- IPVA 2026 pago
+- Licenciamento em dia
+- Sem multas e sem restrição
 
-NEGOCIAÇÃO
-- R$ [00.000]
-- [Aceito proposta à vista]
-- [Não aceito troca]
-- Carro em [Brasília/DF]. Visita com horário marcado.
+VALOR
+- R$ 20.000,00
+- Carro em Brasília/DF. Visita com horário marcado.
 
 Atendo pelo chat da OLX.
 ```
@@ -69,15 +83,28 @@ Atendo pelo chat da OLX.
 | Modelo | Astra |
 | Versão | Astra Sedan 2.0/CD/Expres./GLS 2.0 8V 4p |
 | Ano | 2002 |
+| Quilometragem | 230000 |
 | Cor | Prata |
 | Portas | 4 |
 | Combustível | Gasolina |
-| Câmbio | [manual ou automático] |
-| Quilometragem | [a informar] |
-| Final de placa | [a informar] |
-| Preço | [a definir] |
-| Opcionais | marcar só o que o carro tem |
+| Câmbio | Manual (a confirmar) |
+| Preço | 20000 |
+| Final de placa | com o Álvaro |
+| Opcionais | direção hidráulica, vidro elétrico, trava elétrica, som, rodas de liga leve. Não marcar ar-condicionado, porque não funciona. |
 
-## Falta o Álvaro passar
+## Versão para o Classificados Digitais
 
-Câmbio, quilometragem, preço, opcionais, estado, documentos, cidade e as fotos.
+- Seção: Veículos. Cidade: Brasília/DF. Preço: R$ 20.000,00.
+- Plano: Com foto, 7 dias (R$ 10,00). Formatação sugerida: fio duplo, título em tarja preta, à esquerda, sem estrelas.
+
+**Título** (27 de 40 letras)
+
+```
+Astra Sedan Expression 2002
+```
+
+**Texto** (259 de 280 letras)
+
+```
+Prata, 2.0 8V, câmbio manual, 230 mil km. Direção hidráulica, vidros e travas elétricas, som, rodas de liga leve. Motor e câmbio em ordem, pneus meia-vida. Pintura queimada, ar-condicionado sem funcionar e pequenos reparos a fazer. IPVA 2026 pago, sem multas.
+```
