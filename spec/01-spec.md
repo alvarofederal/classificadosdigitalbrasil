@@ -60,6 +60,7 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-103 | Painel → Configurações mostra a situação do aviso por e-mail e envia um e-mail de teste ao administrador. |
 | RF-104 | Sem servidor de e-mail configurado, a mensagem fica só em Minha conta, como antes. |
 | RF-105 | Minha conta diz em que endereço o dono é avisado. |
+| RF-106 | Com a chave do Resend cadastrada (`RESEND_API_KEY`), o envio sai pelo Resend sem mais nenhuma variável obrigatória. |
 
 ## Regras de negócio
 
@@ -92,6 +93,8 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-103 | Nome e texto de quem escreveu entram no e-mail como texto, nunca como HTML; o endereço de resposta só é usado em formato simples. |
 | RN-104 | Dono com a conta desativada não recebe aviso. |
 | RN-105 | Todo aviso traz o lembrete: o site não pede pagamento, código nem senha por mensagem. |
+| RN-106 | Servidor de envio: SMTP informado (`SMTP_HOST`, `SMTP_USER` ou `SMTP_PASS`) tem preferência; sem ele, vale o Resend (`RESEND_API_KEY`); sem nenhum, o aviso fica desligado. |
+| RN-107 | No Resend o remetente é `noreply@karollynemorais.com.br`; `EMAIL_FROM` troca o endereço (`endereco@dominio` ou `Nome <endereco@dominio>`), e em formato inválido desliga o aviso. O nome exibido é sempre o do site. |
 
 ## Requisitos não funcionais
 

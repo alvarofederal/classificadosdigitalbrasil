@@ -1,5 +1,6 @@
-// INFRAESTRUTURA — correio por SMTP com nodemailer (feature 010, ADR-15).
-// Serve a qualquer provedor (Gmail com senha de app, Brevo, Hostinger, Resend): trocar de provedor é trocar as variáveis.
+// INFRAESTRUTURA — correio por SMTP com nodemailer (feature 010, ADR-15 e ADR-16).
+// Serve a qualquer provedor (Gmail com senha de app, Brevo, Hostinger): trocar de provedor é trocar as variáveis.
+// O Resend entra só com a chave da API (RESEND_API_KEY), pelo servidor SMTP dele.
 
 import nodemailer from "nodemailer"
 import type { Correio } from "@/application/ports/correio"
@@ -14,9 +15,16 @@ export interface ConfiguracaoSmtp {
   senha: string
   /** Endereço que aparece como remetente. */
   remetente: string
+  /** Variável que guarda a credencial, quando não são as do SMTP: o painel cita a certa se o login falha. */
+  credencial?: string
 }
 
 export type LeituraDoSmtp = { ok: true; cfg: ConfiguracaoSmtp } | { ok: false; faltam: string[] }
+
+/** Servidor SMTP do Resend (ADR-16): o usuário é fixo e a senha é a chave da API. */
+const SMTP_DO_RESEND = { host: "smtp.resend.com", porta: 465, usuario: "resend" } as const
+/** RN-107: domínio já autenticado na conta do Resend, o mesmo dos outros sistemas. */
+export const REMETENTE_PADRAO_DO_RESEND = "noreply@karollynemorais.com.br"
 
 const HOST = /^[A-Za-z0-9.-]{1,253}$/
 const EMAIL_DO_REMETENTE = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(\.[A-Za-z0-9-]{1,63})+$/
@@ -44,6 +52,32 @@ export function lerConfiguracaoSmtp(env: Record<string, string | undefined>): Le
   if (usuario && !EMAIL_DO_REMETENTE.test(remetente)) faltam.push("SMTP_FROM")
   if (faltam.length > 0) return { ok: false, faltam }
   return { ok: true, cfg: { host, porta, usuario, senha, remetente } }
+}
+
+/** `endereco@dominio` ou `Nome <endereco@dominio>`, como o EMAIL_FROM dos outros sistemas. Devolve só o endereço. */
+function enderecoDoRemetente(valor: string): string | null {
+  const entreSinais = /^[^<>]*<([^<>]+)>$/.exec(valor)
+  const endereco = (entreSinais ? entreSinais[1] : valor).trim()
+  return EMAIL_DO_REMETENTE.test(endereco) ? endereco : null
+}
+
+/**
+ * RN-106: escolhe o servidor de envio. SMTP informado tem preferência; sem ele, a chave do Resend basta (RF-106);
+ * sem nenhum dos dois, o aviso fica desligado (RF-104) e o painel pede o caminho mais curto, a chave do Resend.
+ */
+export function lerConfiguracaoDoCorreio(env: Record<string, string | undefined>): LeituraDoSmtp {
+  const temSmtp = [env.SMTP_HOST, env.SMTP_USER, env.SMTP_PASS].some((valor) => valor?.trim())
+  if (temSmtp) return lerConfiguracaoSmtp(env)
+
+  const chave = env.RESEND_API_KEY?.trim() ?? ""
+  if (!chave) return { ok: false, faltam: ["RESEND_API_KEY"] }
+  // Chave com espaço ou quebra de linha é erro de cópia: melhor dizer no painel do que falhar no login.
+  if (/\s/.test(chave)) return { ok: false, faltam: ["RESEND_API_KEY"] }
+
+  const informado = env.EMAIL_FROM?.trim() ?? ""
+  const remetente = informado ? enderecoDoRemetente(informado) : REMETENTE_PADRAO_DO_RESEND
+  if (!remetente) return { ok: false, faltam: ["EMAIL_FROM"] }
+  return { ok: true, cfg: { ...SMTP_DO_RESEND, senha: chave, remetente, credencial: "RESEND_API_KEY" } }
 }
 
 interface Endereco {
@@ -103,10 +137,14 @@ function motivoDaFalha(erro: unknown, cfg: ConfiguracaoSmtp): string {
   const codigo = typeof erro === "object" && erro !== null && "code" in erro ? String((erro as { code: unknown }).code) : ""
   const texto = erro instanceof Error ? emUmaLinha(erro.message, 160) : "erro desconhecido"
   // No erro de login a resposta do servidor pode repetir o usuário: fica só a explicação.
-  if (codigo === "EAUTH") return `O servidor ${cfg.host} recusou o usuário ou a senha (SMTP_USER e SMTP_PASS).`
+  if (codigo === "EAUTH") {
+    return cfg.credencial ? `O servidor ${cfg.host} recusou a chave (${cfg.credencial}).` : `O servidor ${cfg.host} recusou o usuário ou a senha (SMTP_USER e SMTP_PASS).`
+  }
   if (["ECONNECTION", "ETIMEDOUT", "ESOCKET", "EDNS", "ECONNREFUSED", "ENOTFOUND", "ETLS"].includes(codigo)) {
     // Erro de rede ou de certificado não carrega credencial: o motivo ajuda a achar o defeito.
-    return `Não foi possível conectar a ${cfg.host}:${cfg.porta} (${texto ? `${codigo}: ${texto}` : codigo}). Confira SMTP_HOST e SMTP_PORT.`
+    const conexao = `Não foi possível conectar a ${cfg.host}:${cfg.porta} (${texto ? `${codigo}: ${texto}` : codigo}).`
+    // Com a chave do Resend o servidor é fixo: não há variável de endereço para conferir.
+    return cfg.credencial ? conexao : `${conexao} Confira SMTP_HOST e SMTP_PORT.`
   }
   if (codigo === "EENVELOPE") return "O servidor de e-mail recusou o endereço do remetente ou do destinatário."
   return `O servidor de e-mail não aceitou o envio${codigo ? ` (${codigo})` : ""}: ${texto}`

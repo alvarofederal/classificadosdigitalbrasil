@@ -94,7 +94,8 @@ export default async function Configuracoes() {
         <p className="font-titulo text-lg font-bold uppercase">Aviso de mensagem por e-mail</p>
         <ul className="mt-3 flex flex-col gap-2 text-sm">
           <Item ok={correio.ligado}>
-            Servidor de e-mail cadastrado na Vercel (<code>SMTP_HOST</code>, <code>SMTP_USER</code> e <code>SMTP_PASS</code>)
+            Envio de e-mail cadastrado na Vercel (<code>RESEND_API_KEY</code>; ou, para outro servidor, <code>SMTP_HOST</code>, <code>SMTP_USER</code> e{" "}
+            <code>SMTP_PASS</code>)
             {correio.faltam.length > 0 && (
               <>
                 . Falta: <strong>{correio.faltam.join(", ")}</strong>

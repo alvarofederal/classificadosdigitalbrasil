@@ -14,6 +14,7 @@
 | RF-103 | Painel → Configurações mostra a situação do aviso por e-mail (servidor cadastrado, conexão e login conferidos, remetente) e tem o botão "Enviar e-mail de teste", que manda um e-mail ao administrador logado e mostra o resultado. |
 | RF-104 | Sem servidor de e-mail configurado, o site funciona como antes: a mensagem é gravada e aparece em Minha conta, sem aviso. |
 | RF-105 | Em Minha conta, a lista de mensagens do anúncio diz em que endereço o dono é avisado. |
+| RF-106 | Com a chave do Resend cadastrada (`RESEND_API_KEY`), o envio sai pelo Resend sem mais nenhuma variável obrigatória. É o mesmo provedor dos outros sistemas do Álvaro (pedido dele em 2026-11-11). |
 
 | ID | Regra |
 |---|---|
@@ -23,6 +24,8 @@
 | RN-103 | Nome e texto de quem escreveu entram no e-mail como texto, nunca como HTML. O endereço de resposta só é usado quando é um e-mail em formato simples (letras, números e `._%+-`); senão o aviso sai sem ele. |
 | RN-104 | Dono com a conta desativada não recebe aviso. |
 | RN-105 | Todo aviso traz o lembrete de segurança: o site não pede pagamento, código nem senha por mensagem. |
+| RN-106 | Ordem de escolha do servidor de envio: se alguma variável `SMTP_HOST`, `SMTP_USER` ou `SMTP_PASS` existe, vale o SMTP informado; senão, se `RESEND_API_KEY` existe, vale o Resend; senão, o aviso fica desligado (RF-104). |
+| RN-107 | No Resend o remetente é `noreply@karollynemorais.com.br`, o domínio já autenticado na conta e usado nos outros sistemas. `EMAIL_FROM` troca o endereço e aceita tanto `endereco@dominio` quanto `Nome <endereco@dominio>`; o nome exibido é sempre o do site. `EMAIL_FROM` em formato inválido desliga o aviso e aparece no painel como o que falta. |
 
 **Aceite.** Com o servidor de e-mail ligado, mandar uma mensagem pelo botão de um anúncio no ar faz chegar um e-mail ao dono em menos de um minuto, com o texto e o contato; a tela de quem escreveu confirma na hora. Com o servidor desligado ou fora do ar, a mensagem aparece em Minha conta do mesmo jeito.
 
@@ -36,8 +39,18 @@
 - **Infraestrutura** `infrastructure/email/`: `modelo.ts` transforma a carta em HTML (página branca, tinta preta, manchete e fios do jornal) e em texto puro, escapando tudo; `correio-smtp.ts` envia por SMTP com `nodemailer` 10.2.1 (versão fixada, ver ADR-15); `CorreioDesligado` quando faltam as variáveis. `infrastructure/segundo-plano.ts` usa o `after` do Next.
 - **Apresentação**: seção "Aviso de mensagem por e-mail" em Painel → Configurações, com o botão de teste; frase em Minha conta; privacidade em `/termos`.
 - **Banco**: não muda.
+- **Resend (ADR-16, 2026-11-11)**: `lerConfiguracaoDoCorreio` (`infrastructure/email/correio-smtp.ts`) aplica a RN-106. Com `RESEND_API_KEY`, monta a configuração do próprio `CorreioSmtp` para o servidor SMTP do Resend (`smtp.resend.com`, porta 465, usuário `resend`, senha = a chave). Nenhum adaptador novo e nenhuma dependência nova: carta, modelo, limites e testes do envio são os mesmos.
 
 **Variáveis (Vercel → Settings → Environment Variables → Production):**
+
+Caminho em uso, o Resend:
+
+| Variável | Valor |
+|---|---|
+| `RESEND_API_KEY` | a chave da API do Resend (a mesma conta dos outros sistemas) |
+| `EMAIL_FROM` | opcional: outro remetente, de um domínio autenticado no Resend. Sem ela, `noreply@karollynemorais.com.br` |
+
+Caminho alternativo, um servidor SMTP qualquer (tem preferência se estiver cadastrado):
 
 | Variável | Valor |
 |---|---|
@@ -49,13 +62,12 @@
 
 **Passo a passo para ligar (feito pelo Álvaro; o código já está pronto):**
 
-1. Escolher a caixa que vai enviar os avisos. Sem domínio próprio, o caminho mais simples é uma conta Gmail do site (limite de 500 e-mails por dia).
-2. No Gmail: ativar a verificação em duas etapas e criar uma **senha de app** em myaccount.google.com/apppasswords (nome: "Classificados"). Os espaços que o Google mostra na senha podem ir junto: o sistema tira.
-3. Na Vercel, cadastrar `SMTP_HOST`, `SMTP_USER` e `SMTP_PASS` em Production e fazer **Redeploy** (ou esperar o próximo deploy).
-4. Painel → Configurações → *Aviso de mensagem por e-mail*: conferir os itens marcados e clicar em **Enviar e-mail de teste**.
-5. Mandar uma mensagem de verdade num anúncio no ar e ver o aviso chegar.
+1. Na Vercel, cadastrar `RESEND_API_KEY` em Production. O arquivo `.env` ou `,env` da máquina não chega ao site: em produção só vale o que está na Vercel.
+2. Fazer **Redeploy** (ou esperar o próximo deploy).
+3. Painel → Configurações → *Aviso de mensagem por e-mail*: conferir os itens marcados e clicar em **Enviar e-mail de teste**.
+4. Mandar uma mensagem de verdade num anúncio no ar e ver o aviso chegar.
 
-Com domínio próprio no futuro, basta trocar as variáveis por um provedor com o domínio autenticado (Brevo, Resend, Amazon SES); o código não muda. Nesses provedores o usuário do SMTP não é um endereço, então `SMTP_FROM` passa a ser obrigatório.
+Se o teste voltar com recusa do remetente, o domínio de `EMAIL_FROM` (ou o padrão) não está autenticado na conta do Resend dona da chave: conferir em resend.com → Domains.
 
 ## Tarefas
 
@@ -64,7 +76,8 @@ Com domínio próprio no futuro, basta trocar as variáveis por um provedor com 
 - [x] T-122 Modelo do e-mail e adaptador SMTP (RN-103, ADR-15)
 - [x] T-123 Painel → Configurações com situação e e-mail de teste (RF-103); frase em Minha conta (RF-105); privacidade em `/termos`
 - [x] T-124 Testes de unidade citando os RF/RN (`tests/unit/aviso-de-mensagem.test.ts`) e envio real contra um servidor SMTP local
-- [ ] T-125 Cadastrar as variáveis na Vercel e conferir em produção (depende do Álvaro)
+- [ ] T-125 Cadastrar `RESEND_API_KEY` na Vercel e conferir em produção (depende do Álvaro)
+- [x] T-126 Envio pelo Resend só com `RESEND_API_KEY` (RF-106, RN-106, RN-107, ADR-16): leitura das variáveis, painel e testes. Feito em 2026-11-11
 
 ## Verificação (2026-11-10)
 
@@ -73,7 +86,14 @@ Com domínio próprio no futuro, basta trocar as variáveis por um provedor com 
 - O e-mail saiu em duas partes (texto e HTML), em UTF-8, com assunto, remetente, destino e endereço de resposta certos. O HTML foi conferido em 600 px e em 375 px.
 - `/termos` conferido no navegador com o texto novo de privacidade.
 - **Não conferido**: a seção nova do painel e a frase de Minha conta na tela (pedem login), o envio por um provedor de verdade e a chegada na caixa de entrada. Ficam para a T-125.
-- Em produção desde 2026-11-11. O aviso segue desligado até as variáveis `SMTP_*` serem cadastradas na Vercel.
+- Em produção desde 2026-11-11. O aviso segue desligado até `RESEND_API_KEY` ser cadastrada na Vercel.
+
+## Verificação do Resend (2026-11-11, T-126)
+
+- 5 testes novos em `tests/unit/aviso-de-mensagem.test.ts` (34 na funcionalidade); `npm test` (161), `npm run typecheck` e `npx next build` passando.
+- Com a chave real, lida do arquivo do Álvaro sem ser mostrada: login em `smtp.resend.com:465` aceito; chave inventada recusada (535). Nenhum e-mail enviado.
+- Lista de variáveis de produção da Vercel: `RESEND_API_KEY` ainda não está lá.
+- **Não conferido**: o envio de verdade, a aceitação do remetente `noreply@karollynemorais.com.br` pela conta dona da chave e a seção do painel na tela. Ficam para a T-125.
 
 ## Riscos conhecidos
 

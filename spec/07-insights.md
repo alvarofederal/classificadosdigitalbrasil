@@ -21,7 +21,7 @@
 
 - **Antes de divulgar**: o Álvaro decidiu resolver primeiro os dois pontos que fazem o primeiro usuário desistir: o anunciante não ficava sabendo da mensagem, e o Pix automático não estava conferido.
 - **Aviso de mensagem**: por e-mail, para o endereço da conta, com o texto e o contato de quem escreveu. Resposta direta quando o contato é e-mail; link do WhatsApp quando é telefone. No máximo 10 avisos por anúncio em 24 horas.
-- **Envio**: SMTP com uma caixa comum enquanto não há domínio próprio (ADR-15).
+- **Envio**: SMTP com uma caixa comum enquanto não há domínio próprio (ADR-15). *Mudou em 2026-11-11:* o envio sai pelo Resend, que o Álvaro já usa nos outros sistemas, só com `RESEND_API_KEY` e com o remetente `noreply@karollynemorais.com.br` (ADR-16).
 - **Pix**: cobrança cancelada aqui passa a ser cancelada também no Mercado Pago (T-86), para não entrar dinheiro sem publicar anúncio.
 
 ## Próximos passos sugeridos

@@ -6,7 +6,16 @@ import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase } from "@/application/
 import { ConfirmarPagamentoUseCase } from "@/application/use-cases/pagamentos/pagamentos"
 import { ESTILO_PADRAO } from "@/domain/anuncio/anuncio"
 import { AVISOS_POR_ANUNCIO_POR_DIA, deveAvisar, emailParaResposta, linkDoWhatsApp, montarAvisoDeMensagemNova, montarEmailDeTeste } from "@/domain/mensagem/aviso"
-import { CorreioDesligado, CorreioSmtp, type ConfiguracaoSmtp, type MensagemDeEmail, type TransporteDeEmail, lerConfiguracaoSmtp } from "@/infrastructure/email/correio-smtp"
+import {
+  CorreioDesligado,
+  CorreioSmtp,
+  REMETENTE_PADRAO_DO_RESEND,
+  type ConfiguracaoSmtp,
+  type MensagemDeEmail,
+  type TransporteDeEmail,
+  lerConfiguracaoDoCorreio,
+  lerConfiguracaoSmtp,
+} from "@/infrastructure/email/correio-smtp"
 import { cartaEmHtml, cartaEmTexto, emUmaLinha, escaparHtml } from "@/infrastructure/email/modelo"
 import { DepoisDaResposta } from "@/infrastructure/segundo-plano"
 import { caderno, enderecosDeTeste, localidades } from "../fakes"
@@ -406,6 +415,84 @@ describe("Correio por SMTP (ADR-15, RN-100, RN-103)", () => {
     ).toEqual({ ok: true, cfg: { host: "smtp-relay.brevo.com", porta: 587, usuario: "8a1b2c001", senha: "chave com espaço", remetente: "avisos@meusite.com.br" } })
     expect(lerConfiguracaoSmtp({ SMTP_HOST: "smtp.gmail.com", SMTP_PORT: "abc", SMTP_USER: "site@gmail.com", SMTP_PASS: "x" })).toEqual({ ok: false, faltam: ["SMTP_PORT"] })
     expect(lerConfiguracaoSmtp({ SMTP_HOST: "smtp gmail com; rm -rf", SMTP_USER: "site@gmail.com", SMTP_PASS: "x" })).toEqual({ ok: false, faltam: ["SMTP_HOST"] })
+  })
+})
+
+describe("Envio pelo Resend só com a chave (ADR-16, RF-106, RN-106, RN-107)", () => {
+  const CHAVE = "re_chaveDeTeste_123"
+  const doResend = { host: "smtp.resend.com", porta: 465, usuario: "resend", senha: CHAVE, credencial: "RESEND_API_KEY" }
+
+  it("RF-106 e RN-107: a chave basta; o remetente padrão é o domínio já autenticado na conta", () => {
+    expect(REMETENTE_PADRAO_DO_RESEND).toBe("noreply@karollynemorais.com.br")
+    expect(lerConfiguracaoDoCorreio({ RESEND_API_KEY: ` ${CHAVE}\n` })).toEqual({ ok: true, cfg: { ...doResend, remetente: REMETENTE_PADRAO_DO_RESEND } })
+  })
+
+  it("RN-107: EMAIL_FROM troca o endereço, sozinho ou no formato Nome <endereço> dos outros sistemas", () => {
+    expect(lerConfiguracaoDoCorreio({ RESEND_API_KEY: CHAVE, EMAIL_FROM: "avisos@meusite.com.br" })).toEqual({ ok: true, cfg: { ...doResend, remetente: "avisos@meusite.com.br" } })
+    expect(lerConfiguracaoDoCorreio({ RESEND_API_KEY: CHAVE, EMAIL_FROM: "Classificados <avisos@meusite.com.br>" })).toEqual({
+      ok: true,
+      cfg: { ...doResend, remetente: "avisos@meusite.com.br" },
+    })
+    for (const ruim of ["sem-arroba", "Nome <sem-arroba>", "a@b.com, c@d.com", "Nome <a@b.com> sobra"]) {
+      expect(lerConfiguracaoDoCorreio({ RESEND_API_KEY: CHAVE, EMAIL_FROM: ruim })).toEqual({ ok: false, faltam: ["EMAIL_FROM"] })
+    }
+  })
+
+  it("RN-106: SMTP informado tem preferência; sem nada, o painel pede a chave do Resend", () => {
+    expect(lerConfiguracaoDoCorreio({})).toEqual({ ok: false, faltam: ["RESEND_API_KEY"] })
+    expect(lerConfiguracaoDoCorreio({ RESEND_API_KEY: "   " })).toEqual({ ok: false, faltam: ["RESEND_API_KEY"] })
+    expect(lerConfiguracaoDoCorreio({ RESEND_API_KEY: "re_com espaço" })).toEqual({ ok: false, faltam: ["RESEND_API_KEY"] })
+
+    const smtp = { SMTP_HOST: "smtp.gmail.com", SMTP_USER: "site@gmail.com", SMTP_PASS: "x" }
+    expect(lerConfiguracaoDoCorreio({ ...smtp, RESEND_API_KEY: CHAVE })).toEqual({
+      ok: true,
+      cfg: { host: "smtp.gmail.com", porta: 465, usuario: "site@gmail.com", senha: "x", remetente: "site@gmail.com" },
+    })
+    // SMTP pela metade continua dizendo o que falta dele, mesmo com a chave do Resend presente.
+    expect(lerConfiguracaoDoCorreio({ SMTP_HOST: "smtp.gmail.com", RESEND_API_KEY: CHAVE })).toEqual({ ok: false, faltam: ["SMTP_USER", "SMTP_PASS"] })
+  })
+
+  it("RN-100: chave recusada vira falha que cita RESEND_API_KEY, sem mostrar a chave", async () => {
+    const leitura = lerConfiguracaoDoCorreio({ RESEND_API_KEY: CHAVE })
+    if (!leitura.ok) throw new Error("a chave deveria bastar")
+    const transporte: TransporteDeEmail = {
+      enviar: async () => {
+        throw Object.assign(new Error(`Invalid login: 535 ${CHAVE}`), { code: "EAUTH" })
+      },
+      conferir: async () => {
+        throw Object.assign(new Error("connect ETIMEDOUT"), { code: "ETIMEDOUT" })
+      },
+    }
+    const correio = new CorreioSmtp(leitura.cfg, "Classificados", transporte)
+
+    const envio = await correio.enviar({ nome: "A", email: "a@exemplo.com" }, montarEmailDeTeste("A"))
+    expect(envio.ok).toBe(false)
+    if (!envio.ok) {
+      expect(envio.mensagem).toBe("O servidor smtp.resend.com recusou a chave (RESEND_API_KEY).")
+      expect(envio.mensagem).not.toContain(CHAVE)
+    }
+    const conexao = await correio.conferir()
+    expect(conexao.ok).toBe(false)
+    if (!conexao.ok) {
+      expect(conexao.mensagem).toContain("smtp.resend.com:465")
+      expect(conexao.mensagem).not.toContain("SMTP_HOST")
+    }
+  })
+
+  it("o e-mail sai com o remetente do Resend e o nome do site", async () => {
+    const leitura = lerConfiguracaoDoCorreio({ RESEND_API_KEY: CHAVE })
+    if (!leitura.ok) throw new Error("a chave deveria bastar")
+    const enviadas: MensagemDeEmail[] = []
+    const transporte: TransporteDeEmail = {
+      enviar: async (mensagem) => {
+        enviadas.push(mensagem)
+        return { messageId: "<id-resend>", rejected: [] }
+      },
+      conferir: async () => true,
+    }
+    const r = await new CorreioSmtp(leitura.cfg, "Classificados Digitais do Brasil", transporte).enviar({ nome: DONO.nome, email: DONO.email }, montarEmailDeTeste(DONO.nome))
+    expect(r.ok).toBe(true)
+    expect(enviadas[0].from).toEqual({ name: "Classificados Digitais do Brasil", address: REMETENTE_PADRAO_DO_RESEND })
   })
 })
 

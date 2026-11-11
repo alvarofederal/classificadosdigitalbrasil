@@ -8,13 +8,15 @@ Criado em 2026-11-11. Marcar `[x]` com a data ao concluir cada item. As priorida
 
 ## Prioridade 1 · Aviso de mensagem por e-mail (T-125)
 
-Vem primeiro porque leva uns 20 minutos, os passos já são conhecidos e vale desde o primeiro anúncio, inclusive os de cortesia: sem o aviso, quem recebe mensagem só descobre entrando em Minha conta.
+Vem primeiro porque é rápido e vale desde o primeiro anúncio, inclusive os de cortesia: sem o aviso, quem recebe mensagem só descobre entrando em Minha conta.
 
-- [ ] **1.1** (Álvaro) Escolher a caixa que envia os avisos. Sem domínio próprio, uma conta Gmail do site (limite de 500 e-mails por dia).
-- [ ] **1.2** (Álvaro) No Gmail, ativar a verificação em duas etapas e criar uma **senha de app** em myaccount.google.com/apppasswords, com o nome "Classificados".
-- [ ] **1.3** (Álvaro) Na Vercel, em Settings → Environment Variables → Production, cadastrar `SMTP_HOST` (`smtp.gmail.com`), `SMTP_USER` (o endereço completo) e `SMTP_PASS` (a senha de app). `SMTP_PORT` e `SMTP_FROM` são opcionais.
-- [ ] **1.4** (Álvaro) Fazer o **Redeploy** de produção para as variáveis valerem.
-- [ ] **1.5** (Álvaro) Painel → Configurações → *Aviso de mensagem por e-mail*: conferir que os itens estão marcados e clicar em **Enviar e-mail de teste**. Se algum item falhar, o painel mostra o motivo: copiar o texto e passar ao Claude.
+Em 2026-11-11 o Álvaro lembrou que já usa o **Resend** nos outros sistemas. O envio passa a sair por ele, só com a chave (ADR-16); os passos do Gmail deixam de valer.
+
+- [x] **1.1** (Álvaro) Escolher quem envia os avisos: o Resend, com a chave que já existe. *2026-11-11.*
+- [x] **1.2** (Claude) Fazer o site enviar pelo Resend só com `RESEND_API_KEY` (T-126): código, testes e specs. Remetente `noreply@karollynemorais.com.br`, o mesmo domínio dos outros sistemas, trocável por `EMAIL_FROM`. Login no Resend conferido com a chave real, sem enviar nada. *2026-11-11.*
+- [ ] **1.3** (Álvaro) Na Vercel, em Settings → Environment Variables → Production, cadastrar `RESEND_API_KEY`. Conferido em 2026-11-11: ela ainda não está lá. A chave posta no arquivo `,env` da pasta antiga não chega ao site.
+- [ ] **1.4** (Claude, com o OK do Álvaro) Publicar o código (push no `main`) e, se a chave entrar depois do deploy, o Álvaro faz o **Redeploy**.
+- [ ] **1.5** (Álvaro) Painel → Configurações → *Aviso de mensagem por e-mail*: conferir que os itens estão marcados e clicar em **Enviar e-mail de teste**. Se algum item falhar, o painel mostra o motivo: copiar o texto e passar ao Claude. É aqui que se vê se o Resend aceita o remetente.
 - [ ] **1.6** (Álvaro) Mandar uma mensagem de verdade pelo botão de um anúncio no ar (o do Gol, código 9TTTMQ, é da conta de administrador) e ver o aviso chegar em menos de um minuto, com texto e contato.
 - [ ] **1.7** (Álvaro) Responder ao aviso e ver se a resposta vai para quem escreveu (contato por e-mail) ou se o link do WhatsApp abre (contato por telefone).
 - [ ] **1.8** (Claude) Marcar a T-125 como feita em `features/010-aviso-de-mensagem/spec.md` e em `05-tasks.md`, com a data e o que foi conferido.

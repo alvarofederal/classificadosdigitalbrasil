@@ -36,7 +36,7 @@ import {
   VerificarPagamentoUseCase,
 } from "@/application/use-cases/pagamentos/pagamentos"
 import { AbrirChamadoUseCase, LocalizarCidadeUseCase } from "@/application/use-cases/publico/publico"
-import { CorreioDesligado, CorreioSmtp, lerConfiguracaoSmtp } from "./email/correio-smtp"
+import { CorreioDesligado, CorreioSmtp, lerConfiguracaoDoCorreio } from "./email/correio-smtp"
 import { CatalogoIbge } from "./localidades/catalogo-ibge"
 import { MercadoPagoGateway, contaDoMercadoPago } from "./pagamentos/mercado-pago"
 import { prisma } from "./prisma/cliente"
@@ -80,8 +80,9 @@ function montar() {
   const tokenMercadoPago = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim()
   const site = urlDoSiteNoServidor()
   const gateway = tokenMercadoPago ? new MercadoPagoGateway(tokenMercadoPago) : null
-  // Feature 010 (ADR-15): sem as variáveis do SMTP, o aviso por e-mail fica desligado e nada mais muda (RF-104).
-  const smtp = lerConfiguracaoSmtp(process.env)
+  // Feature 010 (ADR-15 e ADR-16): SMTP informado ou a chave do Resend (RN-106). Sem nenhum dos dois, o aviso por e-mail
+  // fica desligado e nada mais muda (RF-104).
+  const smtp = lerConfiguracaoDoCorreio(process.env)
   const correio: Correio = smtp.ok ? new CorreioSmtp(smtp.cfg, NOME_DO_REMETENTE) : new CorreioDesligado()
   const enderecoDoSite = site ?? "http://localhost:3000"
 

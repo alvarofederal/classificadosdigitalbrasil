@@ -39,7 +39,8 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 | # | Funcionalidade | Situação |
 |---|---|---|
-| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção desde 2026-11-11; **liga quando o Álvaro cadastrar as variáveis `SMTP_*` na Vercel** (T-125) |
+| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção desde 2026-11-11; **liga quando o Álvaro cadastrar `RESEND_API_KEY` na Vercel** (T-125) |
+| 010 | T-126: envio pelo Resend só com a chave (`RESEND_API_KEY`), pelo mesmo correio SMTP (ADR-16; RF-106, RN-106, RN-107) | Feito no código em 2026-11-11; **falta publicar** |
 | 006 | T-86: cobrança cancelada aqui é cancelada no Mercado Pago; Pix pago depois do cancelamento fica registrado (RN-87 a RN-89) | Em produção desde 2026-11-11; confere com o Mercado Pago de verdade no passo 8 da spec |
 | T-130 | Manutenção de segurança: `next` 16.0.10 → 16.4.5 e `zod` 3.25 → 4.6.7. O `npm audit` acusava 4 pacotes e agora não acusa nenhum | Em produção desde 2026-11-11; páginas públicas conferidas depois do deploy |
 
@@ -57,6 +58,9 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 - O branch `teste-next-16-4-5` no GitHub foi criado só para o preview e pode ser apagado.
 - Pendências que dependem do Álvaro: verificar a propriedade no Google Search Console e enviar o `sitemap.xml`; T-125 (variáveis `SMTP_*` e e-mail de teste); T-84 e T-14 (conferir o painel e fazer o Pix real de R$ 1,00); fotos do Gol (007). A ordem e os passos de cada uma estão em `08-lancamento.md`, com caixas para marcar.
 - O Álvaro lembra de um defeito no Pix ("não funcionava"), mas o relato exato não está registrado em lugar nenhum. O item 2.1 do `08-lancamento.md` serve para registrá-lo.
+- **E-mail pelo Resend (T-126, feito nesta data).** O Álvaro lembrou que já usa o Resend nos outros sistemas (Courtesyfy, Achei JBT, BaseMedical, cursos da Karol: pacote `resend`, `RESEND_API_KEY` e `EMAIL_FROM` com padrão `noreply@karollynemorais.com.br`). Aqui a chave vira a configuração do `CorreioSmtp` para `smtp.resend.com` (ADR-16), sem pacote novo. 161 testes, typecheck e build passando; login no Resend conferido com a chave real, sem envio.
+  - A chave está no arquivo `,env` da pasta antiga (`classificadodigital\workspace\classificadosdigitalbrasil`), que o site não lê. **Na Vercel ela ainda não existe** (lista de produção conferida em 2026-11-11): o Álvaro cadastra `RESEND_API_KEY` em Production. O Claude não mexe em `.env` nem nas variáveis da Vercel.
+  - Falta: publicar o código, a chave na Vercel e o e-mail de teste pelo painel (itens 1.3 a 1.7 do `08-lancamento.md`). O teste é que mostra se a conta do Resend aceita o remetente `noreply@karollynemorais.com.br`.
 
 **Situação em 2026-11-10**
 
