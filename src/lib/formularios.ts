@@ -91,7 +91,8 @@ export function reais(mensagem: string) {
 }
 
 export function umDe<T extends string>(catalogo: Record<T, string>, mensagem: string) {
-  return z.string().refine((v): v is T => Object.prototype.hasOwnProperty.call(catalogo, v), mensagem) as unknown as z.ZodType<T, z.ZodTypeDef, string>
+  // No Zod 4 o tipo é ZodType<saída, entrada>: entra texto do formulário, sai uma chave do catálogo.
+  return z.string().refine((v): v is T => Object.prototype.hasOwnProperty.call(catalogo, v), mensagem) as unknown as z.ZodType<T, string>
 }
 
 /** ?pagina=3 → 3 (mínimo 1). */

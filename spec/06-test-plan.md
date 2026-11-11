@@ -2,7 +2,7 @@
 
 `npm test` roda os testes de unidade (Vitest), sem banco e sem rede. Os casos de uso rodam contra `tests/fakes.ts` (repositórios e gateway em memória) e o catálogo real do IBGE.
 
-## Cobertos (137 testes, todos passando em 2026-11-10)
+## Cobertos (156 testes, todos passando em 2026-11-10)
 
 | Arquivo | O que verifica |
 |---|---|
@@ -12,10 +12,13 @@
 | `tests/unit/pix-automatico.test.ts` | Vitrine 30 dias = R$ 30,00 com Pix do gateway; período e plano inválidos; gateway fora do ar cai no Pix estático; troca de plano cancela a cobrança anterior; webhook aprovado publica no plano pago com prioridade 3; aviso repetido não confirma duas vezes; valor divergente fica pendente; tela do dono vê quando cai; cortesia com valor zero; fotos por plano (Simples 1, admin 6); tabela editável; chamado com protocolo e limite por hora; localização fora do Brasil; adaptador do Mercado Pago na API de Orders (situação da ordem, centavos, prazo, corpo, idempotência, valor pago, filtro do aviso, assinatura HMAC com id em minúsculas). |
 | `tests/unit/aviso-de-mensagem.test.ts` | Feature 010: carta do aviso (conteúdo, WhatsApp, endereço de resposta só em formato simples, lembrete de segurança, décimo aviso); aviso só para o e-mail do dono, sem CPF nem celular; mensagem confirmada antes do envio; servidor fora e erro inesperado não derrubam a mensagem; correio desligado; limite de 10 por anúncio em 24 horas; conta desativada; e-mail de teste; modelo do e-mail (escape de HTML, links só https, http ou mailto, texto puro, assunto em uma linha); adaptador SMTP (remetente, destino, resposta, falha como valor sem expor a senha, endereço recusado, leitura das variáveis); tarefa depois da resposta. |
 | `tests/unit/pix-cancelamento.test.ts` | T-86: troca de plano, Pix vencido, remoção e cortesia cancelam a ordem no gateway; a mesma cobrança não cancela nada; Pix estático; gateway fora no cancelamento; Pix já pago recusa a troca e a cortesia, e a confirmação publica; Pix pago depois do cancelamento volta como falha própria; adaptador (`POST /v1/orders/{id}/cancel`, idempotência, 409 com consulta, 404, 500, rede fora, identificador inválido). |
+| `tests/unit/formularios.test.ts` | Leitura de formulários com Zod (`src/lib/formularios.ts`): mensagens por campo e só a primeira de cada um; campo ausente, comprido demais ou que não é texto; blocos `texto`, `id`, `checkbox`, `inteiro`, `codigoIbge`, `reaisOpcional`, `reais` e `umDe`; formato do anúncio com plano, sem opcionais e com erros; fotos (até 6, endereço válido, campo a mais descartado, lista gigante recusada pelo tamanho). Escrito com o Zod 3 e mantido igual no Zod 4 (T-130). |
 
 ## Conferido fora dos testes (2026-11-10)
 
 Envio real do aviso pelo `CorreioSmtp` contra um servidor SMTP local de teste: TLS direto (465) e STARTTLS (587) entregaram; a senha só trafegou depois do TLS; certificado não confiável foi recusado; senha errada e porta sem servidor viraram mensagem clara. O e-mail saiu em texto e HTML, em UTF-8, com assunto, remetente, destino e endereço de resposta certos; o HTML foi conferido em 600 e em 375 px. `/termos` conferido no navegador. Em produção: site e endereço do aviso do Mercado Pago respondendo; variáveis do Mercado Pago presentes na Vercel.
+
+Depois da atualização do `next` e do `zod` (T-130), no servidor local: `/termos`, `/entrar`, `/cadastro`, `/robots.txt`, `/sitemap.xml`, a imagem de prévia de `/como-funciona` e a página 404 respondem; `/minha-conta` e `/painel` redirecionam para o login; o formulário de login enviado vazio volta com "Informe o e-mail." e "Informe a senha." pela Server Action. As páginas que consultam o banco não puderam ser conferidas nesta máquina (o banco recusa as credenciais do `.env` local).
 
 ## Conferido em produção (2026-11-09)
 
@@ -30,6 +33,7 @@ Migração aplicada e 4 planos criados no deploy; 19 anúncios no ar em Brasíli
 5. Prévia do link do anúncio colado no WhatsApp.
 6. Com o SMTP ligado: Painel → Configurações → Enviar e-mail de teste; depois mandar uma mensagem num anúncio no ar e ver o aviso chegar ao dono (feature 010, T-125).
 7. Com o Mercado Pago ligado: gerar um Pix, trocar de plano antes de pagar e conferir no Mercado Pago que a ordem antiga aparece cancelada (T-86).
+8. Depois do deploy com o `next` 16.4.5 (T-130): abrir a capa, uma cidade, uma seção, um anúncio, o cartaz e Minha conta, e criar ou editar um anúncio com foto.
 
 ## Teste de carga (feature 008)
 

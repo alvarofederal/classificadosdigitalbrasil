@@ -41,6 +41,7 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 |---|---|---|
 | 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Feito no código; **liga quando o Álvaro cadastrar as variáveis `SMTP_*` na Vercel** (T-125) |
 | 006 | T-86: cobrança cancelada aqui é cancelada no Mercado Pago; Pix pago depois do cancelamento fica registrado (RN-87 a RN-89) | Feito no código; confere com o Mercado Pago de verdade no passo 8 da spec |
+| T-130 | Manutenção de segurança: `next` 16.0.10 → 16.4.5 e `zod` 3.25 → 4.6.7. O `npm audit` acusava 4 pacotes e agora não acusa nenhum | Feito no código; **falta conferir as páginas com banco num preview da Vercel antes de publicar** |
 
 ## Continuidade
 
@@ -52,7 +53,14 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 - Feito no código nesta data: 010 (aviso de mensagem por e-mail) e T-86 (cancelar a ordem no Mercado Pago). 137 testes, typecheck e build passando. Os dois entram no ar no próximo deploy de produção.
 - 006 Pix automático: as credenciais já estão na Vercel e no deploy de produção em vigor (passo 5 feito). Faltam os passos 6 e 7 (ver *Onde parou* em `features/006-pix-automatico/spec.md`).
 - Pendências abertas que dependem do Álvaro: T-125 (variáveis `SMTP_*` na Vercel e e-mail de teste), T-84 e T-14 (conferir o painel e fazer o Pix real de R$ 1,00), fotos do Gol (007). Rodar o k6 (008) segue pendente.
-- Anotado, fora desta entrega: o `npm audit` acusa falhas conhecidas no `next` 16.0.10 (correção na linha 16.4) e no `zod` 3. Atualizar é tarefa própria, com teste do site inteiro.
+- T-130, manutenção de segurança feita em seguida, a pedido do Álvaro:
+  - `next` 16.0.10 → 16.4.5. A 16.0.10 tinha 42 avisos conhecidos, alguns críticos; todos estão corrigidos a partir da 16.4.1, e a 16.4.5 traz as correções de segurança de novembro. A 16.4.6 saiu na véspera e só tem ajustes que não são de segurança, por isso ficou de fora. Com o `next` novo saem também os avisos do `postcss` e do `sharp`.
+  - `zod` 3.25 → 4.6.7. A correção da GHSA-mrhx-c7xc-m3w5 (lista enorme esgotando a memória na validação) só existe na linha 4. Mudou um tipo em `src/lib/formularios.ts`; `tests/unit/formularios.test.ts` foi escrito antes, com o Zod 3, e passa igual com o 4.
+  - `npm audit` sem avisos; 156 testes, typecheck e build passando. No servidor local: login, cadastro, termos, imagem de prévia, redirecionamento das áreas protegidas e a validação do formulário de login pela Server Action.
+  - **Não conferido**: as páginas que consultam o banco rodando com o `next` novo. O banco recusa as credenciais do `.env` desta máquina, então isso só aparece num deploy. Antes de publicar no `main`, conferir num preview da Vercel.
+  - Aviso novo no build (Turbopack): *Dynamic filesystem access causes tracing of the whole project*, causado pelo cliente do Prisma gerado em `src/generated/prisma`. O build não quebra. Ele passa a rastrear 683 arquivos (43 MB), inclusive `spec/` e `tests/`, que não fazem falta no servidor. O aviso some quando o cliente do Prisma for gerado no lugar padrão ou o Prisma for atualizado; é tarefa própria.
+- Google Search Console: o Álvaro baixou o arquivo de verificação `googledbc5da7adb4bf446.html`. Ele fica em `public/`, porque o Next só serve arquivo estático dali (na raiz do projeto não é servido). Conferido no servidor local: responde 200 com o conteúdo exato, e o `robots.txt` não o bloqueia. A verificação no Google só passa depois do deploy de produção; em seguida, enviar o `sitemap.xml` no Search Console.
+- Atenção à pasta: `classificadodigital\workspace\classificadosdigitalbrasil` é uma cópia antiga do repositório (ainda com os arquivos do projetobase). O código em uso é o desta pasta, dentro de `.claude\worktrees\classificados-digital-493fea`.
 
 **Situação em 2026-11-09**
 

@@ -2,7 +2,7 @@
 
 ## Stack
 
-Next.js 16 (App Router, Server Actions, `proxy.ts`), React 19, TypeScript, Tailwind 4, Prisma 5.17 com MySQL (Hostinger), Cloudinary para fotos, nodemailer para e-mail por SMTP, Vercel para hospedagem, Vitest para testes.
+Next.js 16.4 (App Router, Server Actions, `proxy.ts`), React 19, TypeScript, Tailwind 4, Zod 4 para o formato dos formulários, Prisma 5.17 com MySQL (Hostinger), Cloudinary para fotos, nodemailer para e-mail por SMTP, Vercel para hospedagem, Vitest para testes.
 
 ## Camadas
 
