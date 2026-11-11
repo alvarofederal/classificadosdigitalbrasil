@@ -48,7 +48,7 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
   - Texto (até 280 letras): `Prata, motor [1.8 ou 2.0], câmbio [manual ou automático]. [Ar, direção hidráulica, vidros e travas elétricas.] [000] mil km. [IPVA 2026 pago e documento em dia.] [O que foi revisado ou trocado.] [Aceito proposta.]`
   - Preço: [a definir].
   - Formatação sugerida: fio duplo, título em tarja preta, à esquerda, sem estrelas.
-  - Plano sugerido: Com foto, 7 dias (R$ 10,00), com até 6 fotos.
+  - Plano: Com foto, 7 dias (R$ 10,00), com até 6 fotos. Decidido pelo Álvaro em 2026-11-11.
   - Falta o Álvaro passar: motor e câmbio, quilometragem, preço, opcionais, estado e documentos, cidade e as fotos. Nada sobre o carro entra no texto sem ele confirmar.
 
 ---
