@@ -13,7 +13,7 @@ Carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11; dados do carro 
 
 ## A confirmar
 
-- **Câmbio manual.** Ele não disse se é manual ou automático; os textos usam "manual" porque a versão Expression aparece assim nas tabelas.
+- ~~Câmbio manual.~~ Confirmado pelo Álvaro em 2026-11-11.
 - **"Avaria" na porta.** Ele escreveu "pequeno grave"; os textos usam "pequena avaria". Se for amassado ou risco, trocar a palavra.
 - Não informados, e por isso fora dos textos: número de donos, final de placa, se aceita proposta ou troca, manual e chave reserva.
 - Fotos: até 6 no Classificados Digitais.
@@ -87,7 +87,7 @@ Atendo pelo chat da OLX.
 | Cor | Prata |
 | Portas | 4 |
 | Combustível | Gasolina |
-| Câmbio | Manual (a confirmar) |
+| Câmbio | Manual |
 | Preço | 20000 |
 | Final de placa | com o Álvaro |
 | Opcionais | direção hidráulica, vidro elétrico, trava elétrica, som, rodas de liga leve. Não marcar ar-condicionado, porque não funciona. |
