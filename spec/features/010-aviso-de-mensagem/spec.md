@@ -86,13 +86,14 @@ Se o teste voltar com recusa do remetente, o domínio de `EMAIL_FROM` (ou o padr
 - O e-mail saiu em duas partes (texto e HTML), em UTF-8, com assunto, remetente, destino e endereço de resposta certos. O HTML foi conferido em 600 px e em 375 px.
 - `/termos` conferido no navegador com o texto novo de privacidade.
 - **Não conferido**: a seção nova do painel e a frase de Minha conta na tela (pedem login), o envio por um provedor de verdade e a chegada na caixa de entrada. Ficam para a T-125.
-- Em produção desde 2026-11-11. O aviso segue desligado até `RESEND_API_KEY` ser cadastrada na Vercel.
+- Em produção desde 2026-11-11. O aviso dependia de `RESEND_API_KEY` na Vercel, cadastrada no mesmo dia (ver a seção seguinte).
 
 ## Verificação do Resend (2026-11-11, T-126)
 
 - 5 testes novos em `tests/unit/aviso-de-mensagem.test.ts` (34 na funcionalidade); `npm test` (161), `npm run typecheck` e `npx next build` passando.
 - Com a chave real, lida do arquivo do Álvaro sem ser mostrada: login em `smtp.resend.com:465` aceito; chave inventada recusada (535). Nenhum e-mail enviado.
-- Lista de variáveis de produção da Vercel: `RESEND_API_KEY` ainda não está lá.
+- Lista de variáveis de produção da Vercel: `RESEND_API_KEY` não estava lá na primeira conferência; aparece desde cerca de 09:34 do mesmo dia.
+- Publicado: commit `124ec5f` em produção desde 2026-11-11, 09:58, já com a variável cadastrada. Páginas públicas conferidas depois do deploy (lista em `05-tasks.md`, Continuidade).
 - **Não conferido**: o envio de verdade, a aceitação do remetente `noreply@karollynemorais.com.br` pela conta dona da chave e a seção do painel na tela. Ficam para a T-125.
 
 ## Riscos conhecidos

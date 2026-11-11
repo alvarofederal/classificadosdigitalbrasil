@@ -39,8 +39,8 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 | # | Funcionalidade | Situação |
 |---|---|---|
-| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção desde 2026-11-11; **liga quando o Álvaro cadastrar `RESEND_API_KEY` na Vercel** (T-125) |
-| 010 | T-126: envio pelo Resend só com a chave (`RESEND_API_KEY`), pelo mesmo correio SMTP (ADR-16; RF-106, RN-106, RN-107) | Feito no código em 2026-11-11; **falta publicar** |
+| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção desde 2026-11-11; `RESEND_API_KEY` na Vercel desde 2026-11-11; **falta o e-mail de teste pelo painel** (T-125) |
+| 010 | T-126: envio pelo Resend só com a chave (`RESEND_API_KEY`), pelo mesmo correio SMTP (ADR-16; RF-106, RN-106, RN-107) | Em produção desde 2026-11-11 (commit `124ec5f`, deploy das 09:58); envio de verdade ainda não conferido |
 | 006 | T-86: cobrança cancelada aqui é cancelada no Mercado Pago; Pix pago depois do cancelamento fica registrado (RN-87 a RN-89) | Em produção desde 2026-11-11; confere com o Mercado Pago de verdade no passo 8 da spec |
 | T-130 | Manutenção de segurança: `next` 16.0.10 → 16.4.5 e `zod` 3.25 → 4.6.7. O `npm audit` acusava 4 pacotes e agora não acusa nenhum | Em produção desde 2026-11-11; páginas públicas conferidas depois do deploy |
 
@@ -59,8 +59,11 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 - Pendências que dependem do Álvaro: verificar a propriedade no Google Search Console e enviar o `sitemap.xml`; T-125 (variáveis `SMTP_*` e e-mail de teste); T-84 e T-14 (conferir o painel e fazer o Pix real de R$ 1,00); fotos do Gol (007). A ordem e os passos de cada uma estão em `08-lancamento.md`, com caixas para marcar.
 - O Álvaro lembra de um defeito no Pix ("não funcionava"), mas o relato exato não está registrado em lugar nenhum. O item 2.1 do `08-lancamento.md` serve para registrá-lo.
 - **E-mail pelo Resend (T-126, feito nesta data).** O Álvaro lembrou que já usa o Resend nos outros sistemas (Courtesyfy, Achei JBT, BaseMedical, cursos da Karol: pacote `resend`, `RESEND_API_KEY` e `EMAIL_FROM` com padrão `noreply@karollynemorais.com.br`). Aqui a chave vira a configuração do `CorreioSmtp` para `smtp.resend.com` (ADR-16), sem pacote novo. 161 testes, typecheck e build passando; login no Resend conferido com a chave real, sem envio.
-  - A chave está no arquivo `,env` da pasta antiga (`classificadodigital\workspace\classificadosdigitalbrasil`), que o site não lê. **Na Vercel ela ainda não existe** (lista de produção conferida em 2026-11-11): o Álvaro cadastra `RESEND_API_KEY` em Production. O Claude não mexe em `.env` nem nas variáveis da Vercel.
-  - Falta: publicar o código, a chave na Vercel e o e-mail de teste pelo painel (itens 1.3 a 1.7 do `08-lancamento.md`). O teste é que mostra se a conta do Resend aceita o remetente `noreply@karollynemorais.com.br`.
+  - A chave está no arquivo `,env` da pasta antiga (`classificadodigital\workspace\classificadosdigitalbrasil`), que o site não lê. Na Vercel ela não existia na conferência feita mais cedo em 2026-11-11 e passou a existir por volta das 09:34 (ver abaixo). O Claude não mexe em `.env` nem nas variáveis da Vercel.
+  - **Publicado às 09:58.** Push dos commits `f487a22` a `124ec5f` no `main`, com o OK do Álvaro; deploy de produção pronto em 43 segundos. Antes do envio: 161 testes e typecheck passando. A `RESEND_API_KEY` aparece na lista de Production da Vercel desde cerca de 09:34 (o valor não dá para conferir por fora), então este deploy já subiu com ela e não precisa de Redeploy. Houve também um deploy de produção às 09:43, ainda com o código antigo.
+  - Conferido em produção depois do deploy: capa, como funciona, termos, entrar, cadastro, Brasília, página do anúncio do Gol e o link curto dele, sitemap, robots, arquivo do Google, página 404 e o redirecionamento de Painel e Minha conta para o login.
+  - Não conferido: as áreas com login, inclusive Painel → Configurações, e o envio de e-mail.
+  - Falta: o e-mail de teste pelo painel e a mensagem de verdade (itens 1.5 a 1.7 do `08-lancamento.md`). O teste é que mostra se a conta do Resend aceita o remetente `noreply@karollynemorais.com.br`.
 
 **Situação em 2026-11-10**
 
@@ -81,6 +84,10 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 
 - Último commit de código: `5122172` (ADR-14), no `main` e no GitHub.
 - O passo 5 do Pix automático (credenciais na Vercel) estava sem registro; foi conferido em 2026-11-10.
+
+**Conversa perdida em 2026-11-11**
+
+O arquivo da conversa da sessão "Classificados Digital" sumiu do disco por volta das 09:16, com a sessão aberta, e às 09:47 o app reabriu a sessão em branco. O backup em `C:\Users\alvar\Backup-Claude` guarda a conversa até as 09:10. Do trecho de 09:10 a 09:47 ficou só o que está nesta spec e nos commits: não há registro de quem cadastrou a `RESEND_API_KEY` na Vercel nem do motivo do deploy das 09:43. Código e specs não foram afetados.
 
 **Conversas perdidas em 2026-11-09**
 
