@@ -42,7 +42,7 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
 - [ ] **3.1** (Álvaro) Google Search Console: verificar a propriedade (o arquivo `googledbc5da7adb4bf446.html` já está em produção) e enviar o `sitemap.xml`.
 - ~~**3.2** (Álvaro) Subir as fotos do Gol por Painel → Anúncios (feature 007).~~ *Cancelado pelo Álvaro em 2026-11-11. O Gol é só exemplo; o anúncio de verdade é o do Astra (item 3.4).*
 - [x] **3.3** (Claude) Apagar o branch `teste-next-16-4-5` no GitHub, criado só para o preview. *2026-11-11: apagado com o OK do Álvaro. Ele não tinha nada que não estivesse no `main`.*
-- [ ] **3.4** (Álvaro, com o Claude) Anúncio do Astra Sedan Expression 2002, prata: o carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11. O administrador não cria anúncio (Minha conta é só do anunciante), então ele entra por uma conta de anunciante, a mesma do item 2.4, e o pagamento pode ser o Pix real dos itens 2.5 e 2.6. Texto fechado em 2026-11-11 com os dados que ele passou; os textos completos, inclusive o da OLX, estão em `anuncios/astra-sedan-2002.md`:
+- [x] **3.4** (Álvaro, com o Claude) Anúncio do Astra Sedan Expression 2002, prata: o carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11. O administrador não cria anúncio (Minha conta é só do anunciante), então ele entra por uma conta de anunciante, a mesma do item 2.4, e o pagamento pode ser o Pix real dos itens 2.5 e 2.6. Texto fechado em 2026-11-11 com os dados que ele passou; os textos completos, inclusive o da OLX, estão em `anuncios/astra-sedan-2002.md`:
   - Seção: Veículos. Cidade: Brasília/DF.
   - Título (27 de 40 letras): `Astra Sedan Expression 2002`
   - Texto (267 de 280 letras): `Prata, 2.0 8V, câmbio manual, 230 mil km. Direção hidráulica, vidros e travas elétricas, som, rodas de liga leve, engate. Motor e câmbio em ordem, pneus meia-vida. Pintura queimada, ar-condicionado sem funcionar e pequenos reparos a fazer. IPVA 2026 pago, sem multas.`
@@ -53,7 +53,7 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
   - Câmbio manual confirmado pelo Álvaro em 2026-11-11. As 19 fotos dele foram vistas no mesmo dia e as seis do anúncio estão escolhidas (lista no arquivo do anúncio); o dano da porta é um amassado. As cópias das fotos, com a placa coberta, estão prontas na subpasta `PARA ANUNCIO`. O para-brisa não está trincado, confirmado por ele. Textos e fotos fechados.
   - Em 2026-11-11 o Álvaro avisou que não vai publicar na OLX: o plano gratuito dele chegou ao limite de anúncios. O texto da OLX fica guardado, sem uso. O anúncio sai só no Classificados Digitais, pelo perfil de anunciante que ele indicou.
   - **Criado em 2026-11-11, às 14:20, código `4DPUMX`**, situação *Aguardando pagamento*. O Álvaro entrou com a senha dele e o Claude preencheu o formulário: seção, cidade, título, texto, preço, fio duplo, tarja preta, à esquerda, sem estrelas, plano Com foto por 7 dias. Falta o Álvaro subir as fotos 01 a 06 e pagar o Pix de R$ 10,00.
-  - **No ar desde 2026-11-11, às 14:26**, até 18/11, com o Pix pago. Ainda sem fotos: falta o Álvaro subir as seis.
+  - **No ar desde 2026-11-11, às 14:26**, até 18/11, com o Pix pago e seis fotos. O Álvaro escolheu as fotos dele, diferentes da lista sugerida: lateral direita (capa), painel de frente, hodômetro, porta do motorista aberta, porta do passageiro aberta e lateral esquerda. Nenhuma mostra a placa. Página pública conferida pelo Claude no mesmo dia.
 
 ---
 
