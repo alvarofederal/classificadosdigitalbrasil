@@ -17,7 +17,7 @@ Carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11; dados do carro 
 - ~~Dano da porta.~~ As fotos mostram um amassado com riscos na parte de baixo da porta traseira direita; os textos passam a dizer "pequeno amassado".
 - **Para-brisa.** Na foto `161103` parece haver uma trinca no lado do passageiro. Se for, entra no anúncio como reparo a fazer.
 - Não informados, e por isso fora dos textos: número de donos, final de placa, se aceita proposta ou troca, manual e chave reserva.
-- Placa: aparece em quatro das fotos escolhidas (`160830`, `160844`, `160902`, `160915`). O Álvaro decide se cobre.
+- ~~Placa.~~ O Álvaro decidiu cobrir (2026-11-11). Ela aparecia em quatro das fotos escolhidas (`160830`, `160844`, `160902`, `160915`); as cópias para o anúncio saíram com ela coberta.
 
 ## Fotos
 
@@ -33,6 +33,8 @@ Para o Classificados Digitais (até 6), nesta ordem:
 6. `161312` banco traseiro
 
 Para a OLX, as seis acima e mais: `160902` traseira, `160830` frente pelo outro lado, `161103` painel de frente, `161257` bancos da frente, `161336` porta e banco do passageiro, `161228` hodômetro (229.949 km).
+
+**Cópias prontas (2026-11-11).** As doze fotos estão na subpasta `PARA ANUNCIO`, numeradas na ordem do anúncio (`01-frente-diagonal.jpg` a `12-hodometro.jpg`): de 01 a 06 para o Classificados Digitais, de 01 a 12 para a OLX. Saíram com 2000 px de largura, sem os dados da câmera, com a placa do Astra coberta nas quatro fotos em que aparecia e a placa de um carro vizinho coberta na 03. Conferidas uma a uma. Os originais não foram alterados.
 
 Ficam de fora: `161116` e `161245` (reflexo no vidro), e as repetidas `160805`, `161529`, `161026`, `161153` e `161339`.
 

@@ -50,7 +50,7 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
   - Formatação sugerida: fio duplo, título em tarja preta, à esquerda, sem estrelas.
   - Plano: Com foto, 7 dias (R$ 10,00), com até 6 fotos. Decidido pelo Álvaro em 2026-11-11.
   - A versão para a OLX, pedida em 2026-11-11, está em `anuncios/astra-sedan-2002.md`. A versão Expression de 2002 sai com o motor 2.0 8V; conferir no documento do carro.
-  - Câmbio manual confirmado pelo Álvaro em 2026-11-11. As 19 fotos dele foram vistas no mesmo dia e as seis do anúncio estão escolhidas (lista no arquivo do anúncio); o dano da porta é um amassado. Falta: ele dizer se o para-brisa está trincado e se cobre a placa nas fotos, criar a conta de anunciante e publicar.
+  - Câmbio manual confirmado pelo Álvaro em 2026-11-11. As 19 fotos dele foram vistas no mesmo dia e as seis do anúncio estão escolhidas (lista no arquivo do anúncio); o dano da porta é um amassado. As cópias das fotos, com a placa coberta, estão prontas na subpasta `PARA ANUNCIO`. Falta: ele dizer se o para-brisa está trincado, criar a conta de anunciante e publicar.
 
 ---
 
