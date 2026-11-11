@@ -64,6 +64,8 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
   - Conferido em produção depois do deploy: capa, como funciona, termos, entrar, cadastro, Brasília, página do anúncio do Gol e o link curto dele, sitemap, robots, arquivo do Google, página 404 e o redirecionamento de Painel e Minha conta para o login.
   - Não conferido: as áreas com login, inclusive Painel → Configurações, e o envio de e-mail.
   - Falta: o e-mail de teste pelo painel e a mensagem de verdade (itens 1.5 a 1.7 do `08-lancamento.md`). O teste é que mostra se a conta do Resend aceita o remetente `noreply@karollynemorais.com.br`.
+- **Alerta do GitGuardian (incidente 39924674, "SMTP credentials").** Alarme falso. Aponta a linha de `tests/unit/aviso-de-mensagem.test.ts` que confere a porta 587 com usuário que não é e-mail (commit `f773a24`). Servidor, usuário e senha ali foram inventados para o teste; o próprio GitGuardian testou e marcou como inválidos. Não muda código. No painel do GitGuardian, o Álvaro marca o incidente como credencial de teste (Ignore → Test credential).
+- **O repositório no GitHub é público.** Qualquer pessoa lê o código e a pasta `spec/`. Varredura de todo o histórico em 2026-11-11 (19 commits): nenhuma chave, senha ou token de verdade, só os modelos do `.env.example`; nenhum arquivo `.env` versionado; o nome do banco e o e-mail do administrador não aparecem. Por isso, segredo e dado pessoal não entram em `spec/` nem em teste.
 
 **Situação em 2026-11-10**
 
