@@ -40,8 +40,16 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
 ## Prioridade 3 · Pendências rápidas, sem bloquear a divulgação
 
 - [ ] **3.1** (Álvaro) Google Search Console: verificar a propriedade (o arquivo `googledbc5da7adb4bf446.html` já está em produção) e enviar o `sitemap.xml`.
-- [ ] **3.2** (Álvaro) Subir as fotos do Gol por Painel → Anúncios (feature 007).
+- ~~**3.2** (Álvaro) Subir as fotos do Gol por Painel → Anúncios (feature 007).~~ *Cancelado pelo Álvaro em 2026-11-11. O Gol é só exemplo; o anúncio de verdade é o do Astra (item 3.4).*
 - [x] **3.3** (Claude) Apagar o branch `teste-next-16-4-5` no GitHub, criado só para o preview. *2026-11-11: apagado com o OK do Álvaro. Ele não tinha nada que não estivesse no `main`.*
+- [ ] **3.4** (Álvaro, com o Claude) Anúncio do Astra Sedan Expression 2002, prata: o carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11. O administrador não cria anúncio (Minha conta é só do anunciante), então ele entra por uma conta de anunciante, a mesma do item 2.4, e o pagamento pode ser o Pix real dos itens 2.5 e 2.6. Rascunho, com o que falta confirmar entre colchetes:
+  - Seção: Veículos. Cidade: [Brasília/DF].
+  - Título (27 de 40 letras): `Astra Sedan Expression 2002`
+  - Texto (até 280 letras): `Prata, motor [1.8 ou 2.0], câmbio [manual ou automático]. [Ar, direção hidráulica, vidros e travas elétricas.] [000] mil km. [IPVA 2026 pago e documento em dia.] [O que foi revisado ou trocado.] [Aceito proposta.]`
+  - Preço: [a definir].
+  - Formatação sugerida: fio duplo, título em tarja preta, à esquerda, sem estrelas.
+  - Plano sugerido: Com foto, 7 dias (R$ 10,00), com até 6 fotos.
+  - Falta o Álvaro passar: motor e câmbio, quilometragem, preço, opcionais, estado e documentos, cidade e as fotos. Nada sobre o carro entra no texto sem ele confirmar.
 
 ---
 

@@ -15,4 +15,4 @@
 
 - [x] T-90 Script `scripts/dados-de-exemplo.ts` (idempotente)
 - [x] T-91 Painel → Anúncios → detalhe com editor, álbum, mensagens, pagamentos e cortesia
-- [ ] T-92 Fotos do Gol (depende do Álvaro)
+- ~~T-92 Fotos do Gol (depende do Álvaro)~~ Cancelada pelo Álvaro em 2026-11-11: o Gol é só exemplo e fica sem fotos.

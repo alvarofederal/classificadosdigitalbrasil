@@ -29,7 +29,7 @@
 | 004 | Contato com protocolo e Painel → Chamados | Feito |
 | 005 | Página do anúncio para divulgar: link curto, prévia de recorte, botões, cartaz com QR, visitas | Feito |
 | 006 | Pix automático (Mercado Pago + webhook) com reserva no Pix estático; na API de Orders desde 2026-11-09 (ADR-14) | Feito no código; aplicação, produção e webhook criados no Mercado Pago; **liga quando o Álvaro cadastrar as credenciais na Vercel** |
-| 007 | Gol no plano Vitrine por 30 dias (cortesia) e 18 exemplos em Brasília | Feito; **faltam as fotos do Gol** |
+| 007 | Gol no plano Vitrine por 30 dias (cortesia) e 18 exemplos em Brasília | Feito. As fotos do Gol foram canceladas pelo Álvaro em 2026-11-11: o Gol é só exemplo, e o anúncio de verdade é o do Astra (item 3.4 do `08-lancamento.md`) |
 | 008 | Teste de carga com k6 | Script pronto; falta rodar num ambiente de teste |
 | 009 | Preço por período (7, 10, 15, 20, 30 dias): Simples R$ 1 a R$ 25, Com foto R$ 10 a R$ 250; Destaque e Vitrine fora de venda | Feito |
 
