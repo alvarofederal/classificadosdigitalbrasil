@@ -148,6 +148,7 @@ O pagamento é parte do produto, não só a receita:
 - **Filtro de spam e golpe**: anúncio pago e cadastro com dados pessoais afastam perfil falso e anúncio fantasma. Dá para dizer isso na página.
 - **Leitura rápida**: todos os quadrados do mesmo tamanho, sem algoritmo decidindo quem aparece. Bate o olho e lê a página inteira, como no jornal.
 - **Local de verdade**: a busca começa pela cidade.
+- **Sem teto de anúncios**: relato do Álvaro em 2026-11-11. Ao anunciar o próprio carro, o plano gratuito da OLX avisou que ele tinha chegado ao limite de anúncios, e isso foi um dos motivos de criar o Classificados. É um argumento possível para a página de divulgação: aqui cada anúncio custa a partir de R$ 1 e não depende de plano.
 
 Público que mais combina: **prestador de serviço** (diarista, pedreiro, frete, aula particular, manicure, conserto), "aluga-se" e "contrata-se". Era a alma do classificado de jornal, é mal atendido pela OLX e pelo Marketplace, e **renova todo mês**. Quem vende um produto anuncia uma vez; o prestador de serviço vira receita recorrente.
 

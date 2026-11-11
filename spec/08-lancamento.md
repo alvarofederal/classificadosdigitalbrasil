@@ -29,7 +29,7 @@ O Pix real de R$ 1,00 nunca foi concluído. O Álvaro lembra de um defeito, e **
 - [ ] **2.2** (Álvaro) Painel → Configurações (passo 6 da spec 006): conferir "Conta conectada", "Credencial de produção", "Assinatura secreta" e "Endereço do aviso". É ali que se vê se o token é de produção (`APP_USR-`) ou de teste (`TEST-`).
 - [ ] **2.3** (Álvaro) Conferir no Mercado Pago: a conta tem uma **chave Pix** cadastrada no app (Seu perfil → Pix → Minhas chaves) e o webhook de produção aponta para `https://classificadosdigitalbrasil.vercel.app/api/pagamentos/mercadopago` com o evento *Order (Mercado Pago)*.
 - [ ] **2.4** (Álvaro) Entrar com uma conta de anunciante de **e-mail diferente** do e-mail da conta Mercado Pago. O Mercado Pago recusa cobrança em que quem paga e quem recebe são a mesma pessoa.
-- [ ] **2.5** (Álvaro) Criar um anúncio Simples de 7 dias (R$ 1,00) e ver a tela gerar o QR Code e o "copia e cola".
+- [ ] **2.5** (Álvaro) Criar um anúncio Simples de 7 dias (R$ 1,00) e ver a tela gerar o QR Code e o "copia e cola". *2026-11-11: o teste passa a ser com o anúncio do Astra (item 3.4), no plano Com foto de 7 dias, R$ 10,00.*
 - [ ] **2.6** (Álvaro) Pagar o Pix pelo app de **outro banco** e ver a tela mostrar "Pagamento confirmado" sozinha (consulta a cada 5 segundos) e o anúncio entrar no ar.
 - [ ] **2.7** (Claude) Se alguma etapa falhar: ler o log do erro na Vercel e a resposta do Mercado Pago, achar a causa e corrigir no código, com teste e spec.
 - [ ] **2.8** (Álvaro, com o Claude) Conferir o cancelamento (passo 8 da spec 006, T-86): gerar um Pix, trocar de plano antes de pagar e ver, no Mercado Pago, a ordem antiga cancelada.
@@ -50,7 +50,8 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
   - Formatação sugerida: fio duplo, título em tarja preta, à esquerda, sem estrelas.
   - Plano: Com foto, 7 dias (R$ 10,00), com até 6 fotos. Decidido pelo Álvaro em 2026-11-11.
   - A versão para a OLX, pedida em 2026-11-11, está em `anuncios/astra-sedan-2002.md`. A versão Expression de 2002 sai com o motor 2.0 8V; conferir no documento do carro.
-  - Câmbio manual confirmado pelo Álvaro em 2026-11-11. As 19 fotos dele foram vistas no mesmo dia e as seis do anúncio estão escolhidas (lista no arquivo do anúncio); o dano da porta é um amassado. As cópias das fotos, com a placa coberta, estão prontas na subpasta `PARA ANUNCIO`. O para-brisa não está trincado, confirmado por ele. Textos e fotos fechados. Falta: ele criar a conta de anunciante e publicar.
+  - Câmbio manual confirmado pelo Álvaro em 2026-11-11. As 19 fotos dele foram vistas no mesmo dia e as seis do anúncio estão escolhidas (lista no arquivo do anúncio); o dano da porta é um amassado. As cópias das fotos, com a placa coberta, estão prontas na subpasta `PARA ANUNCIO`. O para-brisa não está trincado, confirmado por ele. Textos e fotos fechados.
+  - Em 2026-11-11 o Álvaro avisou que não vai publicar na OLX: o plano gratuito dele chegou ao limite de anúncios. O texto da OLX fica guardado, sem uso. O anúncio sai só no Classificados Digitais, pelo perfil de anunciante que ele indicou.
 
 ---
 

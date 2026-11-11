@@ -49,6 +49,8 @@ O que as fotos mostram e não estava nos dados: engate de reboque; faróis amare
 
 ## Versão para a OLX
 
+**Sem uso desde 2026-11-11.** O Álvaro não vai publicar na OLX: o plano gratuito dele chegou ao limite de anúncios. O texto fica guardado.
+
 **Título** (53 letras)
 
 ```
