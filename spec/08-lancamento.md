@@ -41,7 +41,7 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
 
 - [ ] **3.1** (Álvaro) Google Search Console: verificar a propriedade (o arquivo `googledbc5da7adb4bf446.html` já está em produção) e enviar o `sitemap.xml`.
 - [ ] **3.2** (Álvaro) Subir as fotos do Gol por Painel → Anúncios (feature 007).
-- [ ] **3.3** (Claude) Apagar o branch `teste-next-16-4-5` no GitHub, criado só para o preview.
+- [x] **3.3** (Claude) Apagar o branch `teste-next-16-4-5` no GitHub, criado só para o preview. *2026-11-11: apagado com o OK do Álvaro. Ele não tinha nada que não estivesse no `main`.*
 
 ---
 
