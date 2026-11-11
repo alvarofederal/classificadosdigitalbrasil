@@ -95,7 +95,8 @@ Se o teste voltar com recusa do remetente, o domínio de `EMAIL_FROM` (ou o padr
 - Lista de variáveis de produção da Vercel: `RESEND_API_KEY` não estava lá na primeira conferência; aparece desde cerca de 09:34 do mesmo dia.
 - Publicado: commit `124ec5f` em produção desde 2026-11-11, 09:58, já com a variável cadastrada. Páginas públicas conferidas depois do deploy (lista em `05-tasks.md`, Continuidade).
 - E-mail de teste (2026-11-11, depois da publicação): o Álvaro enviou pelo painel e a carta chegou, com o remetente `Classificados Digitais do Brasil <noreply@karollynemorais.com.br>`, a manchete e o texto previstos. A conta dona da chave aceita o remetente.
-- **Não conferido**: o aviso de uma mensagem de verdade num anúncio e a resposta a ele (itens 1.6 e 1.7 do `08-lancamento.md`). Ficam para a T-125.
+- Aviso de mensagem de verdade (2026-11-11): o Álvaro mandou uma mensagem por um anúncio no ar e o aviso chegou por e-mail.
+- **Não conferido**: a resposta ao aviso (item 1.7 do `08-lancamento.md`). Fica para a T-125.
 
 ## Riscos conhecidos
 

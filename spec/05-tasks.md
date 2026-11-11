@@ -39,7 +39,7 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 | # | Funcionalidade | Situação |
 |---|---|---|
-| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção desde 2026-11-11; `RESEND_API_KEY` na Vercel e e-mail de teste recebido em 2026-11-11; **falta a mensagem de verdade num anúncio** (T-125) |
+| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção desde 2026-11-11; `RESEND_API_KEY` na Vercel e-mail de teste e aviso de mensagem de verdade recebidos em 2026-11-11; **falta conferir a resposta ao aviso** (T-125) |
 | 010 | T-126: envio pelo Resend só com a chave (`RESEND_API_KEY`), pelo mesmo correio SMTP (ADR-16; RF-106, RN-106, RN-107) | Em produção desde 2026-11-11 (commit `124ec5f`, deploy das 09:58); e-mail de teste do painel recebido no mesmo dia |
 | 006 | T-86: cobrança cancelada aqui é cancelada no Mercado Pago; Pix pago depois do cancelamento fica registrado (RN-87 a RN-89) | Em produção desde 2026-11-11; confere com o Mercado Pago de verdade no passo 8 da spec |
 | T-130 | Manutenção de segurança: `next` 16.0.10 → 16.4.5 e `zod` 3.25 → 4.6.7. O `npm audit` acusava 4 pacotes e agora não acusa nenhum | Em produção desde 2026-11-11; páginas públicas conferidas depois do deploy |
@@ -64,7 +64,8 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
   - Conferido em produção depois do deploy: capa, como funciona, termos, entrar, cadastro, Brasília, página do anúncio do Gol e o link curto dele, sitemap, robots, arquivo do Google, página 404 e o redirecionamento de Painel e Minha conta para o login.
   - Não conferido: as áreas com login, inclusive Painel → Configurações, e o envio de e-mail.
   - **E-mail de teste recebido (item 1.5).** O Álvaro clicou em *Enviar e-mail de teste* no painel e a carta chegou, com o remetente `Classificados Digitais do Brasil <noreply@karollynemorais.com.br>`, a manchete e o texto previstos. Ficam conferidos em produção: a chave do Resend, a aceitação do remetente e o envio pelo painel.
-  - Falta: a mensagem de verdade num anúncio e a resposta ao aviso (itens 1.6 e 1.7 do `08-lancamento.md`). Depois disso a T-125 fecha (item 1.8).
+  - **Aviso de mensagem de verdade recebido (item 1.6).** O Álvaro mandou uma mensagem por um anúncio no ar e o aviso chegou por e-mail. O tempo de chegada, o texto e o contato não foram relatados.
+  - Falta: conferir a resposta ao aviso (item 1.7 do `08-lancamento.md`). Depois disso a T-125 fecha (item 1.8).
 - **Alerta do GitGuardian (incidente 39924674, "SMTP credentials").** Alarme falso. Aponta a linha de `tests/unit/aviso-de-mensagem.test.ts` que confere a porta 587 com usuário que não é e-mail (commit `f773a24`). Servidor, usuário e senha ali foram inventados para o teste; o próprio GitGuardian testou e marcou como inválidos. Não muda código. No painel do GitGuardian, o Álvaro marca o incidente como credencial de teste (Ignore → Test credential).
 - **O repositório no GitHub é público, e o Álvaro decidiu mantê-lo assim (2026-11-11).** Qualquer pessoa lê o código e a pasta `spec/`. Varredura de todo o histórico em 2026-11-11 (19 commits): nenhuma chave, senha ou token de verdade, só os modelos do `.env.example`; nenhum arquivo `.env` versionado; o nome do banco e o e-mail do administrador não aparecem. Por isso, segredo e dado pessoal não entram em `spec/` nem em teste.
 
