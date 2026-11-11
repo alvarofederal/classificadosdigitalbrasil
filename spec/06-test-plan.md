@@ -39,7 +39,7 @@ Migração aplicada e 4 planos criados no deploy; 19 anúncios no ar em Brasíli
 3. Painel → Chamados: enviar um contato pela capa e resolver.
 4. "Anúncios perto de mim" no celular (permitir a localização).
 5. Prévia do link do anúncio colado no WhatsApp.
-6. Com a `RESEND_API_KEY` na Vercel: Painel → Configurações → Enviar e-mail de teste; depois mandar uma mensagem num anúncio no ar e ver o aviso chegar ao dono (feature 010, T-125).
+6. Com a `RESEND_API_KEY` na Vercel: Painel → Configurações → Enviar e-mail de teste; depois mandar uma mensagem num anúncio no ar e ver o aviso chegar ao dono (feature 010, T-125). **Feito em 2026-11-11**: e-mail de teste, aviso de mensagem de verdade e resposta ao aviso com contato por e-mail. Falta só o contato por telefone (link do WhatsApp).
 7. Com o Mercado Pago ligado: gerar um Pix, trocar de plano antes de pagar e conferir no Mercado Pago que a ordem antiga aparece cancelada (T-86).
 8. Depois do deploy com o `next` 16.4.5 (T-130): abrir a capa, uma cidade, uma seção, um anúncio, o cartaz e Minha conta, e criar ou editar um anúncio com foto.
 

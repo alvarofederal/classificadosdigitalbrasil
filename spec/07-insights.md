@@ -26,7 +26,7 @@
 
 ## Próximos passos sugeridos
 
-1. Conferir o painel e fazer um Pix real de R$ 1,00 (feature 006, T-84); cadastrar o SMTP e testar o aviso (feature 010, T-125).
+1. Conferir o painel e fazer um Pix real de R$ 1,00 (feature 006, T-84). O aviso por e-mail (feature 010, T-125) foi ligado e testado em 2026-11-11.
 2. Créditos (carteira) para renovar com um clique.
 3. E-mail de "seu anúncio vence amanhã" e de "seu anúncio está no ar", e aviso de chamado novo para o administrador (o de "nova mensagem" é a feature 010).
 4. "Subir para o topo" por um valor pequeno.
@@ -245,7 +245,7 @@ O que convence é página cheia: uma seção com 30 anúncios numa cidade vale m
 6. **Google**: é lento, mas acumula. Cidade e seção já têm endereço, título e sitemap. Faltam os anúncios no sitemap, os dados estruturados (o de vaga pode pôr Empregos na caixa de vagas do Google, se cumprir as exigências deles) e o cadastro no Search Console.
 7. **A história como pauta**: "site de classificados com cara de jornal, a R$ 1" é curiosidade. Páginas de bairro e grupos de nostalgia da cidade costumam publicar esse tipo de assunto de graça.
 
-**Antes de divulgar**, dois pontos fazem o primeiro usuário desistir. Situação em 2026-11-11: (a) o aviso de mensagem por e-mail está em produção e **liga com as variáveis `SMTP_*`** (T-125); (b) o Pix automático está em produção e **liga com as credenciais do Mercado Pago** mais o Pix real de R$ 1,00 (T-84 e T-14).
+**Antes de divulgar**, dois pontos fazem o primeiro usuário desistir. Situação em 2026-11-11: (a) o aviso de mensagem por e-mail está em produção e **funcionando**, pelo Resend (T-125 feita em 2026-11-11); (b) o Pix automático está em produção e **liga com as credenciais do Mercado Pago** mais o Pix real de R$ 1,00 (T-84 e T-14).
 
 **Ordem sugerida**: 1) Pix real e aviso de mensagem; 2) bairro e linha "Tratar:"; 3) encher Veículos e Serviços em Brasília com cortesia e balcão; 4) edição da semana e indicação. Nada disso virou feature ainda: cada item que for adiante ganha a sua pasta em `spec/features/`.
 

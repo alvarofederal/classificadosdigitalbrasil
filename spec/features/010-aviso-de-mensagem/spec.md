@@ -76,7 +76,7 @@ Se o teste voltar com recusa do remetente, o domínio de `EMAIL_FROM` (ou o padr
 - [x] T-122 Modelo do e-mail e adaptador SMTP (RN-103, ADR-15)
 - [x] T-123 Painel → Configurações com situação e e-mail de teste (RF-103); frase em Minha conta (RF-105); privacidade em `/termos`
 - [x] T-124 Testes de unidade citando os RF/RN (`tests/unit/aviso-de-mensagem.test.ts`) e envio real contra um servidor SMTP local
-- [ ] T-125 Cadastrar `RESEND_API_KEY` na Vercel e conferir em produção (depende do Álvaro)
+- [x] T-125 Cadastrar `RESEND_API_KEY` na Vercel e conferir em produção (depende do Álvaro). *Feita em 2026-11-11: chave na Vercel, e-mail de teste pelo painel, aviso de uma mensagem de verdade e resposta ao aviso com contato por e-mail.*
 - [x] T-126 Envio pelo Resend só com `RESEND_API_KEY` (RF-106, RN-106, RN-107, ADR-16): leitura das variáveis, painel e testes. Feito em 2026-11-11
 
 ## Verificação (2026-11-10)
@@ -96,7 +96,8 @@ Se o teste voltar com recusa do remetente, o domínio de `EMAIL_FROM` (ou o padr
 - Publicado: commit `124ec5f` em produção desde 2026-11-11, 09:58, já com a variável cadastrada. Páginas públicas conferidas depois do deploy (lista em `05-tasks.md`, Continuidade).
 - E-mail de teste (2026-11-11, depois da publicação): o Álvaro enviou pelo painel e a carta chegou, com o remetente `Classificados Digitais do Brasil <noreply@karollynemorais.com.br>`, a manchete e o texto previstos. A conta dona da chave aceita o remetente.
 - Aviso de mensagem de verdade (2026-11-11): o Álvaro mandou uma mensagem por um anúncio no ar e o aviso chegou por e-mail.
-- **Não conferido**: a resposta ao aviso (item 1.7 do `08-lancamento.md`). Fica para a T-125.
+- Resposta ao aviso (2026-11-11): com contato por e-mail, o Responder aponta para quem escreveu. Com isso a T-125 fecha.
+- **Não conferido em produção**: o contato por telefone, com o link do WhatsApp (coberto pelos testes da RF-101).
 
 ## Riscos conhecidos
 

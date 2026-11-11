@@ -6,7 +6,7 @@ Criado em 2026-11-11. Marcar `[x]` com a data ao concluir cada item. As priorida
 
 **Já está pronto e não se repete:** o código dos dois (010 e 006) em produção desde 2026-11-11; aplicação e credencial de produção no Mercado Pago; webhook cadastrado; `MERCADO_PAGO_ACCESS_TOKEN` e `MERCADO_PAGO_WEBHOOK_SECRET` na Vercel; 156 testes passando.
 
-## Prioridade 1 · Aviso de mensagem por e-mail (T-125)
+## Prioridade 1 · Aviso de mensagem por e-mail (T-125) · concluída em 2026-11-11
 
 Vem primeiro porque é rápido e vale desde o primeiro anúncio, inclusive os de cortesia: sem o aviso, quem recebe mensagem só descobre entrando em Minha conta.
 
@@ -18,8 +18,8 @@ Em 2026-11-11 o Álvaro lembrou que já usa o **Resend** nos outros sistemas. O 
 - [x] **1.4** (Claude, com o OK do Álvaro) Publicar o código (push no `main`) e, se a chave entrar depois do deploy, o Álvaro faz o **Redeploy**. *2026-11-11: push até o commit `124ec5f`, deploy de produção pronto às 09:58. A chave entrou antes, então não precisa de Redeploy.*
 - [x] **1.5** (Álvaro) Painel → Configurações → *Aviso de mensagem por e-mail*: conferir que os itens estão marcados e clicar em **Enviar e-mail de teste**. Se algum item falhar, o painel mostra o motivo: copiar o texto e passar ao Claude. É aqui que se vê se o Resend aceita o remetente. *2026-11-11: o e-mail de teste chegou, com o remetente `Classificados Digitais do Brasil <noreply@karollynemorais.com.br>` e a carta no formato previsto (print do Álvaro). A chave vale e o Resend aceita o remetente.*
 - [x] **1.6** (Álvaro) Mandar uma mensagem de verdade pelo botão de um anúncio no ar (o do Gol, código 9TTTMQ, é da conta de administrador) e ver o aviso chegar em menos de um minuto, com texto e contato. *2026-11-11: o aviso chegou, confirmado pelo Álvaro. O tempo de chegada, o texto e o contato não foram relatados.*
-- [ ] **1.7** (Álvaro) Responder ao aviso e ver se a resposta vai para quem escreveu (contato por e-mail) ou se o link do WhatsApp abre (contato por telefone).
-- [ ] **1.8** (Claude) Marcar a T-125 como feita em `features/010-aviso-de-mensagem/spec.md` e em `05-tasks.md`, com a data e o que foi conferido.
+- [x] **1.7** (Álvaro) Responder ao aviso e ver se a resposta vai para quem escreveu (contato por e-mail) ou se o link do WhatsApp abre (contato por telefone). *2026-11-11: com contato por e-mail, o Responder aponta para quem escreveu, confirmado pelo Álvaro. O contato por telefone, com o link do WhatsApp, não foi conferido em produção; está coberto pelos testes (RF-101).*
+- [x] **1.8** (Claude) Marcar a T-125 como feita em `features/010-aviso-de-mensagem/spec.md` e em `05-tasks.md`, com a data e o que foi conferido. *2026-11-11.*
 
 ## Prioridade 2 · Pix automático (T-84 e T-14)
 
