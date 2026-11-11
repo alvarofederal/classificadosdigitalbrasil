@@ -69,4 +69,4 @@ O botão "Simular notificação" do Mercado Pago manda uma ordem inexistente; o 
 - **Passo 6**: abrir Painel → Configurações e conferir os itens. É ali que se vê se o token é de produção ou de teste; pela lista da Vercel não dá para saber.
 - **Passo 7**: o Pix real de R$ 1,00, com uma conta de anunciante de e-mail diferente do da conta Mercado Pago.
 
-O T-86 (cancelar a ordem no Mercado Pago) está no código e entra no ar no próximo deploy de produção. O passo 8 confere com o Mercado Pago de verdade.
+O T-86 (cancelar a ordem no Mercado Pago) está em produção desde 2026-11-11. O passo 8 confere com o Mercado Pago de verdade.

@@ -221,6 +221,34 @@ Fora do primeiro lançamento, para não atrasar o básico:
 - **Página do anunciante** com todos os anúncios dele.
 - **Edição da semana**: uma imagem ou PDF com os classificados da cidade, no formato de página de jornal, para circular nos grupos de WhatsApp.
 
+### 4.1 Novidades que cabem na cara de jornal (2026-11-10)
+
+Resposta à pergunta "o que pode trazer de novidades, sem tirar a identidade retro, e como pegar impulso de usuários de graça". Recuperada do backup da conversa "montagem de fotos do anúncio", que se perdeu do app. A conclusão: o visual de jornal é o que o site tem de diferente, então rendem mais as novidades que o jornal já tinha.
+
+- **Bairro em caixa alta abrindo o anúncio** (ASA NORTE, TAGUATINGA), com filtro dentro da seção. Era assim nos imóveis do jornal. Em Brasília faz falta: no IBGE o DF inteiro é um município só, e hoje o anúncio não tem campo de bairro.
+- **Linha "Tratar:" com WhatsApp**, opcional. No jornal o telefone ficava no anúncio; hoje o contato previsto é só a mensagem interna. Precisa de ADR, porque o Art. 5 proíbe mostrar o celular da conta. Seria um contato próprio do anúncio.
+- **Edição da semana**: cada cidade ganha número e data de edição. A página sai como imagem para grupo e status do WhatsApp e como A4 com QR Code para imprimir. É também o principal canal de divulgação.
+- **Recortar**: uma tesourinha guarda o anúncio no aparelho de quem procura, sem cadastro, numa página "Meus recortes". Dá motivo para voltar e não coleta dado pessoal.
+- **Seções gratuitas de utilidade**: Achados e perdidos, Animais desaparecidos, Doa-se e Procura-se. Trazem leitor que não quer comprar nada, e esse tipo de aviso as pessoas espalham sozinhas. O cartaz A4 que já existe vira o cartaz de PROCURA-SE. O cadastro com CPF continua valendo, o que segura o abuso.
+- **Coluna do anunciante**: todos os anúncios de uma revenda, imobiliária ou prestador sob uma tarja com o nome. Serve de catálogo e ele divulga o link.
+- **Peças de formatação**, todas na mesma tinta: carimbo (URGENTE, ÚLTIMOS DIAS), a mãozinha apontando (☞), primeira letra grande, vinheta da seção (carro, casa, chave) e foto pequena em preto e branco com os pontinhos de jornal no plano Com foto (hoje quem paga esse plano não tem nada que apareça na coluna). Entram como valores de catálogo (Art. 2) e podem virar adicional pago depois.
+
+### 4.2 Como ganhar os primeiros usuários sem gastar (2026-11-10)
+
+O que convence é página cheia: uma seção com 30 anúncios numa cidade vale mais que 18 seções com 2 cada. Então só Brasília, e duas ou três seções (Veículos, Serviços, Imóveis) até encher. Nessa fase a meta é página cheia, não receita, e o custo é o tempo do Álvaro: os primeiros 100 anunciantes vêm um a um.
+
+1. **Encher com cortesia**, que o painel já tem. Começar por quem tem estoque e por quem renova (uma revenda como o Igor Veículos pode encher Veículos de uma vez; prestador de serviço renova todo mês). Pôr um limite, como os 100 primeiros da cidade.
+2. **Atender como balcão**: a pessoa manda o texto pelo WhatsApp, o Álvaro monta o anúncio com ela e libera a cortesia. Não escala, e não precisa: serve para os primeiros 100.
+3. **Oferecer a placa, não o site**: "Placa de VENDE-SE com QR Code por R$ 1". O cartaz já existe. Cada carro e cada portão com a placa vira propaganda na rua, e a placa é motivo para renovar.
+4. **Edição da semana nos grupos e murais**: uma vez por semana nos grupos de compra e venda da cidade, com o OK do administrador, e impressa em padaria, igreja e condomínio.
+5. **Indique e ganhe dias**: quem chega pelo "Anuncie você também" do rodapé de um anúncio e publica dá 7 dias ao dono daquele anúncio. Não custa dinheiro. Falta registrar de quem veio a indicação e a regra dos dias.
+6. **Google**: é lento, mas acumula. Cidade e seção já têm endereço, título e sitemap. Faltam os anúncios no sitemap, os dados estruturados (o de vaga pode pôr Empregos na caixa de vagas do Google, se cumprir as exigências deles) e o cadastro no Search Console.
+7. **A história como pauta**: "site de classificados com cara de jornal, a R$ 1" é curiosidade. Páginas de bairro e grupos de nostalgia da cidade costumam publicar esse tipo de assunto de graça.
+
+**Antes de divulgar**, dois pontos fazem o primeiro usuário desistir. Situação em 2026-11-11: (a) o aviso de mensagem por e-mail está em produção e **liga com as variáveis `SMTP_*`** (T-125); (b) o Pix automático está em produção e **liga com as credenciais do Mercado Pago** mais o Pix real de R$ 1,00 (T-84 e T-14).
+
+**Ordem sugerida**: 1) Pix real e aviso de mensagem; 2) bairro e linha "Tratar:"; 3) encher Veículos e Serviços em Brasília com cortesia e balcão; 4) edição da semana e indicação. Nada disso virou feature ainda: cada item que for adiante ganha a sua pasta em `spec/features/`.
+
 ## 5. Decisões para amanhã
 
 1. Preço de 30 dias: regra "mês = 3 semanas" ou outra?

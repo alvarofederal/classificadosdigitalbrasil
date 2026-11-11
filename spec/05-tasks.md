@@ -39,13 +39,23 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 | # | Funcionalidade | Situação |
 |---|---|---|
-| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Feito no código; **liga quando o Álvaro cadastrar as variáveis `SMTP_*` na Vercel** (T-125) |
-| 006 | T-86: cobrança cancelada aqui é cancelada no Mercado Pago; Pix pago depois do cancelamento fica registrado (RN-87 a RN-89) | Feito no código; confere com o Mercado Pago de verdade no passo 8 da spec |
-| T-130 | Manutenção de segurança: `next` 16.0.10 → 16.4.5 e `zod` 3.25 → 4.6.7. O `npm audit` acusava 4 pacotes e agora não acusa nenhum | Feito no código; **falta conferir as páginas com banco num preview da Vercel antes de publicar** |
+| 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção desde 2026-11-11; **liga quando o Álvaro cadastrar as variáveis `SMTP_*` na Vercel** (T-125) |
+| 006 | T-86: cobrança cancelada aqui é cancelada no Mercado Pago; Pix pago depois do cancelamento fica registrado (RN-87 a RN-89) | Em produção desde 2026-11-11; confere com o Mercado Pago de verdade no passo 8 da spec |
+| T-130 | Manutenção de segurança: `next` 16.0.10 → 16.4.5 e `zod` 3.25 → 4.6.7. O `npm audit` acusava 4 pacotes e agora não acusa nenhum | Em produção desde 2026-11-11; páginas públicas conferidas depois do deploy |
 
 ## Continuidade
 
 Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da constituição).
+
+**Situação em 2026-11-11**
+
+- Publicado: os commits `f773a24` (aviso de mensagem por e-mail e T-86) e `adfcbf6` (`next` 16.4.5, `zod` 4.6.7 e arquivo de verificação do Google) estão no `main`, no GitHub e em produção (deploy de 2026-11-11, 00:57). O build de produção não achou migration pendente.
+- O Álvaro escolheu publicar direto. O preview da Vercel chegou a ser gerado e o build passou, mas as páginas não foram conferidas nele: o preview pede login na Vercel, e a outra saída seria criar um segredo de acesso nas configurações de segurança do projeto.
+- Conferido em produção logo depois do deploy, comparando com as respostas de antes: capa, como funciona, termos (com o texto novo), login, cadastro, cidade (os mesmos 20 anúncios), seção, página do anúncio, cartaz, imagens de prévia, sitemap, robots, página 404, redirecionamento das áreas protegidas, link curto, webhook do Mercado Pago e `/googledbc5da7adb4bf446.html`. No navegador, capa e cidade sem erro de script, e a caixa de mensagem abre.
+- Não conferido em produção: as áreas com login (Minha conta e Painel, inclusive a seção nova do aviso por e-mail), o envio de formulários, o Pix real e o e-mail.
+- As funções do servidor passaram de 10,8 MB para 31,75 MB com o `next` 16.4.5. Está dentro do limite da Vercel; a primeira abertura depois de um tempo parado pode ficar um pouco mais lenta. Reduzir isso entra na tarefa do aviso do Turbopack (cliente do Prisma gerado em `src/generated/prisma`).
+- O branch `teste-next-16-4-5` no GitHub foi criado só para o preview e pode ser apagado.
+- Pendências que dependem do Álvaro: verificar a propriedade no Google Search Console e enviar o `sitemap.xml`; T-125 (variáveis `SMTP_*` e e-mail de teste); T-84 e T-14 (conferir o painel e fazer o Pix real de R$ 1,00); fotos do Gol (007).
 
 **Situação em 2026-11-10**
 

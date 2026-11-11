@@ -43,4 +43,4 @@ A memória do projeto é esta pasta, não a conversa (Art. 7 da constituição).
 | `features/007-dados-de-exemplo` | Anúncio do Gol e exemplos em Brasília | Entregue; faltam as fotos do Gol |
 | `features/008-teste-de-carga` | Teste de carga com k6 | Anotado, script pronto |
 | `features/009-tabela-de-precos` | Simples e com foto em 7, 10, 15, 20 e 30 dias | Entregue (2026-11-09) |
-| `features/010-aviso-de-mensagem` | Aviso por e-mail ao dono quando chega mensagem | Entregue no código (2026-11-10); liga com as variáveis `SMTP_*` |
+| `features/010-aviso-de-mensagem` | Aviso por e-mail ao dono quando chega mensagem | Em produção desde 2026-11-11; liga com as variáveis `SMTP_*` |

@@ -73,6 +73,7 @@ Com domínio próprio no futuro, basta trocar as variáveis por um provedor com 
 - O e-mail saiu em duas partes (texto e HTML), em UTF-8, com assunto, remetente, destino e endereço de resposta certos. O HTML foi conferido em 600 px e em 375 px.
 - `/termos` conferido no navegador com o texto novo de privacidade.
 - **Não conferido**: a seção nova do painel e a frase de Minha conta na tela (pedem login), o envio por um provedor de verdade e a chegada na caixa de entrada. Ficam para a T-125.
+- Em produção desde 2026-11-11. O aviso segue desligado até as variáveis `SMTP_*` serem cadastradas na Vercel.
 
 ## Riscos conhecidos
 

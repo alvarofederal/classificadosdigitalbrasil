@@ -20,6 +20,10 @@ Envio real do aviso pelo `CorreioSmtp` contra um servidor SMTP local de teste: T
 
 Depois da atualização do `next` e do `zod` (T-130), no servidor local: `/termos`, `/entrar`, `/cadastro`, `/robots.txt`, `/sitemap.xml`, a imagem de prévia de `/como-funciona` e a página 404 respondem; `/minha-conta` e `/painel` redirecionam para o login; o formulário de login enviado vazio volta com "Informe o e-mail." e "Informe a senha." pela Server Action. As páginas que consultam o banco não puderam ser conferidas nesta máquina (o banco recusa as credenciais do `.env` local).
 
+## Conferido em produção (2026-11-11)
+
+Depois do deploy com o `next` 16.4.5, o `zod` 4.6.7, a feature 010 e o T-86, comparando com as respostas colhidas minutos antes: capa, `/como-funciona`, `/termos` (texto novo de privacidade), `/entrar`, `/cadastro`, `/df/brasilia` (os mesmos 20 anúncios), `/df/brasilia/veiculos`, `/anuncio/9TTTMQ`, `/cartaz/9TTTMQ`, as duas imagens de prévia, `/sitemap.xml` (mesmo tamanho), `/robots.txt` e a página 404 respondem; `/a/9TTTMQ` redireciona (308) e `/minha-conta` e `/painel` mandam para o login (307); o webhook do Mercado Pago ignora aviso que não é de ordem; `/googledbc5da7adb4bf446.html` entrega o conteúdo exato. No navegador, capa e cidade não mostram erro de script, e a caixa de mensagem abre. Não conferido: áreas com login, envio de formulários, Pix real e e-mail.
+
 ## Conferido em produção (2026-11-09)
 
 Migração aplicada e 4 planos criados no deploy; 19 anúncios no ar em Brasília/DF (Gol no plano Vitrine + 18 exemplos); capa com vitrine, valores e contato; Gol em primeiro na seção Veículos; página do anúncio com conversa, divulgação, cartaz e denúncia; `/a/9TTTMQ` redireciona (308); cartaz com QR; webhook responde e ignora aviso que não é de pagamento; anúncio inexistente mostra "Saiu do caderno".
