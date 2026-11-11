@@ -45,12 +45,12 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
 - [ ] **3.4** (Álvaro, com o Claude) Anúncio do Astra Sedan Expression 2002, prata: o carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11. O administrador não cria anúncio (Minha conta é só do anunciante), então ele entra por uma conta de anunciante, a mesma do item 2.4, e o pagamento pode ser o Pix real dos itens 2.5 e 2.6. Texto fechado em 2026-11-11 com os dados que ele passou; os textos completos, inclusive o da OLX, estão em `anuncios/astra-sedan-2002.md`:
   - Seção: Veículos. Cidade: Brasília/DF.
   - Título (27 de 40 letras): `Astra Sedan Expression 2002`
-  - Texto (259 de 280 letras): `Prata, 2.0 8V, câmbio manual, 230 mil km. Direção hidráulica, vidros e travas elétricas, som, rodas de liga leve. Motor e câmbio em ordem, pneus meia-vida. Pintura queimada, ar-condicionado sem funcionar e pequenos reparos a fazer. IPVA 2026 pago, sem multas.`
+  - Texto (267 de 280 letras): `Prata, 2.0 8V, câmbio manual, 230 mil km. Direção hidráulica, vidros e travas elétricas, som, rodas de liga leve, engate. Motor e câmbio em ordem, pneus meia-vida. Pintura queimada, ar-condicionado sem funcionar e pequenos reparos a fazer. IPVA 2026 pago, sem multas.`
   - Preço: R$ 20.000,00.
   - Formatação sugerida: fio duplo, título em tarja preta, à esquerda, sem estrelas.
   - Plano: Com foto, 7 dias (R$ 10,00), com até 6 fotos. Decidido pelo Álvaro em 2026-11-11.
   - A versão para a OLX, pedida em 2026-11-11, está em `anuncios/astra-sedan-2002.md`. A versão Expression de 2002 sai com o motor 2.0 8V; conferir no documento do carro.
-  - Câmbio manual confirmado pelo Álvaro em 2026-11-11. Falta: ele confirmar a palavra para o dano da porta, separar as fotos, criar a conta de anunciante e publicar.
+  - Câmbio manual confirmado pelo Álvaro em 2026-11-11. As 19 fotos dele foram vistas no mesmo dia e as seis do anúncio estão escolhidas (lista no arquivo do anúncio); o dano da porta é um amassado. Falta: ele dizer se o para-brisa está trincado e se cobre a placa nas fotos, criar a conta de anunciante e publicar.
 
 ---
 
