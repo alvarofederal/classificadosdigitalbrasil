@@ -45,11 +45,12 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
 - [ ] **3.4** (Álvaro, com o Claude) Anúncio do Astra Sedan Expression 2002, prata: o carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11. O administrador não cria anúncio (Minha conta é só do anunciante), então ele entra por uma conta de anunciante, a mesma do item 2.4, e o pagamento pode ser o Pix real dos itens 2.5 e 2.6. Rascunho, com o que falta confirmar entre colchetes:
   - Seção: Veículos. Cidade: [Brasília/DF].
   - Título (27 de 40 letras): `Astra Sedan Expression 2002`
-  - Texto (até 280 letras): `Prata, motor [1.8 ou 2.0], câmbio [manual ou automático]. [Ar, direção hidráulica, vidros e travas elétricas.] [000] mil km. [IPVA 2026 pago e documento em dia.] [O que foi revisado ou trocado.] [Aceito proposta.]`
+  - Texto (até 280 letras): `Prata, motor 2.0 8V, câmbio [manual ou automático]. [Ar, direção hidráulica, vidros e travas elétricas.] [000] mil km. [IPVA 2026 pago e documento em dia.] [O que foi revisado ou trocado.] [Aceito proposta.]`
   - Preço: [a definir].
   - Formatação sugerida: fio duplo, título em tarja preta, à esquerda, sem estrelas.
   - Plano: Com foto, 7 dias (R$ 10,00), com até 6 fotos. Decidido pelo Álvaro em 2026-11-11.
-  - Falta o Álvaro passar: motor e câmbio, quilometragem, preço, opcionais, estado e documentos, cidade e as fotos. Nada sobre o carro entra no texto sem ele confirmar.
+  - A versão para a OLX, pedida em 2026-11-11, está em `anuncios/astra-sedan-2002.md`. A versão Expression de 2002 sai com o motor 2.0 8V; conferir no documento do carro.
+  - Falta o Álvaro passar: câmbio, quilometragem, preço, opcionais, estado e documentos, cidade e as fotos. Nada sobre o carro entra no texto sem ele confirmar.
 
 ---
 
