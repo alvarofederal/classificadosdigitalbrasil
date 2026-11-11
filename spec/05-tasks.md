@@ -17,7 +17,7 @@
 | T-11 | Build da Vercel com migração só em produção | ADR-09 | Feito |
 | T-12 | Testes de unidade e da regra de dependência | 06-test-plan | Feito (56) |
 | T-13 | Banco da Hostinger acessível pela Vercel e primeiro deploy | — | Feito (2026-11-08): migration aplicada, 18 categorias |
-| T-14 | Teste ponta a ponta no navegador | — | Parcial: site público, página do anúncio, cartaz, link curto e webhook conferidos em produção (2026-11-09); falta o fluxo com Pix real |
+| T-14 | Teste ponta a ponta no navegador | — | Feito: site público, página do anúncio, cartaz, link curto e webhook conferidos em produção (2026-11-09); fluxo com Pix real feito em 2026-11-11 (criar o anúncio, gerar o Pix, pagar e entrar no ar) |
 | T-15 | Visual da página impressa de referência: página branca, 5 colunas densas, tarjas nas colunas, capa e cidade como página inteira, fontes carregando | RF-04, RF-05, 04-design-system | Feito |
 
 ## Versão 0.2 (2026-11-09) — detalhes em `spec/features/`
@@ -28,7 +28,7 @@
 | 003 | Planos Simples/Com fotos/Destaque/Vitrine, 7 ou 30 dias, Painel → Planos | Feito |
 | 004 | Contato com protocolo e Painel → Chamados | Feito |
 | 005 | Página do anúncio para divulgar: link curto, prévia de recorte, botões, cartaz com QR, visitas | Feito |
-| 006 | Pix automático (Mercado Pago + webhook) com reserva no Pix estático; na API de Orders desde 2026-11-09 (ADR-14) | Feito no código; aplicação, produção e webhook criados no Mercado Pago; **liga quando o Álvaro cadastrar as credenciais na Vercel** |
+| 006 | Pix automático (Mercado Pago + webhook) com reserva no Pix estático; na API de Orders desde 2026-11-09 (ADR-14) | Em produção e funcionando: Pix real de R$ 10,00 pago e confirmado sozinho em 2026-11-11 (T-84). Falta conferir o cancelamento (passo 8) |
 | 007 | Gol no plano Vitrine por 30 dias (cortesia) e 18 exemplos em Brasília | Feito. As fotos do Gol foram canceladas pelo Álvaro em 2026-11-11: o Gol é só exemplo, e o anúncio de verdade é o do Astra (item 3.4 do `08-lancamento.md`) |
 | 008 | Teste de carga com k6 | Script pronto; falta rodar num ambiente de teste |
 | 009 | Preço por período (7, 10, 15, 20, 30 dias): Simples R$ 1 a R$ 25, Com foto R$ 10 a R$ 250; Destaque e Vitrine fora de venda | Feito |
@@ -41,6 +41,7 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 |---|---|---|
 | 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção e funcionando desde 2026-11-11. T-125 feita no mesmo dia: chave na Vercel, e-mail de teste, aviso de uma mensagem de verdade e resposta ao aviso conferidos |
 | 010 | T-126: envio pelo Resend só com a chave (`RESEND_API_KEY`), pelo mesmo correio SMTP (ADR-16; RF-106, RN-106, RN-107) | Em produção desde 2026-11-11 (commit `124ec5f`, deploy das 09:58); e-mail de teste do painel recebido no mesmo dia |
+| 006 | T-87: o aviso do anúncio recém-criado acompanha o pagamento e não pede Pix de anúncio que já está no ar (RN-90) | Feito em 2026-11-11; defeito achado no primeiro Pix real |
 | 006 | T-86: cobrança cancelada aqui é cancelada no Mercado Pago; Pix pago depois do cancelamento fica registrado (RN-87 a RN-89) | Em produção desde 2026-11-11; confere com o Mercado Pago de verdade no passo 8 da spec |
 | T-130 | Manutenção de segurança: `next` 16.0.10 → 16.4.5 e `zod` 3.25 → 4.6.7. O `npm audit` acusava 4 pacotes e agora não acusa nenhum | Em produção desde 2026-11-11; páginas públicas conferidas depois do deploy |
 
@@ -67,7 +68,8 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
   - **Aviso de mensagem de verdade recebido (item 1.6).** O Álvaro mandou uma mensagem por um anúncio no ar e o aviso chegou por e-mail. O tempo de chegada, o texto e o contato não foram relatados.
   - **Resposta ao aviso conferida (item 1.7) e T-125 fechada.** Com contato por e-mail, o Responder do aviso aponta para quem escreveu. Não conferido em produção: o contato por telefone, com o link do WhatsApp, coberto só pelos testes (RF-101); e a seção do painel na tela, que pede login.
   - Próximo do checklist: Prioridade 2, Pix automático, começando pelo item 2.1 (registrar o erro exato).
-- **Primeiro anúncio de verdade e Pix real em andamento.** Anúncio do Astra do Álvaro criado às 14:20 pela conta de anunciante dele (código `4DPUMX`, Veículos, Brasília, plano Com foto por 7 dias). O Mercado Pago gerou a cobrança `X33MFGE43S`, de R$ 10,00, sem erro, e a tela mostrou o QR Code e o "copia e cola". Falta ele subir as fotos e pagar; o pagamento fecha os itens 2.6 e 3.4 do `08-lancamento.md`. Textos e lista de fotos em `anuncios/astra-sedan-2002.md`. Ele não vai publicar na OLX (plano gratuito no limite de anúncios).
+- **Primeiro anúncio de verdade e Pix real em andamento.** Anúncio do Astra do Álvaro criado às 14:20 pela conta de anunciante dele (código `4DPUMX`, Veículos, Brasília, plano Com foto por 7 dias). O Mercado Pago gerou a cobrança `X33MFGE43S`, de R$ 10,00, sem erro, e a tela mostrou o QR Code e o "copia e cola". O Álvaro pagou e a confirmação entrou às 14:26: **o anúncio está no ar até 18/11 e o Pix automático funciona de ponta a ponta** (T-84 e T-14 feitas). Falta ele subir as fotos.
+  - Defeito achado no pagamento (T-87, RN-90): depois de confirmar, a tela continuava dizendo "Anúncio salvo. Pague o Pix abaixo…", sem Pix nenhum abaixo, e dava a impressão de anúncio no ar sem pagamento. Era o defeito que o Álvaro lembrava. Corrigido com teste: 162 testes e typecheck passando. Textos e lista de fotos em `anuncios/astra-sedan-2002.md`. Ele não vai publicar na OLX (plano gratuito no limite de anúncios).
 - **Alerta do GitGuardian (incidente 39924674, "SMTP credentials").** Alarme falso. Aponta a linha de `tests/unit/aviso-de-mensagem.test.ts` que confere a porta 587 com usuário que não é e-mail (commit `f773a24`). Servidor, usuário e senha ali foram inventados para o teste; o próprio GitGuardian testou e marcou como inválidos. Não muda código. No painel do GitGuardian, o Álvaro marca o incidente como credencial de teste (Ignore → Test credential).
 - **O repositório no GitHub é público, e o Álvaro decidiu mantê-lo assim (2026-11-11).** Qualquer pessoa lê o código e a pasta `spec/`. Varredura de todo o histórico em 2026-11-11 (19 commits): nenhuma chave, senha ou token de verdade, só os modelos do `.env.example`; nenhum arquivo `.env` versionado; o nome do banco e o e-mail do administrador não aparecem. Por isso, segredo e dado pessoal não entram em `spec/` nem em teste.
 

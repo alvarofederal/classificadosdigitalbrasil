@@ -129,6 +129,18 @@ export function estaNoAr(situacao: Situacao, expiraEm: Date | null, agora: Date)
 }
 
 /**
+ * RN-90: o que dizer ao dono na tela do anúncio que ele acabou de criar.
+ * Enquanto há Pix em aberto, pede o pagamento; depois de pago, confirma. Nunca pede Pix de anúncio que já está no ar.
+ */
+export type AvisoDoRecemCriado = "PAGAR" | "NO_AR" | null
+
+export function avisoDoRecemCriado(recemCriado: boolean, situacao: SituacaoExibida, temCobrancaAberta: boolean): AvisoDoRecemCriado {
+  if (!recemCriado) return null
+  if (situacao === "NO_AR") return "NO_AR"
+  return situacao === "AGUARDANDO_PAGAMENTO" && temCobrancaAberta ? "PAGAR" : null
+}
+
+/**
  * RN-12: pagar de novo soma dias. Se ainda está no ar, os dias entram depois do fim atual;
  * se já expirou (ou nunca foi ao ar), contam a partir de agora.
  */

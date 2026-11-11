@@ -35,7 +35,7 @@ Migração aplicada e 4 planos criados no deploy; 19 anúncios no ar em Brasíli
 ## Roteiro manual pendente
 
 1. Criar conta de anunciante (outro e-mail) → Novo anúncio → escolher plano e período → Pix.
-2. Com o Mercado Pago ligado: pagar R$ 1,00 e ver a tela confirmar sozinha.
+2. Com o Mercado Pago ligado: pagar R$ 1,00 e ver a tela confirmar sozinha. **Feito em 2026-11-11**, com R$ 10,00: pago e confirmado em seis minutos, anúncio no ar. Achou o defeito do aviso depois do pagamento (T-87).
 3. Painel → Chamados: enviar um contato pela capa e resolver.
 4. "Anúncios perto de mim" no celular (permitir a localização).
 5. Prévia do link do anúncio colado no WhatsApp.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   ESTILO_PADRAO,
   type ConteudoDoAnuncio,
+  avisoDoRecemCriado,
   codigoValido,
   normalizarConteudo,
   novaExpiracao,
@@ -100,6 +101,21 @@ describe("Anúncio (RN-10 a RN-13)", () => {
     expect(situacaoExibida("PUBLICADO", new Date(agora.getTime() - 1), agora)).toBe("EXPIRADO")
     expect(situacaoExibida("AGUARDANDO_PAGAMENTO", null, agora)).toBe("AGUARDANDO_PAGAMENTO")
     expect(situacaoExibida("REMOVIDO", new Date(agora.getTime() + DIA), agora)).toBe("REMOVIDO")
+  })
+
+  it("RN-90: o aviso do anúncio recém-criado pede o Pix só enquanto ele está em aberto", () => {
+    // Acabou de criar, Pix em aberto: pede o pagamento.
+    expect(avisoDoRecemCriado(true, "AGUARDANDO_PAGAMENTO", true)).toBe("PAGAR")
+    // Pagou e a tela atualizou sozinha, com o mesmo endereço: confirma, não pede Pix de novo.
+    expect(avisoDoRecemCriado(true, "NO_AR", false)).toBe("NO_AR")
+    expect(avisoDoRecemCriado(true, "NO_AR", true)).toBe("NO_AR")
+    // Sem cobrança em aberto não há "Pix abaixo" para pagar.
+    expect(avisoDoRecemCriado(true, "AGUARDANDO_PAGAMENTO", false)).toBeNull()
+    expect(avisoDoRecemCriado(true, "EXPIRADO", false)).toBeNull()
+    expect(avisoDoRecemCriado(true, "REMOVIDO", false)).toBeNull()
+    // Fora da criação, a tela não mostra aviso nenhum.
+    expect(avisoDoRecemCriado(false, "AGUARDANDO_PAGAMENTO", true)).toBeNull()
+    expect(avisoDoRecemCriado(false, "NO_AR", false)).toBeNull()
   })
 
   it("RN-12: pagar de novo soma dias ao que resta; expirado conta de agora", () => {

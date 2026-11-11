@@ -24,6 +24,7 @@
 | RN-87 | Cobrança do gateway cancelada aqui (troca de plano ou período, Pix vencido, anúncio removido, cortesia) é cancelada também no Mercado Pago, para o Pix antigo deixar de ser pagável. Se o Mercado Pago não responder, o cancelamento daqui segue e o caso fica no log. |
 | RN-88 | Se o Mercado Pago responde que o Pix já foi pago, a cobrança não é cancelada: a troca de plano e a cortesia são recusadas com "este Pix já foi pago" e a confirmação segue o caminho normal. A remoção do anúncio segue, com registro no log. |
 | RN-89 | Pix aprovado numa cobrança que já estava cancelada aqui não publica nada e fica registrado como `PAGO_APOS_CANCELAMENTO`, para o admin devolver o valor ou publicar por cortesia. |
+| RN-90 | O aviso da tela do anúncio recém-criado acompanha o pagamento: com o Pix em aberto, pede o pagamento; depois de pago, diz "Pagamento confirmado" e até quando o anúncio fica no caderno (ou "publicado como cortesia", se foi o caso). A tela nunca pede Pix de anúncio que já está no ar. |
 
 ## Plano (ADR-12 e ADR-14)
 
@@ -56,9 +57,10 @@ O botão "Simular notificação" do Mercado Pago manda uma ordem inexistente; o 
 - [x] T-81 Webhook com assinatura e caso de uso idempotente
 - [x] T-82 Acompanhamento automático na tela de pagamento
 - [x] T-83 Cortesia no painel
-- [ ] T-84 Cadastrar as credenciais na Vercel e fazer um Pix real de R$ 1,00 (depende do Álvaro). Credenciais na Vercel: feito, conferido em 2026-11-10. Faltam conferir o painel (passo 6) e o Pix real (passo 7)
+- [x] T-84 Cadastrar as credenciais na Vercel e fazer um Pix real de R$ 1,00 (depende do Álvaro). Credenciais na Vercel: feito, conferido em 2026-11-10. **Pix real feito em 2026-11-11**, de R$ 10,00 (plano Com foto, 7 dias), no anúncio do Astra: cobrança `X33MFGE43S` gerada às 14:20, paga pelo Álvaro e confirmada às 14:26, com o anúncio no ar sem ninguém intervir. O passo 6 (conferir o painel) não foi relatado
 - [x] T-85 Adaptador e webhook na API de Orders (ADR-14; RN-84 a RN-86)
 - [x] T-86 Cancelar a ordem no Mercado Pago quando a cobrança é cancelada aqui (RN-87 a RN-89; `tests/unit/pix-cancelamento.test.ts`). Antes o Pix antigo continuava pagável por até 24 horas e, se fosse pago, o dinheiro entrava e o anúncio não publicava. Feito em 2026-11-10, sem chamada real ao Mercado Pago: confere no passo 8
+- [x] T-87 Aviso do anúncio recém-criado depois do pagamento (RN-90; `tests/unit/dominio.test.ts`). Defeito achado no Pix real de 2026-11-11: o pagamento era confirmado e o anúncio entrava no ar, mas a tela, ao atualizar sozinha, perdia o "Pagamento confirmado" e continuava mostrando "Anúncio salvo. Pague o Pix abaixo…", sem Pix nenhum abaixo. O aviso dependia só do endereço (`?novo=1`) e não da situação. Corrigido no mesmo dia
 
 ## Onde parou (2026-11-10)
 
@@ -70,3 +72,11 @@ O botão "Simular notificação" do Mercado Pago manda uma ordem inexistente; o 
 - **Passo 7**: o Pix real de R$ 1,00, com uma conta de anunciante de e-mail diferente do da conta Mercado Pago.
 
 O T-86 (cancelar a ordem no Mercado Pago) está em produção desde 2026-11-11. O passo 8 confere com o Mercado Pago de verdade.
+
+## Pix real (2026-11-11)
+
+**Passo 7 feito, e o Pix automático funciona de ponta a ponta.** Anúncio do Astra do Álvaro (código `4DPUMX`), plano Com foto por 7 dias: o Mercado Pago gerou a cobrança `X33MFGE43S` de R$ 10,00 às 14:20, o Álvaro pagou e a confirmação entrou às 14:26, com o anúncio no ar até 18/11. Ninguém confirmou à mão.
+
+- O defeito que o Álvaro lembrava apareceu aqui: não era o pagamento, era o aviso da tela depois dele (T-87, RN-90). Dava a impressão de que o anúncio tinha entrado sem pagar, ou de que o Pix não tinha sido reconhecido.
+- **Não se sabe** se a confirmação veio pelo webhook ou pela consulta de reserva da tela (a cada 5 segundos); os dois caminhos levam ao mesmo resultado. Dá para ver no log da Vercel.
+- **Falta**: o passo 6 (conferir os itens em Painel → Configurações) e o passo 8 (cancelamento, T-86).

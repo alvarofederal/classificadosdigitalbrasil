@@ -25,13 +25,13 @@ Em 2026-11-11 o Álvaro lembrou que já usa o **Resend** nos outros sistemas. O 
 
 O Pix real de R$ 1,00 nunca foi concluído. O Álvaro lembra de um defeito, e **o relato exato não está registrado** em nenhuma spec; a conversa onde isso foi dito se perdeu. Por isso o primeiro item é registrar o erro.
 
-- [ ] **2.1** (Álvaro) Repetir a tentativa e anotar o que acontece: em que tela, o texto exato do erro (ou um print) e se o Pix chegou a ser gerado. Passar ao Claude. *2026-11-11, 14:20: na tentativa com o anúncio do Astra o Pix foi gerado sem erro (ver 2.5). Falta pagar para saber se o defeito aparece na confirmação.*
+- [x] **2.1** (Álvaro) Repetir a tentativa e anotar o que acontece: em que tela, o texto exato do erro (ou um print) e se o Pix chegou a ser gerado. Passar ao Claude. *2026-11-11, 14:20: na tentativa com o anúncio do Astra o Pix foi gerado sem erro (ver 2.5). Falta pagar para saber se o defeito aparece na confirmação.* *14:26: pago e confirmado. O defeito apareceu depois da confirmação: a tela continuava dizendo "Anúncio salvo. Pague o Pix abaixo…" com o anúncio já no ar (relato do Álvaro, conferido na tela).*
 - [ ] **2.2** (Álvaro) Painel → Configurações (passo 6 da spec 006): conferir "Conta conectada", "Credencial de produção", "Assinatura secreta" e "Endereço do aviso". É ali que se vê se o token é de produção (`APP_USR-`) ou de teste (`TEST-`).
 - [ ] **2.3** (Álvaro) Conferir no Mercado Pago: a conta tem uma **chave Pix** cadastrada no app (Seu perfil → Pix → Minhas chaves) e o webhook de produção aponta para `https://classificadosdigitalbrasil.vercel.app/api/pagamentos/mercadopago` com o evento *Order (Mercado Pago)*.
 - [x] **2.4** (Álvaro) Entrar com uma conta de anunciante de **e-mail diferente** do e-mail da conta Mercado Pago. O Mercado Pago recusa cobrança em que quem paga e quem recebe são a mesma pessoa. *2026-11-11: ele entrou com o perfil de anunciante que indicou, e o Mercado Pago gerou a cobrança sem recusa. Ele não disse se o e-mail é diferente do da conta Mercado Pago.*
 - [x] **2.5** (Álvaro) Criar um anúncio Simples de 7 dias (R$ 1,00) e ver a tela gerar o QR Code e o "copia e cola". *2026-11-11: o teste passa a ser com o anúncio do Astra (item 3.4), no plano Com foto de 7 dias, R$ 10,00. Às 14:20 o Claude preencheu e salvou o anúncio no perfil do Álvaro, a pedido dele: a tela mostrou o QR Code e o "copia e cola" da cobrança `X33MFGE43S`, válida até 12/11 às 14:20. O código traz o identificador do Mercado Pago, ou seja, veio do gateway e não do Pix fixo.*
-- [ ] **2.6** (Álvaro) Pagar o Pix pelo app de **outro banco** e ver a tela mostrar "Pagamento confirmado" sozinha (consulta a cada 5 segundos) e o anúncio entrar no ar.
-- [ ] **2.7** (Claude) Se alguma etapa falhar: ler o log do erro na Vercel e a resposta do Mercado Pago, achar a causa e corrigir no código, com teste e spec.
+- [x] **2.6** (Álvaro) Pagar o Pix pelo app de **outro banco** e ver a tela mostrar "Pagamento confirmado" sozinha (consulta a cada 5 segundos) e o anúncio entrar no ar. *2026-11-11: pago, confirmado às 14:26, anúncio do Astra no ar até 18/11. Ele não disse de qual banco pagou.*
+- [x] **2.7** (Claude) Se alguma etapa falhar: ler o log do erro na Vercel e a resposta do Mercado Pago, achar a causa e corrigir no código, com teste e spec. *2026-11-11: o pagamento não falhou; o que estava errado era o aviso da tela depois dele. Corrigido no código com teste (T-87, RN-90).*
 - [ ] **2.8** (Álvaro, com o Claude) Conferir o cancelamento (passo 8 da spec 006, T-86): gerar um Pix, trocar de plano antes de pagar e ver, no Mercado Pago, a ordem antiga cancelada.
 - [ ] **2.9** (Claude) Marcar T-84, T-14 e o passo 8 como feitos em `features/006-pix-automatico/spec.md` e em `05-tasks.md`.
 
@@ -53,6 +53,7 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
   - Câmbio manual confirmado pelo Álvaro em 2026-11-11. As 19 fotos dele foram vistas no mesmo dia e as seis do anúncio estão escolhidas (lista no arquivo do anúncio); o dano da porta é um amassado. As cópias das fotos, com a placa coberta, estão prontas na subpasta `PARA ANUNCIO`. O para-brisa não está trincado, confirmado por ele. Textos e fotos fechados.
   - Em 2026-11-11 o Álvaro avisou que não vai publicar na OLX: o plano gratuito dele chegou ao limite de anúncios. O texto da OLX fica guardado, sem uso. O anúncio sai só no Classificados Digitais, pelo perfil de anunciante que ele indicou.
   - **Criado em 2026-11-11, às 14:20, código `4DPUMX`**, situação *Aguardando pagamento*. O Álvaro entrou com a senha dele e o Claude preencheu o formulário: seção, cidade, título, texto, preço, fio duplo, tarja preta, à esquerda, sem estrelas, plano Com foto por 7 dias. Falta o Álvaro subir as fotos 01 a 06 e pagar o Pix de R$ 10,00.
+  - **No ar desde 2026-11-11, às 14:26**, até 18/11, com o Pix pago. Ainda sem fotos: falta o Álvaro subir as seis.
 
 ---
 

@@ -4,7 +4,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Faixa } from "@/components/jornal/pecas"
-import { MAXIMO_FOTOS, situacaoExibida } from "@/domain/anuncio/anuncio"
+import { MAXIMO_FOTOS, avisoDoRecemCriado, situacaoExibida } from "@/domain/anuncio/anuncio"
 import { SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDataHora, formatarDia, formatarReais, plural, reaisParaCampo } from "@/lib/formatadores"
@@ -41,7 +41,10 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
   // A seção atual continua na lista mesmo se o admin a desativou depois.
   const opcoes = categorias.some((cat) => cat.id === anuncio.categoriaId) ? categorias : [{ id: anuncio.categoriaId, nome: anuncio.categoriaNome }, ...categorias]
   if (anuncio.mensagensNaoLidas > 0) await c.marcarMensagensLidas.executar({ usuarioId: usuario.id, perfil: usuario.perfil }, anuncio.id)
-  const recemCriado = (await searchParams).novo === "1"
+  // RN-90: o aviso de quem acabou de criar acompanha o pagamento; depois de pago, não pede o Pix de novo.
+  const aviso = avisoDoRecemCriado((await searchParams).novo === "1", situacao, cobranca !== null)
+  const ultimoConfirmado = anuncio.pagamentos.filter((p) => p.confirmadoEm).sort((a, b) => (b.confirmadoEm?.getTime() ?? 0) - (a.confirmadoEm?.getTime() ?? 0))[0]
+  const faltamFotos = maximoDeFotos > 0 && anuncio.fotos.length === 0
 
   return (
     <div className="flex flex-col gap-6">
@@ -75,9 +78,15 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
         </div>
       </div>
 
-      {recemCriado && (
+      {aviso === "PAGAR" && (
         <p className="border-2 border-sucesso bg-sucesso/10 px-3 py-2">
           Anúncio salvo. Pague o Pix abaixo para ele entrar no caderno. Enquanto isso, você já pode subir as fotos do álbum.
+        </p>
+      )}
+      {aviso === "NO_AR" && (
+        <p role="status" className="border-2 border-sucesso bg-sucesso/10 px-3 py-2">
+          {ultimoConfirmado?.gateway === "CORTESIA" ? "Anúncio publicado como cortesia." : "Pagamento confirmado."} O anúncio está no caderno até {formatarDia(anuncio.expiraEm)}.
+          {faltamFotos && " Falta subir as fotos do álbum, mais abaixo."}
         </p>
       )}
 

@@ -87,6 +87,7 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-87 | Cobrança do gateway cancelada aqui (troca de plano ou período, Pix vencido, anúncio removido, cortesia) é cancelada também no Mercado Pago. Falha do gateway não impede o cancelamento daqui. |
 | RN-88 | Se o Pix já foi pago, a cobrança não é cancelada: troca de plano e cortesia são recusadas e a confirmação segue o caminho normal. |
 | RN-89 | Pix aprovado em cobrança já cancelada aqui não publica nada e fica registrado como `PAGO_APOS_CANCELAMENTO` para o admin resolver. |
+| RN-90 | O aviso da tela do anúncio recém-criado acompanha o pagamento: com o Pix em aberto, pede o pagamento; depois de pago, diz que o pagamento foi confirmado e até quando o anúncio fica no caderno. A tela nunca pede Pix de anúncio que já está no ar. |
 | RN-100 | O aviso por e-mail nunca impede a mensagem: falha no envio vai para o log e a mensagem continua gravada. |
 | RN-101 | No máximo 10 avisos por anúncio em 24 horas, contados pelas mensagens recebidas; o décimo diz que as próximas ficam só em Minha conta. |
 | RN-102 | O aviso vai só para o e-mail da conta do dono e não leva CPF nem celular dele. |
