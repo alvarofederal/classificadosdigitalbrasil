@@ -15,7 +15,7 @@ Carro que o Álvaro vai vender de verdade. Pedido em 2026-11-11; dados do carro 
 
 - ~~Câmbio manual.~~ Confirmado pelo Álvaro em 2026-11-11.
 - ~~Dano da porta.~~ As fotos mostram um amassado com riscos na parte de baixo da porta traseira direita; os textos passam a dizer "pequeno amassado".
-- **Para-brisa.** Na foto `161103` parece haver uma trinca no lado do passageiro. Se for, entra no anúncio como reparo a fazer.
+- ~~Para-brisa.~~ Na foto `161103` parecia haver uma trinca no lado do passageiro. O Álvaro confirmou em 2026-11-11 que o para-brisa não está trincado; não entra no anúncio.
 - Não informados, e por isso fora dos textos: número de donos, final de placa, se aceita proposta ou troca, manual e chave reserva.
 - ~~Placa.~~ O Álvaro decidiu cobrir (2026-11-11). Ela aparecia em quatro das fotos escolhidas (`160830`, `160844`, `160902`, `160915`); as cópias para o anúncio saíram com ela coberta.
 
