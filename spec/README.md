@@ -29,6 +29,7 @@ A memória do projeto é esta pasta, não a conversa (Art. 7 da constituição).
 | `05-tasks.md` | Quadro geral: o que foi feito, o que está pendente e onde o trabalho parou |
 | `06-test-plan.md` | Testes automáticos, roteiro manual e teste de carga |
 | `07-insights.md` | Decisões de produto, ideia original e próximos passos |
+| `08-lancamento.md` | Checklist para liberar o site: aviso por e-mail, Pix real e o que vem depois |
 
 ## Funcionalidades
 

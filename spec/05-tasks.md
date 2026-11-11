@@ -55,7 +55,8 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 - Não conferido em produção: as áreas com login (Minha conta e Painel, inclusive a seção nova do aviso por e-mail), o envio de formulários, o Pix real e o e-mail.
 - As funções do servidor passaram de 10,8 MB para 31,75 MB com o `next` 16.4.5. Está dentro do limite da Vercel; a primeira abertura depois de um tempo parado pode ficar um pouco mais lenta. Reduzir isso entra na tarefa do aviso do Turbopack (cliente do Prisma gerado em `src/generated/prisma`).
 - O branch `teste-next-16-4-5` no GitHub foi criado só para o preview e pode ser apagado.
-- Pendências que dependem do Álvaro: verificar a propriedade no Google Search Console e enviar o `sitemap.xml`; T-125 (variáveis `SMTP_*` e e-mail de teste); T-84 e T-14 (conferir o painel e fazer o Pix real de R$ 1,00); fotos do Gol (007).
+- Pendências que dependem do Álvaro: verificar a propriedade no Google Search Console e enviar o `sitemap.xml`; T-125 (variáveis `SMTP_*` e e-mail de teste); T-84 e T-14 (conferir o painel e fazer o Pix real de R$ 1,00); fotos do Gol (007). A ordem e os passos de cada uma estão em `08-lancamento.md`, com caixas para marcar.
+- O Álvaro lembra de um defeito no Pix ("não funcionava"), mas o relato exato não está registrado em lugar nenhum. O item 2.1 do `08-lancamento.md` serve para registrá-lo.
 
 **Situação em 2026-11-10**
 
