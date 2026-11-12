@@ -69,6 +69,10 @@ Pista nova sobre a causa: o arquivo `.last-cleanup` do Claude Code (marca a últ
 
 Teste da suspeita, com o OK do Álvaro (2026-11-12, por volta das 11:35): `cleanupPeriodDays` passou a 36500 dias no `settings.json` do usuário, ou seja, a limpeza automática não deve apagar mais nenhuma conversa. Vale para as sessões que começarem depois da mudança; as que já estavam abertas podem ter lido o valor antigo. Se uma conversa sumir de novo com esse valor, a limpeza por prazo deixa de ser a explicação.
 
+**Sumiu de novo em 2026-11-12, à tarde.** O arquivo da conversa `a669179a` sumiu entre 16:10 e 16:23, logo depois da mensagem do Álvaro das 16:17 (a da feature 013). A sessão ficou parada de 13:25 a 16:17, então o backup guarda a conversa até 13:24. Do trecho de 16:17 a 16:52 ficaram os commits `5eabd78` e `1321d55` e esta spec. Às 17:12 o app reabriu a sessão em branco, com o id `6678b755`.
+
+Resultado do teste: a limpeza automática **não** foi. O `.last-cleanup` continuou em 11:34, e a limpeza só roda uma vez a cada 24 horas. Também descartados: o antivírus (o Defender não registrou nada) e a rotina do app que apaga conversas liberadas (ela escreve "transcript removed" no log e apaga a pasta de mesmo nome junto; o log não tem nada e as pastas ficaram). O que se sabe: as quatro perdas desde 11/11 são todas desta sessão do app (`local_69abe7ba`, "Classificados Digital"), e as outras 37 conversas do computador estão intactas. Nas quatro, o arquivo sumiu com a sessão trabalhando, e ela continuou trabalhando sem o arquivo voltar. Em 09/11 o app registrou "EPERM ao abrir 66ff6207.jsonl", o erro do Windows para arquivo apagado enquanto ainda estava aberto. Quem apaga continua sem prova.
+
 **Situação em 2026-11-11**
 
 - Publicado: os commits `f773a24` (aviso de mensagem por e-mail e T-86) e `adfcbf6` (`next` 16.4.5, `zod` 4.6.7 e arquivo de verificação do Google) estão no `main`, no GitHub e em produção (deploy de 2026-11-11, 00:57). O build de produção não achou migration pendente.
