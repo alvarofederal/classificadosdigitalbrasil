@@ -52,7 +52,8 @@ export interface AnuncioRepository {
   existeCodigo(codigo: string): Promise<boolean>
   inserir(anuncio: Omit<AnuncioRegistro, "id">): Promise<string>
   atualizar(anuncio: AnuncioRegistro): Promise<void>
-  /** RF-75: soma uma visita, sem guardar nada de quem visitou. */
+  buscarPorCodigo(codigo: string): Promise<AnuncioRegistro | null>
+  /** RF-75: soma uma visita ao total do anúncio (feature 013: só a visita que conta, RN-130). */
   somarVisita(codigo: string): Promise<void>
 }
 

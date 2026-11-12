@@ -26,6 +26,8 @@ import type {
 } from "@/application/ports/caderno"
 import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import type { GeradorDeCodigo, Relogio, SegundoPlano } from "@/application/ports/sistema"
+import type { AnonimizadorDeVisitante, RegistroDaVisita, VisitaDaPessoa, VisitasQuery, VisitasRepository } from "@/application/ports/visitas"
+import type { Dia, LocalDaVisita, VisitasDoDia } from "@/domain/anuncio/visitas"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
 import { PLANOS_INICIAIS, type Plano } from "@/domain/plano/plano"
@@ -114,6 +116,9 @@ export class AnunciosEmMemoria implements AnuncioRepository {
   }
   async atualizar(a: AnuncioRegistro) {
     this.itens.set(a.id, a)
+  }
+  async buscarPorCodigo(codigo: string) {
+    return [...this.itens.values()].find((a) => a.codigo === codigo) ?? null
   }
   async somarVisita(codigo: string) {
     this.visitas.set(codigo, (this.visitas.get(codigo) ?? 0) + 1)
@@ -422,5 +427,65 @@ export function caderno({ comGateway = false } = {}) {
     correio,
     segundoPlano,
     depsDePagamento: { pagamentos, planos, codigos, relogio, gateway },
+  }
+}
+
+// ── Visitas (feature 013) ──
+
+/** Guarda a chave crua para os testes poderem conferir o que entrou; a de verdade é um HMAC (RN-131). */
+export class AnonimizadorFalso implements AnonimizadorDeVisitante {
+  constructor(public ligado = true) {}
+  chave(anuncioId: string, ipNormalizado: string, navegador: string) {
+    return this.ligado ? `${anuncioId}|${ipNormalizado}|${navegador}` : null
+  }
+}
+
+/** Uma linha por anúncio, dia e pessoa, como a tabela visitas_anuncio. */
+export class VisitasEmMemoria implements VisitasRepository, VisitasQuery {
+  linhas: Array<VisitaDaPessoa & { vezes: number }> = []
+
+  async registrar(visita: VisitaDaPessoa, limitePorDia: number): Promise<RegistroDaVisita> {
+    const linha = this.linhas.find((l) => l.anuncioId === visita.anuncioId && l.dia === visita.dia && l.chave === visita.chave)
+    if (!linha) {
+      this.linhas.push({ ...visita, vezes: 1 })
+      return "NOVA"
+    }
+    if (linha.vezes >= limitePorDia) return "NO_LIMITE"
+    linha.vezes++
+    return "REPETIDA"
+  }
+
+  async porDia(anuncioIds: string[], desde: Dia) {
+    const resultado = new Map<string, VisitasDoDia[]>()
+    for (const l of this.linhas.filter((l) => anuncioIds.includes(l.anuncioId) && l.dia >= desde)) {
+      const dias = resultado.get(l.anuncioId) ?? []
+      const dia = dias.find((d) => d.dia === l.dia)
+      if (dia) {
+        dia.visitas += l.vezes
+        dia.pessoas++
+      } else dias.push({ dia: l.dia, visitas: l.vezes, pessoas: 1 })
+      resultado.set(l.anuncioId, dias)
+    }
+    return resultado
+  }
+
+  async pessoas(anuncioIds: string[]) {
+    const resultado = new Map<string, number>()
+    for (const id of anuncioIds) {
+      const chaves = new Set(this.linhas.filter((l) => l.anuncioId === id).map((l) => l.chave))
+      if (chaves.size > 0) resultado.set(id, chaves.size)
+    }
+    return resultado
+  }
+
+  async cidades(anuncioId: string) {
+    const porLocal = new Map<string, LocalDaVisita & { chaves: Set<string> }>()
+    for (const l of this.linhas.filter((l) => l.anuncioId === anuncioId)) {
+      const nome = [l.local.cidade, l.local.uf, l.local.pais].join("|")
+      const item = porLocal.get(nome) ?? { ...l.local, chaves: new Set<string>() }
+      item.chaves.add(l.chave)
+      porLocal.set(nome, item)
+    }
+    return [...porLocal.values()].map(({ chaves, ...local }) => ({ ...local, pessoas: chaves.size }))
   }
 }

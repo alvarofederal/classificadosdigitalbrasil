@@ -15,6 +15,7 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `planos` | Planos (feature 003) | codigo (SIMPLES, FOTOS, DESTAQUE, VITRINE), nome, descricao, maxFotos, ativo |
 | `precos` | Preço por plano e período (feature 009) | planoCodigo + dias (7, 10, 15, 20, 30) como chave, valor |
 | `chamados` | Contato com o admin (feature 004) | protocolo (8, único), nome, email, telefone, assunto, mensagem, anuncioCodigo, situacao (ABERTO, RESOLVIDO), notaInterna, resolvidoEm |
+| `visitas_anuncio` | Visitas do anúncio (feature 013, ADR-18) | anuncioId + dia (DATE, Brasília) + chave (HMAC, sem IP) como chave primária, vezes (até 20), cidade, uf, pais |
 | `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
 
 `anuncios` ganhou na migração `20261109000000_planos_chamados_gateway`: `planoCodigo`, `prioridade` (0 a 3, RN-50) e `visualizacoes` (RF-75). `configuracoes` perdeu `valorAnuncio` e `diasDePublicacao` (viraram a tabela `planos`).
@@ -26,6 +27,7 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 - `pagamentos (anuncioId, situacao)`: cobrança pendente do anúncio.
 - `anuncios (planoCodigo, situacao, expiraEm)`: vitrine da capa.
 - `pagamentos (gatewayId)`: aviso do gateway.
+- `visitas_anuncio (anuncioId, dia, chave)`: a chave primária serve à soma do dia, à série por dia e às pessoas por anúncio.
 
 ## Situação do anúncio
 

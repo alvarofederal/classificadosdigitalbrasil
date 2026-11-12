@@ -1,9 +1,10 @@
-// APRESENTAÇÃO — um anúncio do anunciante: pagamento, texto e formatação, álbum, mensagens e histórico.
+// APRESENTAÇÃO — um anúncio do anunciante: pagamento, visitas (feature 013), texto e formatação, álbum, mensagens e histórico.
 
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Faixa } from "@/components/jornal/pecas"
+import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, avisoDoRecemCriado, situacaoExibida } from "@/domain/anuncio/anuncio"
 import { SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
@@ -32,10 +33,12 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
   const agora = c.relogio.agora()
   const situacao = situacaoExibida(anuncio.situacao, anuncio.expiraEm, agora)
   const cidade = c.localidades.cidade(anuncio.cidadeCodigo)
-  const [categorias, planos, cobranca] = await Promise.all([
+  const [categorias, planos, cobranca, visitas] = await Promise.all([
     c.classificados.categoriasAtivas(),
     c.classificados.planosAVenda(),
     anuncio.pagamentoPendente ? c.montarCobrancaPix.executar(anuncio.pagamentoPendente) : Promise.resolve(null),
+    // RF-132: só anúncio que já esteve no caderno tem visitas.
+    anuncio.publicadoEm ? c.resumirVisitas.doAnuncio(anuncio) : Promise.resolve(null),
   ])
   const maximoDeFotos = Math.min(MAXIMO_FOTOS, planos.find((p) => p.codigo === anuncio.planoCodigo)?.maxFotos ?? MAXIMO_FOTOS)
   // A seção atual continua na lista mesmo se o admin a desativou depois.
@@ -58,7 +61,11 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
           <span>
             {anuncio.categoriaNome} · {cidade ? `${cidade.nome}/${cidade.uf}` : anuncio.uf} · plano {NOMES_DOS_PLANOS[anuncio.planoCodigo]}
           </span>
-          <span>{plural(anuncio.visualizacoes, "visita", "visitas")} na página do anúncio</span>
+          {visitas && (
+            <a href="#titulo-visitas" className="link">
+              {plural(anuncio.visualizacoes, "visita", "visitas")}
+            </a>
+          )}
           {situacao === "NO_AR" && (
             <>
               <span>
@@ -91,6 +98,8 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
       )}
 
       {cobranca && <CobrancaPixCartao cobranca={cobranca} anuncioId={anuncio.id} />}
+
+      {visitas && <SecaoDeVisitas detalhe={visitas} publicadoEm={anuncio.publicadoEm} deQuem="dono" />}
 
       <details className="border border-fio p-4" open={!cobranca && situacao === "EXPIRADO"}>
         <summary className="cursor-pointer font-titulo font-bold uppercase">

@@ -68,6 +68,15 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-121 | A tarefa do aviso de vencimento roda sozinha pelo agendador da Vercel, às 9h de Brasília, e responde com o resumo da rodada. |
 | RF-122 | Sem servidor de e-mail, o aviso de vencimento não envia nem marca nada. |
 
+### Visitas do anúncio (feature 013)
+
+| ID | Requisito |
+|---|---|
+| RF-130 | A página do anúncio avisa a visita pelo navegador, depois de aberta. Contam visitas (aberturas da página) e pessoas (a mesma conexão com o mesmo aparelho é uma pessoa). |
+| RF-131 | Na lista de Minha conta, cada anúncio mostra o total de visitas, de pessoas, as visitas de hoje e o gráfico dos últimos 7 dias. |
+| RF-132 | Na tela do anúncio em Minha conta: visitas, pessoas, hoje, últimos 7 dias, o gráfico de 30 dias com a tabela por dia e as cidades de onde vêm as pessoas (até 10, e "outras cidades"). |
+| RF-133 | O Painel mostra a mesma seção na tela do anúncio. |
+
 ## Regras de negócio
 
 | ID | Regra |
@@ -113,6 +122,13 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-123 | A rota da tarefa só roda com o segredo do agendador (`CRON_SECRET`); sem a variável, recusa sempre. |
 | RN-124 | No máximo 200 avisos de vencimento por rodada. |
 | RN-125 | A carta do vencimento só leva o primeiro nome do dono e lembra que renovar é sempre pelo site. |
+| RN-130 | Não contam como visita: o dono logado vendo o próprio anúncio, o administrador logado, robôs e prévias de link, aviso vindo de outro site e anúncio fora do ar. |
+| RN-131 | O IP nunca é gravado: a pessoa é uma chave HMAC-SHA-256 do anúncio, do IP (IPv6 pela rede /64) e do navegador, com o segredo `VISITAS_SEGREDO`. A chave muda de um anúncio para outro. |
+| RN-132 | A cidade da visita é a aproximada da conexão, informada pela Vercel; fica gravado só cidade, UF e país, e a tela avisa que é aproximada. |
+| RN-133 | O dia das visitas é o de Brasília. |
+| RN-134 | O navegador avisa no máximo uma visita a cada 30 minutos por anúncio; no servidor, a mesma pessoa soma no máximo 20 visitas por dia em cada anúncio. |
+| RN-135 | Sem o segredo, só o total de visitas é somado, e a tela não mostra pessoas nem cidades. |
+| RN-136 | O total de visitas continua do número que cada anúncio já tinha; pessoas, dias e cidades contam desde 12/11/2026. |
 
 ## Requisitos não funcionais
 

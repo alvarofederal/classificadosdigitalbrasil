@@ -121,15 +121,6 @@ export class RemoverAnuncioUseCase {
   }
 }
 
-/** RF-75: soma uma visita à página do anúncio (sem dados de quem visitou, RN-71). */
-export class RegistrarVisitaUseCase {
-  constructor(private readonly anuncios: AnuncioRepository) {}
-
-  async executar(codigo: string): Promise<void> {
-    await this.anuncios.somarVisita(codigo)
-  }
-}
-
 export class RestaurarAnuncioUseCase {
   constructor(private readonly anuncios: AnuncioRepository) {}
 

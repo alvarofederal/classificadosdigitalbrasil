@@ -41,6 +41,7 @@ Verificado em `tests/unit/arquitetura.test.ts`.
 1. CPF, e-mail e celular do anunciante nunca aparecem no site público.
 2. Senha só como hash bcrypt; sessão só como hash SHA-256 do token.
 3. Quem manda mensagem informa só nome e um contato, que vão apenas ao dono do anúncio.
+4. Visitas: o IP de quem visita nunca é gravado; vira uma chave HMAC por anúncio, e da localização fica só cidade, UF e país aproximados (ADR-18).
 
 ## Art. 6 · Desempenho
 

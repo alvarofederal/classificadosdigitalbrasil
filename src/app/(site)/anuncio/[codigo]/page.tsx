@@ -1,5 +1,6 @@
 // APRESENTAÇÃO — página individual do anúncio para divulgar em qualquer lugar (feature 005: RF-70 a RF-75).
 // Vale para todos os planos: fotos, o anúncio no formato do caderno, caixa de conversa aberta, botões de divulgar e cartaz.
+// A visita é avisada pelo navegador, depois de aberta (feature 013, ADR-18).
 
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -7,6 +8,7 @@ import { AcoesAnuncio, FormularioMensagem } from "@/components/jornal/acoes-anun
 import { CaixaAnuncio } from "@/components/jornal/caixa-anuncio"
 import { Divulgar } from "@/components/jornal/divulgar"
 import { Galeria } from "@/components/jornal/galeria"
+import { AvisoDeVisita } from "@/components/visitas/aviso-de-visita"
 import { codigoValido } from "@/domain/anuncio/anuncio"
 import { planoTemDestaque } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
@@ -65,7 +67,6 @@ export default async function PaginaDoAnuncio({ params }: Props) {
   }
 
   const { anuncio, cidade } = achado
-  await c.registrarVisita.executar(anuncio.codigo)
   const linkCurto = `${urlDoSite()}/a/${anuncio.codigo}`
   // Feature 011 (RF-111, RF-112): o que o Google lê do anúncio. RN-113: texto escapado para não fechar o bloco.
   const jsonLd = jsonLdSeguro(dadosEstruturadosDoAnuncio({ anuncio, cidade, base: urlDoSite() }))
@@ -73,6 +74,7 @@ export default async function PaginaDoAnuncio({ params }: Props) {
   return (
     <div className="grid gap-8 pt-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <AvisoDeVisita codigo={anuncio.codigo} />
       <div className="flex flex-col gap-4">
         <nav className="font-titulo text-xs uppercase tracking-wider" aria-label="Caminho">
           <Link href={caminhoDaSecao(cidade, anuncio.categoriaSlug)} className="hover:underline">

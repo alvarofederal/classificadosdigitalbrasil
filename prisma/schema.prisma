@@ -113,34 +113,35 @@ enum Alinhamento {
 }
 
 model Anuncio {
-  id            String          @id @default(cuid())
-  codigo        String          @unique @db.Char(6) // endereço público /anuncio/<codigo>
-  usuarioId     String
-  categoriaId   String
-  uf            String          @db.Char(2)
-  cidadeCodigo  Int
-  titulo        String          @db.VarChar(40)
-  texto         String          @db.VarChar(400)
-  preco         Decimal?        @db.Decimal(12, 2)
-  moldura       Moldura         @default(SIMPLES)
-  estiloTitulo  EstiloTitulo    @default(NEGRITO)
-  alinhamento   Alinhamento     @default(ESQUERDA)
-  estrelas      Boolean         @default(false)
-  situacao      SituacaoAnuncio @default(AGUARDANDO_PAGAMENTO)
-  planoCodigo   String          @default("SIMPLES") @db.VarChar(20) // plano escolhido / em vigor (feature 003)
-  prioridade    Int             @default(0) // RN-50: definida quando o pagamento é confirmado
-  visualizacoes Int             @default(0) // RF-75, sem dados de quem visitou
-  publicadoEm   DateTime?
-  expiraEm      DateTime?
+  id                    String          @id @default(cuid())
+  codigo                String          @unique @db.Char(6) // endereço público /anuncio/<codigo>
+  usuarioId             String
+  categoriaId           String
+  uf                    String          @db.Char(2)
+  cidadeCodigo          Int
+  titulo                String          @db.VarChar(40)
+  texto                 String          @db.VarChar(400)
+  preco                 Decimal?        @db.Decimal(12, 2)
+  moldura               Moldura         @default(SIMPLES)
+  estiloTitulo          EstiloTitulo    @default(NEGRITO)
+  alinhamento           Alinhamento     @default(ESQUERDA)
+  estrelas              Boolean         @default(false)
+  situacao              SituacaoAnuncio @default(AGUARDANDO_PAGAMENTO)
+  planoCodigo           String          @default("SIMPLES") @db.VarChar(20) // plano escolhido / em vigor (feature 003)
+  prioridade            Int             @default(0) // RN-50: definida quando o pagamento é confirmado
+  visualizacoes         Int             @default(0) // RF-75: total de visitas; por dia, pessoa e cidade em visitas_anuncio (feature 013)
+  publicadoEm           DateTime?
+  expiraEm              DateTime?
   avisoDeVencimentoPara DateTime? // feature 012 (RN-120): o fim de prazo que já teve aviso por e-mail
-  criadoEm      DateTime        @default(now())
-  atualizadoEm  DateTime        @updatedAt
+  criadoEm              DateTime        @default(now())
+  atualizadoEm          DateTime        @updatedAt
 
-  usuario    Usuario       @relation(fields: [usuarioId], references: [id])
-  categoria  Categoria     @relation(fields: [categoriaId], references: [id])
+  usuario    Usuario         @relation(fields: [usuarioId], references: [id])
+  categoria  Categoria       @relation(fields: [categoriaId], references: [id])
   fotos      FotoAnuncio[]
   mensagens  Mensagem[]
   pagamentos Pagamento[]
+  visitas    VisitaAnuncio[]
 
   // RNF-01: a lista pública é sempre de UMA cidade + UMA categoria, só o que está no ar.
   @@index([cidadeCodigo, categoriaId, situacao, expiraEm])
@@ -180,6 +181,23 @@ model Mensagem {
 
   @@index([anuncioId, criadoEm])
   @@map("mensagens")
+}
+
+/// Feature 013 (ADR-18): uma linha por anúncio, dia (de Brasília) e pessoa. Sem IP: a pessoa é um HMAC do anúncio,
+/// do IP e do navegador (RN-131). Cidade, UF e país são os aproximados da conexão (RN-132).
+model VisitaAnuncio {
+  anuncioId String
+  dia       DateTime @db.Date
+  chave     String   @db.Char(64)
+  vezes     Int      @default(1) // RN-134: no máximo 20 por pessoa no dia
+  cidade    String?  @db.VarChar(80)
+  uf        String?  @db.Char(2)
+  pais      String?  @db.Char(2)
+
+  anuncio Anuncio @relation(fields: [anuncioId], references: [id], onDelete: Cascade)
+
+  @@id([anuncioId, dia, chave])
+  @@map("visitas_anuncio")
 }
 
 // ─────────────────────────────────────────

@@ -1,9 +1,10 @@
-// APRESENTAÇÃO — o anúncio pelo admin: editar, fotos, publicar como cortesia, confirmar Pix, mensagens (feature 007: RF-84, RF-93).
+// APRESENTAÇÃO — o anúncio pelo admin: editar, fotos, publicar como cortesia, confirmar Pix, visitas, mensagens (feature 007: RF-84, RF-93; feature 013: RF-133).
 
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Faixa } from "@/components/jornal/pecas"
+import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, situacaoExibida } from "@/domain/anuncio/anuncio"
 import { ORIGENS_DO_PAGAMENTO, SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
@@ -35,7 +36,11 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
   const agora = c.relogio.agora()
   const situacao = situacaoExibida(anuncio.situacao, anuncio.expiraEm, agora)
   const cidade = c.localidades.cidade(anuncio.cidadeCodigo)
-  const [categorias, planos] = await Promise.all([c.classificados.categoriasAtivas(), c.painel.planos()])
+  const [categorias, planos, visitas] = await Promise.all([
+    c.classificados.categoriasAtivas(),
+    c.painel.planos(),
+    anuncio.publicadoEm ? c.resumirVisitas.doAnuncio(anuncio) : Promise.resolve(null),
+  ])
   const opcoes = categorias.some((cat) => cat.id === anuncio.categoriaId) ? categorias : [{ id: anuncio.categoriaId, nome: anuncio.categoriaNome }, ...categorias]
 
   return (
@@ -52,7 +57,11 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
             {anuncio.categoriaNome} · {cidade ? `${cidade.nome}/${cidade.uf}` : anuncio.uf} · plano {NOMES_DOS_PLANOS[anuncio.planoCodigo]}
           </span>
           {situacao === "NO_AR" && <span>no ar até {formatarDia(anuncio.expiraEm)}</span>}
-          <span>{plural(anuncio.visualizacoes, "visita", "visitas")}</span>
+          {visitas && (
+            <a href="#titulo-visitas" className="link">
+              {plural(anuncio.visualizacoes, "visita", "visitas")}
+            </a>
+          )}
           {situacao === "NO_AR" && (
             <Link href={`/anuncio/${anuncio.codigo}`} className="link">
               Ver no site
@@ -87,6 +96,8 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
           )}
         </section>
       </div>
+
+      {visitas && <SecaoDeVisitas detalhe={visitas} publicadoEm={anuncio.publicadoEm} deQuem="admin" />}
 
       <section className="flex flex-col gap-3">
         <h2 className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">Texto e formatação</h2>

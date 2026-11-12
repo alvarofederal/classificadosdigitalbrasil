@@ -41,6 +41,11 @@ export default function Termos() {
         área dele no site e seguem por e-mail para o endereço da conta dele.
       </p>
       <p>
+        Quando alguém abre a página de um anúncio, contamos a visita para o anunciante saber quantas pessoas viram e de que cidades.
+        O endereço IP não é gravado: na hora, ele vira um código cifrado que não permite descobrir o IP nem ligar a visita a outros
+        anúncios. Da localização fica só a cidade, o estado e o país aproximados da conexão. O anunciante vê apenas os totais.
+      </p>
+      <p>
         Registros de acesso são mantidos pelo prazo exigido pelo Marco Civil da Internet. Para corrigir ou excluir seus dados, use a área
         Minha conta ou fale com o administrador do site.
       </p>

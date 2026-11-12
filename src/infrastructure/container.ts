@@ -16,7 +16,6 @@ import {
 import {
   CriarAnuncioUseCase,
   EditarAnuncioUseCase,
-  RegistrarVisitaUseCase,
   RemoverAnuncioUseCase,
   RestaurarAnuncioUseCase,
 } from "@/application/use-cases/anuncios/gerenciar-anuncios"
@@ -28,6 +27,7 @@ import {
 } from "@/application/use-cases/anuncios/gerenciar-fotos"
 import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase, MarcarMensagensLidasUseCase } from "@/application/use-cases/anuncios/mensagens"
 import { AvisarVencimentosUseCase } from "@/application/use-cases/anuncios/vencimento"
+import { RegistrarVisitaUseCase, ResumirVisitasUseCase } from "@/application/use-cases/anuncios/visitas"
 import {
   ConfirmarPagamentoUseCase,
   MontarCobrancaPixUseCase,
@@ -54,6 +54,7 @@ import {
 } from "./prisma/repositorios"
 import { PrismaChamadoRepository, PrismaConfiguracaoRepository, PrismaPagamentoRepository, PrismaPlanoRepository } from "./prisma/repositorios-pagamento"
 import { DepoisDaResposta } from "./segundo-plano"
+import { HmacAnonimizadorDeVisitante, PrismaVisitasQuery, PrismaVisitasRepository } from "./visitas"
 import { BcryptHashDeSenha, CloudinaryFotoStorage, GeradorDeCodigoAleatorio, RelogioDoSistema, TokenDeSessaoAleatorio } from "./servicos"
 
 /** Endereço público para o aviso do gateway (webhook): o domínio de produção informado pela Vercel. */
@@ -100,6 +101,8 @@ function montar() {
   const configuracao = new PrismaConfiguracaoRepository(prisma)
   const chamados = new PrismaChamadoRepository(prisma)
   const depsDePagamento = { pagamentos, planos, codigos, relogio, gateway }
+  // Feature 013 (ADR-18): sem o segredo, só o total de visitas sobe (RN-135).
+  const anonimizador = new HmacAnonimizadorDeVisitante(process.env.VISITAS_SEGREDO)
 
   // Endereços que os e-mails citam (features 010 e 012).
   const enderecos: EnderecosDoSite = {
@@ -142,7 +145,8 @@ function montar() {
     editarAnuncio: new EditarAnuncioUseCase(anuncios, categorias, localidades),
     removerAnuncio: new RemoverAnuncioUseCase(anuncios, pagamentos, gateway),
     restaurarAnuncio: new RestaurarAnuncioUseCase(anuncios),
-    registrarVisita: new RegistrarVisitaUseCase(anuncios),
+    registrarVisita: new RegistrarVisitaUseCase(anuncios, new PrismaVisitasRepository(prisma), anonimizador, relogio),
+    resumirVisitas: new ResumirVisitasUseCase(new PrismaVisitasQuery(prisma), anonimizador, relogio),
 
     prepararUpload: new PrepararUploadDeFotosUseCase(anuncios, fotos, storage, planos),
     adicionarFotos: new AdicionarFotosUseCase(anuncios, fotos, storage, planos),

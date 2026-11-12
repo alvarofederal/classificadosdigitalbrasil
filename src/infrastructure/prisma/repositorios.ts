@@ -177,6 +177,11 @@ export class PrismaAnuncioRepository implements AnuncioRepository {
     await this.db.anuncio.update({ where: { id }, data: dadosDoAnuncio(resto) })
   }
 
+  async buscarPorCodigo(codigo: string) {
+    const linha = await this.db.anuncio.findUnique({ where: { codigo } })
+    return linha ? paraAnuncio(linha) : null
+  }
+
   async somarVisita(codigo: string) {
     await this.db.anuncio.updateMany({ where: { codigo }, data: { visualizacoes: { increment: 1 } } })
   }

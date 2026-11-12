@@ -1,10 +1,11 @@
-// APRESENTAÇÃO — lista de anúncios do anunciante (RF-11).
+// APRESENTAÇÃO — lista de anúncios do anunciante (RF-11), com as visitas de cada um (feature 013: RF-131).
 
 import type { Metadata } from "next"
 import { Images, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { CaixaAnuncio } from "@/components/jornal/caixa-anuncio"
 import { Faixa } from "@/components/jornal/pecas"
+import { VisitasNaLista } from "@/components/visitas/visitas"
 import { situacaoExibida } from "@/domain/anuncio/anuncio"
 import { planoTemDestaque } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
@@ -20,6 +21,7 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
   const c = container()
   const agora = c.relogio.agora()
   const anuncios = await c.minhaConta.meusAnuncios(usuario.id)
+  const visitas = await c.resumirVisitas.daLista(anuncios.filter((a) => a.publicadoEm !== null))
   const removido = (await searchParams).removido === "1"
 
   return (
@@ -75,10 +77,8 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
                     <Images className="size-4" aria-hidden />
                     {anuncio.fotos.length}
                   </span>
-                  <span>
-                    {plural(anuncio.visualizacoes, "visita", "visitas")}
-                  </span>
                 </div>
+                {visitas.has(anuncio.id) && <VisitasNaLista resumo={visitas.get(anuncio.id)!} />}
                 <Link href={`/minha-conta/anuncios/${anuncio.id}`} className="botao botao-vazado botao-pequeno self-start">
                   {anuncio.pagamentoPendente ? "Pagar e editar" : situacao === "EXPIRADO" ? "Renovar e editar" : "Abrir"}
                 </Link>

@@ -39,6 +39,7 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 | # | Funcionalidade | Situação |
 |---|---|---|
+| 013 | Visitas do anúncio: por pessoa (sem guardar IP), por dia e por cidade, na lista de Minha conta (total, pessoas, hoje e gráfico de 7 dias) e na tela do anúncio (30 dias e cidades); o Painel mostra o mesmo (RF-130 a RF-133, RN-130 a RN-136; ADR-18) | Feito em 2026-11-12, a pedido do Álvaro ("como a OLX"); 230 testes, typecheck e build passando, telas conferidas num banco local. Falta o segredo `VISITAS_SEGREDO` na Vercel para contar pessoas e cidades |
 | 012 | Aviso de vencimento por e-mail: uma vez por dia, o dono de cada anúncio que sai nas próximas 36 horas recebe o aviso com o botão de renovar (RF-120 a RF-122, RN-120 a RN-125; ADR-17) | Feito em 2026-11-12; 190 testes, typecheck e build passando. Agendador da Vercel às 9h de Brasília. Primeiro aviso de verdade esperado em 17/11 (Astra) |
 | 011 | Anúncios no Google: cada anúncio no ar no `sitemap.xml` e dados estruturados (trilha e produto com preço) na página do anúncio (RF-110 a RF-112, RN-110 a RN-114) | Feito e conferido em produção em 2026-11-12; site cadastrado no Search Console e sitemap enviado pelo Álvaro no mesmo dia (T-144). A indexação pelo Google leva alguns dias |
 | 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção e funcionando desde 2026-11-11. T-125 feita no mesmo dia: chave na Vercel, e-mail de teste, aviso de uma mensagem de verdade e resposta ao aviso conferidos |
@@ -57,7 +58,8 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 - O segredo do agendador (`CRON_SECRET`) existe na Vercel, em Preview e Production, desde cerca de 07/11/2026 (conferido pela lista de variáveis, sem ler o valor). O aviso do Astra não depende de nada do Álvaro.
 - Próximo marco: T-155, o primeiro aviso de verdade, o do Astra, em 17/11/2026 por volta das 9h. Conferir com o Álvaro se chegou.
 - Do lado do Álvaro, combinado na conversa da manhã: cartaz A4 com QR Code no vidro do Astra; link `/a/4DPUMX` no WhatsApp e nos grupos de compra e venda; conversar com o Igor Veículos sobre pôr o estoque da revenda no site (falta saber se ele topa e se a revenda é em Brasília). Abrir o Search Console por volta de 15/11 e ver se o sitemap aparece como "Sucesso".
-- Commits só de specs sem push: `e3c36db` e o deste registro. Vão no próximo push de código.
+- Commits só de specs sem push: `e3c36db`, `377356a` e `2cb08e9`. Vão no próximo push de código.
+- Feature 013 (visitas do anúncio) feita à tarde e commitada sem push. Falta o segredo `VISITAS_SEGREDO` na Vercel (Production e Preview, o mesmo valor, 64 caracteres aleatórios): gravar segredo pela CLI foi barrado pela proteção do Claude Code e depende do Álvaro. Sem ele, o site só soma o total (RN-135). Depois do segredo: push, conferir que a migration `20261112120000_visitas_do_anuncio` rodou no build e que uma visita de verdade aparece com cidade em Minha conta.
 
 **Conversa perdida em 2026-11-12**
 

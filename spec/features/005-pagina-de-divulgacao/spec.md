@@ -25,7 +25,7 @@
 | ID | Regra |
 |---|---|
 | RN-70 | Anúncio fora do ar mostra "Este anúncio saiu do caderno" com o convite para anunciar, em vez de erro. |
-| RN-71 | A contagem de visitas não guarda IP nem nada de quem visitou. |
+| RN-71 | A contagem de visitas não guarda IP nem nada de quem visitou. *Desde a feature 013 (2026-11-12) a visita é avisada pelo navegador e conta pessoas e cidades; o IP continua sem ser gravado (RN-131).* |
 
 ## Plano
 

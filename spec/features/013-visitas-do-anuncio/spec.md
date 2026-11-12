@@ -41,12 +41,12 @@
 
 ## Tarefas
 
-- [ ] T-160 Regras do domínio, com testes (RN-131, RN-132, RN-133, RN-134; `tests/unit/visitas.test.ts`)
-- [ ] T-161 Portas, caso de uso e repositório falso, com testes (RF-130, RN-130, RN-134, RN-135)
-- [ ] T-162 Tabela, migration e repositório no Prisma; consulta das visitas
-- [ ] T-163 Rota `POST /api/visitas` e aviso pelo navegador; tirar a soma da montagem da página
-- [ ] T-164 Lista e tela do anúncio em Minha conta; tela do anúncio no Painel (RF-131, RF-132, RF-133)
-- [ ] T-165 Segredo `VISITAS_SEGREDO` na Vercel, termos, publicar e conferir em produção
+- [x] T-160 Regras do domínio, com testes (RN-131, RN-132, RN-133, RN-134; `tests/unit/visitas.test.ts`)
+- [x] T-161 Portas, caso de uso e repositório falso, com testes (RF-130, RN-130, RN-134, RN-135). *40 testes novos; 230 no total.*
+- [x] T-162 Tabela, migration e repositório no Prisma; consulta das visitas. *Migration e consultas conferidas num banco local (MariaDB do XAMPP, `cdb_local_visitas`).*
+- [x] T-163 Rota `POST /api/visitas` e aviso pelo navegador; tirar a soma da montagem da página. *Conferido no navegador, local: a visita sem login entra (linha do dia, chave cifrada); recarregar não soma; o dono logado não soma. A página do anúncio continua montada a cada acesso no build (ƒ).*
+- [x] T-164 Lista e tela do anúncio em Minha conta; tela do anúncio no Painel (RF-131, RF-132, RF-133). *Lista e tela do anúncio conferidas no navegador, no computador e no tamanho de celular, com visitas de exemplo. O Painel usa a mesma seção; não foi aberto.*
+- [ ] T-165 Segredo `VISITAS_SEGREDO` na Vercel, termos, publicar e conferir em produção. *Termos feitos. Criar o segredo pela CLI foi barrado pela proteção do Claude Code (gravar segredo pede permissão do Álvaro); falta ele criar ou autorizar.*
 
 ## Depois
 
