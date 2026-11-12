@@ -35,7 +35,7 @@
 - [x] T-140 Consulta dos anúncios do sitemap e anúncios no `sitemap.xml` (RF-110, RN-114)
 - [x] T-141 Montagem do JSON-LD com testes (RF-111, RF-112, RN-110 a RN-113; `tests/unit/dados-estruturados.test.ts`)
 - [x] T-142 Bloco JSON-LD na página do anúncio
-- [ ] T-143 Publicar e conferir em produção: sitemap com o Astra e o bloco na página dele
+- [x] T-143 Publicar e conferir em produção: sitemap com o Astra e o bloco na página dele. *2026-11-12: commit `12192c1`, deploy das 08:22. O `sitemap.xml` lista os 21 anúncios no ar, o Astra primeiro; a página do Astra tem a trilha e o produto de R$ 20.000,00 em Brasília/DF, válido até 18/11; o anúncio de Empregos "Contrata-se balconista" tem só a trilha.*
 - [ ] T-144 (Álvaro) Search Console: verificar o site e enviar o `sitemap.xml` (item 3.1 do `08-lancamento.md`)
 
 ## Depois
