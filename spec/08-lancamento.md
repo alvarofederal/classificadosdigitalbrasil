@@ -65,7 +65,7 @@ As ideias abaixo são as da resposta de 2026-11-10 sobre novidades e usuários d
 
 - [ ] **4.1** Bairro em caixa alta abrindo o anúncio (ASA NORTE, TAGUATINGA), com filtro por bairro dentro da seção. Hoje não existe campo de bairro, e no IBGE o DF inteiro é um município só.
 - [ ] **4.2** Linha "Tratar:" com WhatsApp, opcional, dentro do anúncio. É um contato próprio do anúncio, não o celular da conta (Art. 5), e pede ADR.
-- [ ] **4.3** Anúncios no `sitemap.xml`. Hoje entram só as cidades e as seções com anúncio no ar.
+- [x] **4.3** Anúncios no `sitemap.xml`. Hoje entram só as cidades e as seções com anúncio no ar. *2026-11-12: feito na feature 011 (`features/011-google`), a pedido do Álvaro.*
 
 ## Prioridade 5 · Encher Brasília (trabalho do Álvaro, sem código novo)
 
@@ -92,7 +92,7 @@ As ideias abaixo são as da resposta de 2026-11-10 sobre novidades e usuários d
 - [ ] **7.7** Mãozinha apontando (☞).
 - [ ] **7.8** Primeira letra grande.
 - [ ] **7.9** Vinheta da seção (carro, casa, chave).
-- [ ] **7.10** Dados estruturados para o Google. O de vaga pode pôr Empregos na caixa de vagas do Google, se cumprir as exigências deles.
+- [ ] **7.10** Dados estruturados para o Google. O de vaga pode pôr Empregos na caixa de vagas do Google, se cumprir as exigências deles. *2026-11-12: a parte do anúncio foi feita na feature 011 (trilha e produto com preço). Falta a de vaga, que pede a empresa que contrata.*
 
 As peças 7.6 a 7.9 entram como valores de catálogo (Art. 2), na mesma tinta, e podem virar adicional pago depois.
 

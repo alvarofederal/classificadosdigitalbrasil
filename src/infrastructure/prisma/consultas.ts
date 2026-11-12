@@ -175,6 +175,15 @@ export class PrismaClassificadosQuery implements ClassificadosQuery {
       return categoriaSlug ? [{ uf: g.uf, cidadeCodigo: g.cidadeCodigo, categoriaSlug }] : []
     })
   }
+
+  async anunciosNoArDoSitemap(agora: Date, limite: number) {
+    return this.db.anuncio.findMany({
+      where: noAr(agora),
+      select: { codigo: true, publicadoEm: true },
+      orderBy: [{ publicadoEm: "desc" }, { codigo: "asc" }],
+      take: limite,
+    })
+  }
 }
 
 const SELECAO_MEU_ANUNCIO = {

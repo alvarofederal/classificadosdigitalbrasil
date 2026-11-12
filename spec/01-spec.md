@@ -61,6 +61,9 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-104 | Sem servidor de e-mail configurado, a mensagem fica só em Minha conta, como antes. |
 | RF-105 | Minha conta diz em que endereço o dono é avisado. |
 | RF-106 | Com a chave do Resend cadastrada (`RESEND_API_KEY`), o envio sai pelo Resend sem mais nenhuma variável obrigatória. |
+| RF-110 | Todo anúncio no ar entra no `sitemap.xml` com o endereço público e a data de publicação; ao sair do ar, sai do sitemap. |
+| RF-111 | A página do anúncio traz dados estruturados (JSON-LD) com a trilha Início › cidade › seção › anúncio. |
+| RF-112 | Anúncio com preço traz também o produto e a oferta: título, texto, seção, fotos, preço em reais, validade e cidade. |
 
 ## Regras de negócio
 
@@ -96,6 +99,11 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-105 | Todo aviso traz o lembrete: o site não pede pagamento, código nem senha por mensagem. |
 | RN-106 | Servidor de envio: SMTP informado (`SMTP_HOST`, `SMTP_USER` ou `SMTP_PASS`) tem preferência; sem ele, vale o Resend (`RESEND_API_KEY`); sem nenhum, o aviso fica desligado. |
 | RN-107 | No Resend o remetente é `noreply@karollynemorais.com.br`; `EMAIL_FROM` troca o endereço (`endereco@dominio` ou `Nome <endereco@dominio>`), e em formato inválido desliga o aviso. O nome exibido é sempre o do site. |
+| RN-110 | Os dados estruturados só repetem o que a página mostra a qualquer visitante; nunca nome, CPF, e-mail ou celular do dono. |
+| RN-111 | Anúncio sem preço não vira produto nos dados estruturados; fica só a trilha. |
+| RN-112 | Anúncio de Empregos e Formação Profissional não vira produto nos dados estruturados. |
+| RN-113 | O texto do anunciante entra no JSON-LD com `<`, `>` e `&` escapados (`<`, `>`, `&`), para nunca fechar o bloco nem virar código. |
+| RN-114 | O sitemap leva no máximo 40.000 anúncios, os publicados mais recentemente primeiro. |
 
 ## Requisitos não funcionais
 

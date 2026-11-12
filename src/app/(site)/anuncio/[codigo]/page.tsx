@@ -10,6 +10,7 @@ import { Galeria } from "@/components/jornal/galeria"
 import { codigoValido } from "@/domain/anuncio/anuncio"
 import { planoTemDestaque } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
+import { dadosEstruturadosDoAnuncio, jsonLdSeguro } from "@/lib/dados-estruturados"
 import { formatarDia, formatarReais } from "@/lib/formatadores"
 import { precoInicial } from "@/lib/planos"
 import { caminhoDaSecao, urlDoSite } from "@/lib/site"
@@ -66,9 +67,12 @@ export default async function PaginaDoAnuncio({ params }: Props) {
   const { anuncio, cidade } = achado
   await c.registrarVisita.executar(anuncio.codigo)
   const linkCurto = `${urlDoSite()}/a/${anuncio.codigo}`
+  // Feature 011 (RF-111, RF-112): o que o Google lê do anúncio. RN-113: texto escapado para não fechar o bloco.
+  const jsonLd = jsonLdSeguro(dadosEstruturadosDoAnuncio({ anuncio, cidade, base: urlDoSite() }))
 
   return (
     <div className="grid gap-8 pt-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <div className="flex flex-col gap-4">
         <nav className="font-titulo text-xs uppercase tracking-wider" aria-label="Caminho">
           <Link href={caminhoDaSecao(cidade, anuncio.categoriaSlug)} className="hover:underline">

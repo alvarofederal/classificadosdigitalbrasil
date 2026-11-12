@@ -39,6 +39,7 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 | # | Funcionalidade | Situação |
 |---|---|---|
+| 011 | Anúncios no Google: cada anúncio no ar no `sitemap.xml` e dados estruturados (trilha e produto com preço) na página do anúncio (RF-110 a RF-112, RN-110 a RN-114) | Feito em 2026-11-12; 173 testes, typecheck e build passando. Falta o Álvaro cadastrar o site no Search Console (T-144) |
 | 010 | Aviso de mensagem por e-mail: carta com a cara do jornal, resposta direta ou WhatsApp, limite de 10 por anúncio por dia, e-mail de teste no painel | Em produção e funcionando desde 2026-11-11. T-125 feita no mesmo dia: chave na Vercel, e-mail de teste, aviso de uma mensagem de verdade e resposta ao aviso conferidos |
 | 010 | T-126: envio pelo Resend só com a chave (`RESEND_API_KEY`), pelo mesmo correio SMTP (ADR-16; RF-106, RN-106, RN-107) | Em produção desde 2026-11-11 (commit `124ec5f`, deploy das 09:58); e-mail de teste do painel recebido no mesmo dia |
 | 006 | T-87: o aviso do anúncio recém-criado acompanha o pagamento e não pede Pix de anúncio que já está no ar (RN-90) | Feito em 2026-11-11; defeito achado no primeiro Pix real |

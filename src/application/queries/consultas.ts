@@ -48,6 +48,8 @@ export interface ClassificadosQuery {
   vitrine(agora: Date, limite: number): Promise<AnuncioPublicoDTO[]>
   cidadesComAnuncios(agora: Date, limite: number): Promise<Array<{ uf: string; cidadeCodigo: number; total: number }>>
   combinacoesNoAr(agora: Date): Promise<Array<{ uf: string; cidadeCodigo: number; categoriaSlug: string }>>
+  /** Sitemap (RF-110, RN-114): só o código e a data de publicação, os mais recentes primeiro. */
+  anunciosNoArDoSitemap(agora: Date, limite: number): Promise<Array<{ codigo: string; publicadoEm: Date | null }>>
 }
 
 // ── Área do anunciante ──
