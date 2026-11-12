@@ -31,6 +31,23 @@ export async function removerAnuncioAdminAction(anuncioId: string): Promise<Esta
   return deResultado(resultado, "Anúncio removido do caderno.")
 }
 
+/** Feature 014 (RF-141): o admin desativa e ativa como o dono. */
+export async function desativarAnuncioAdminAction(anuncioId: string): Promise<EstadoFormulario> {
+  const admin = await autorizar("ADMIN")
+  if (!admin) return NAO_AUTORIZADO
+  const resultado = await container().ativarOuDesativar.desativar({ usuarioId: admin.id, perfil: "ADMIN" }, anuncioId)
+  if (resultado.ok) revalidatePath("/painel", "layout")
+  return deResultado(resultado, "Anúncio desativado. Ele saiu do caderno.")
+}
+
+export async function ativarAnuncioAdminAction(anuncioId: string): Promise<EstadoFormulario> {
+  const admin = await autorizar("ADMIN")
+  if (!admin) return NAO_AUTORIZADO
+  const resultado = await container().ativarOuDesativar.ativar({ usuarioId: admin.id, perfil: "ADMIN" }, anuncioId)
+  if (resultado.ok) revalidatePath("/painel", "layout")
+  return deResultado(resultado, "Anúncio ativado. Ele voltou ao caderno.")
+}
+
 export async function restaurarAnuncioAction(anuncioId: string): Promise<EstadoFormulario> {
   const admin = await autorizar("ADMIN")
   if (!admin) return NAO_AUTORIZADO

@@ -81,6 +81,29 @@ export async function removerAnuncioAction(anuncioId: string): Promise<EstadoFor
   redirect("/minha-conta?removido=1")
 }
 
+/** Feature 014 (RF-140): tira do caderno por um tempo; o prazo continua correndo (RN-141). */
+export async function desativarAnuncioAction(anuncioId: string): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  const resultado = await container().ativarOuDesativar.desativar(ator(usuario), anuncioId)
+  if (resultado.ok) {
+    revalidatePath("/minha-conta")
+    revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
+  }
+  return deResultado(resultado, "Anúncio desativado. Ele saiu do caderno.")
+}
+
+export async function ativarAnuncioAction(anuncioId: string): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  const resultado = await container().ativarOuDesativar.ativar(ator(usuario), anuncioId)
+  if (resultado.ok) {
+    revalidatePath("/minha-conta")
+    revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
+  }
+  return deResultado(resultado, "Anúncio ativado. Ele voltou ao caderno.")
+}
+
 export async function renovarAnuncioAction(anuncioId: string, formData: FormData): Promise<EstadoFormulario> {
   const usuario = await autorizar("ANUNCIANTE")
   if (!usuario) return NAO_AUTORIZADO

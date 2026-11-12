@@ -16,7 +16,9 @@ import { SeloSituacao } from "../../../minha-conta/_componentes/selo-situacao"
 import { BotaoAcao } from "../../_componentes/botao-acao"
 import {
   adicionarFotosAdminAction,
+  ativarAnuncioAdminAction,
   confirmarPagamentoAction,
+  desativarAnuncioAdminAction,
   editarAnuncioAdminAction,
   prepararUploadAdminAction,
   removerAnuncioAdminAction,
@@ -88,6 +90,18 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
               rotulo={`Confirmar Pix de ${formatarReais(anuncio.pagamentoPendente.valorCentavos)} (${anuncio.pagamentoPendente.codigo})`}
               confirmacao="Confirmar o recebimento deste Pix?"
             />
+          )}
+          {/* Feature 014 (RF-141): o admin desativa e ativa como o dono; o prazo continua correndo. */}
+          {situacao === "NO_AR" && (
+            <BotaoAcao
+              acao={desativarAnuncioAdminAction.bind(null, anuncio.id)}
+              rotulo="Desativar anúncio"
+              confirmacao={`Desativar este anúncio? Ele sai do caderno até ser ativado de novo. O prazo continua correndo até ${formatarDia(anuncio.expiraEm)}.`}
+              vazado
+            />
+          )}
+          {situacao === "DESATIVADO" && (
+            <BotaoAcao acao={ativarAnuncioAdminAction.bind(null, anuncio.id)} rotulo={`Ativar anúncio (prazo até ${formatarDia(anuncio.expiraEm)})`} />
           )}
           {anuncio.situacao === "REMOVIDO" ? (
             <BotaoAcao acao={restaurarAnuncioAction.bind(null, anuncio.id)} rotulo="Restaurar anúncio" vazado />

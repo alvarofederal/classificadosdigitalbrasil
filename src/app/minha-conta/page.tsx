@@ -12,6 +12,7 @@ import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDia, formatarReais, plural } from "@/lib/formatadores"
 import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { exigirPerfil } from "@/lib/sessao"
+import { BotaoAtivarDesativar } from "./_componentes/botoes-anuncio"
 import { SeloSituacao } from "./_componentes/selo-situacao"
 
 export const metadata: Metadata = { title: "Meus anúncios", robots: { index: false } }
@@ -67,6 +68,11 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
                     </span>
                   )}
                   {situacao === "EXPIRADO" && <span>Expirou em {formatarDia(anuncio.expiraEm)}</span>}
+                  {situacao === "DESATIVADO" && (
+                    <span>
+                      Fora do caderno · prazo até {formatarDia(anuncio.expiraEm)} ({plural(diasRestantes(anuncio.expiraEm, agora), "dia", "dias")})
+                    </span>
+                  )}
                   {anuncio.pagamentoPendente && <span className="font-bold">Pix pendente: {formatarReais(anuncio.pagamentoPendente.valorCentavos)}</span>}
                   <span className="inline-flex items-center gap-1">
                     <MessageSquare className="size-4" aria-hidden />
@@ -79,9 +85,14 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
                   </span>
                 </div>
                 {visitas.has(anuncio.id) && <VisitasNaLista resumo={visitas.get(anuncio.id)!} />}
-                <Link href={`/minha-conta/anuncios/${anuncio.id}`} className="botao botao-vazado botao-pequeno self-start">
-                  {anuncio.pagamentoPendente ? "Pagar e editar" : situacao === "EXPIRADO" ? "Renovar e editar" : "Abrir"}
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={`/minha-conta/anuncios/${anuncio.id}`} className="botao botao-vazado botao-pequeno">
+                    {anuncio.pagamentoPendente ? "Pagar e editar" : situacao === "EXPIRADO" ? "Renovar e editar" : "Abrir"}
+                  </Link>
+                  {(situacao === "NO_AR" || situacao === "DESATIVADO") && (
+                    <BotaoAtivarDesativar anuncioId={anuncio.id} desativado={situacao === "DESATIVADO"} ate={formatarDia(anuncio.expiraEm)} />
+                  )}
+                </div>
               </li>
             )
           })}

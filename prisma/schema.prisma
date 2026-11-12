@@ -91,6 +91,7 @@ model Categoria {
 enum SituacaoAnuncio {
   AGUARDANDO_PAGAMENTO
   PUBLICADO
+  DESATIVADO // feature 014: fora do caderno a pedido do dono; o prazo continua correndo (RN-141)
   REMOVIDO
 }
 

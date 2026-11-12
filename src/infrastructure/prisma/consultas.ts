@@ -373,10 +373,13 @@ export class PrismaPainelQuery implements PainelQuery {
       filtro.situacao === "NO_AR"
         ? noAr(agora)
         : filtro.situacao === "EXPIRADO"
-          ? { situacao: "PUBLICADO", expiraEm: { lte: agora } }
-          : filtro.situacao
-            ? { situacao: filtro.situacao }
-            : {}
+          ? // RN-142: o desativado com prazo vencido também é expirado.
+            { situacao: { in: ["PUBLICADO", "DESATIVADO"] }, expiraEm: { lte: agora } }
+          : filtro.situacao === "DESATIVADO"
+            ? { situacao: "DESATIVADO", expiraEm: { gt: agora } }
+            : filtro.situacao
+              ? { situacao: filtro.situacao }
+              : {}
     const criadoEm: Prisma.DateTimeFilter = {}
     if (filtro.dataInicial) criadoEm.gte = inicioDoDia(filtro.dataInicial)
     if (filtro.dataFinal) criadoEm.lt = new Date(inicioDoDia(filtro.dataFinal).getTime() + 86_400_000)

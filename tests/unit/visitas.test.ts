@@ -252,12 +252,13 @@ describe("Contar a visita (RF-130, RN-130, RN-134, RN-135)", () => {
     expect(t.visitas.linhas).toHaveLength(0)
   })
 
-  it("RN-130: anúncio fora do ar, removido, inexistente ou com código inválido não conta", async () => {
+  it("RN-130 e RN-140: anúncio fora do ar, desativado, removido, inexistente ou com código inválido não conta", async () => {
     const t = montar()
     t.anuncio("a3", "VENCEU", { expiraEm: new Date("2026-11-12T12:59:00Z") })
     t.anuncio("a4", "REMVDA", { situacao: "REMOVIDO" })
     t.anuncio("a5", "PAGAR2", { situacao: "AGUARDANDO_PAGAMENTO", expiraEm: null })
-    for (const codigo of ["VENCEU", "REMVDA", "PAGAR2", "ZZZZZZ", "1"]) {
+    t.anuncio("a6", "PAUSAD", { situacao: "DESATIVADO" })
+    for (const codigo of ["VENCEU", "REMVDA", "PAGAR2", "PAUSAD", "ZZZZZZ", "1"]) {
       expect(await t.registrar.executar(visita({ codigo }))).toEqual({ contada: false, motivo: "FORA_DO_AR" })
     }
     expect(t.anuncios.visitas.size).toBe(0)

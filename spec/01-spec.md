@@ -77,6 +77,13 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-132 | Na tela do anúncio em Minha conta: visitas, pessoas, hoje, últimos 7 dias, o gráfico de 30 dias com a tabela por dia e as cidades de onde vêm as pessoas (até 10, e "outras cidades"). |
 | RF-133 | O Painel mostra a mesma seção na tela do anúncio. |
 
+### Ativar e desativar o anúncio (feature 014)
+
+| ID | Requisito |
+|---|---|
+| RF-140 | Na tela do anúncio e na lista de Minha conta, o anúncio no ar tem o botão Desativar anúncio, e o desativado tem o botão Ativar anúncio, que o põe de volta no caderno. |
+| RF-141 | A situação Desativado aparece no selo, em Minha conta e no Painel; o Painel filtra por ela e tem os mesmos botões na tela do anúncio. |
+
 ## Regras de negócio
 
 | ID | Regra |
@@ -129,6 +136,12 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-134 | O navegador avisa no máximo uma visita a cada 30 minutos por anúncio; no servidor, a mesma pessoa soma no máximo 20 visitas por dia em cada anúncio. |
 | RN-135 | Sem o segredo, só o total de visitas é somado, e a tela não mostra pessoas nem cidades. |
 | RN-136 | O total de visitas continua do número que cada anúncio já tinha; pessoas, dias e cidades contam desde 12/11/2026. |
+| RN-140 | Desativado é fora do caderno: não aparece na seção nem no sitemap, a página pública diz que está fora do ar, não recebe mensagem e não conta visita. Texto, fotos, visitas e pagamentos ficam. |
+| RN-141 | O prazo pago continua correndo enquanto o anúncio está desativado; ativar devolve o anúncio ao caderno até a mesma data de antes. |
+| RN-142 | Só se desativa anúncio no ar, e só se ativa desativado com prazo. Desativado com prazo vencido aparece como Expirado e volta pela renovação. |
+| RN-143 | Pagar a renovação (ou a cortesia) de um desativado o põe no ar; os dias somam ao fim atual se ele ainda não passou (RN-12). |
+| RN-144 | Desativado não recebe o e-mail "seu anúncio sai do caderno amanhã". |
+| RN-145 | Dono e administrador desativam e ativam; removido e aguardando o primeiro pagamento, não. |
 
 ## Requisitos não funcionais
 

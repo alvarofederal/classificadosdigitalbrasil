@@ -5,7 +5,10 @@ import {
   avisoDoRecemCriado,
   codigoValido,
   normalizarConteudo,
+  fimQueContaNaRenovacao,
   novaExpiracao,
+  podeAtivar,
+  podeDesativar,
   situacaoExibida,
   validarConteudo,
 } from "@/domain/anuncio/anuncio"
@@ -101,6 +104,39 @@ describe("Anúncio (RN-10 a RN-13)", () => {
     expect(situacaoExibida("PUBLICADO", new Date(agora.getTime() - 1), agora)).toBe("EXPIRADO")
     expect(situacaoExibida("AGUARDANDO_PAGAMENTO", null, agora)).toBe("AGUARDANDO_PAGAMENTO")
     expect(situacaoExibida("REMOVIDO", new Date(agora.getTime() + DIA), agora)).toBe("REMOVIDO")
+  })
+
+  it("RN-141 e RN-142: desativado dentro do prazo é desativado; depois do prazo, expirado", () => {
+    const agora = new Date("2026-11-08T12:00:00Z")
+    const amanha = new Date(agora.getTime() + DIA)
+    const ontem = new Date(agora.getTime() - DIA)
+    expect(situacaoExibida("DESATIVADO", amanha, agora)).toBe("DESATIVADO")
+    expect(situacaoExibida("DESATIVADO", ontem, agora)).toBe("EXPIRADO")
+    // Fora do caderno: não conta como no ar (RN-140).
+    expect(situacaoExibida("DESATIVADO", amanha, agora)).not.toBe("NO_AR")
+  })
+
+  it("RN-142 e RN-145: só desativa o que está no ar e só ativa o desativado com prazo", () => {
+    const agora = new Date("2026-11-08T12:00:00Z")
+    const amanha = new Date(agora.getTime() + DIA)
+    const ontem = new Date(agora.getTime() - DIA)
+    expect(podeDesativar("PUBLICADO", amanha, agora)).toBe(true)
+    expect(podeDesativar("PUBLICADO", ontem, agora)).toBe(false)
+    expect(podeDesativar("DESATIVADO", amanha, agora)).toBe(false)
+    expect(podeDesativar("AGUARDANDO_PAGAMENTO", null, agora)).toBe(false)
+    expect(podeDesativar("REMOVIDO", amanha, agora)).toBe(false)
+    expect(podeAtivar("DESATIVADO", amanha, agora)).toBe(true)
+    expect(podeAtivar("DESATIVADO", ontem, agora)).toBe(false)
+    expect(podeAtivar("PUBLICADO", amanha, agora)).toBe(false)
+    expect(podeAtivar("REMOVIDO", amanha, agora)).toBe(false)
+  })
+
+  it("RN-143: a renovação aproveita o fim atual do publicado e do desativado", () => {
+    const fim = new Date("2026-11-20T12:00:00Z")
+    expect(fimQueContaNaRenovacao("PUBLICADO", fim)).toBe(fim)
+    expect(fimQueContaNaRenovacao("DESATIVADO", fim)).toBe(fim)
+    expect(fimQueContaNaRenovacao("AGUARDANDO_PAGAMENTO", fim)).toBeNull()
+    expect(fimQueContaNaRenovacao("REMOVIDO", fim)).toBeNull()
   })
 
   it("RN-90: o aviso do anúncio recém-criado pede o Pix só enquanto ele está em aberto", () => {

@@ -13,7 +13,7 @@ import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { exigirPerfil } from "@/lib/sessao"
 import { caminhoDaSecao, caminhoDoAnuncio } from "@/lib/site"
 import { AlbumFotos } from "../../_componentes/album-fotos"
-import { BotaoRemover, RenovarComPlano } from "../../_componentes/botoes-anuncio"
+import { BotaoAtivarDesativar, BotaoRemover, RenovarComPlano } from "../../_componentes/botoes-anuncio"
 import { CobrancaPixCartao } from "../../_componentes/cobranca-pix"
 import { EditorAnuncio } from "../../_componentes/editor-anuncio"
 import { SeloSituacao } from "../../_componentes/selo-situacao"
@@ -82,8 +82,24 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
             </>
           )}
           {situacao === "EXPIRADO" && <span>Expirou em {formatarDia(anuncio.expiraEm)}</span>}
+          {situacao === "DESATIVADO" && (
+            <span>
+              Prazo até {formatarDia(anuncio.expiraEm)} ({plural(diasRestantes(anuncio.expiraEm, agora), "dia", "dias")})
+            </span>
+          )}
         </div>
       </div>
+
+      {(situacao === "NO_AR" || situacao === "DESATIVADO") && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border border-fio px-3 py-2 text-sm">
+          <BotaoAtivarDesativar anuncioId={anuncio.id} desativado={situacao === "DESATIVADO"} ate={formatarDia(anuncio.expiraEm)} />
+          <span>
+            {situacao === "DESATIVADO"
+              ? `Fora do caderno: ninguém vê o anúncio nem manda mensagem. Ativando, ele volta até ${formatarDia(anuncio.expiraEm)}.`
+              : "Desativar tira o anúncio do caderno até você ativar de novo. O prazo continua correndo."}
+          </span>
+        </div>
+      )}
 
       {aviso === "PAGAR" && (
         <p className="border-2 border-sucesso bg-sucesso/10 px-3 py-2">
@@ -103,12 +119,14 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
 
       <details className="border border-fio p-4" open={!cobranca && situacao === "EXPIRADO"}>
         <summary className="cursor-pointer font-titulo font-bold uppercase">
-          {cobranca ? "Trocar plano ou período desta cobrança" : situacao === "NO_AR" ? "Mais dias ou outro plano" : "Renovar o anúncio"}
+          {cobranca ? "Trocar plano ou período desta cobrança" : situacao === "NO_AR" || situacao === "DESATIVADO" ? "Mais dias ou outro plano" : "Renovar o anúncio"}
         </summary>
         <p className="my-3 text-sm">
           {situacao === "NO_AR"
             ? "Pagar de novo soma os dias ao que ainda resta. Escolhendo outro plano, ele vale a partir da confirmação."
-            : "Escolha o plano e o período; o anúncio volta ao caderno com o mesmo texto e as mesmas fotos."}
+            : situacao === "DESATIVADO"
+              ? "Pagar de novo soma os dias ao que ainda resta e põe o anúncio de volta no caderno."
+              : "Escolha o plano e o período; o anúncio volta ao caderno com o mesmo texto e as mesmas fotos."}
         </p>
         <RenovarComPlano anuncioId={anuncio.id} planos={planos} planoAtual={anuncio.planoCodigo} rotulo="Gerar o Pix" />
       </details>

@@ -103,15 +103,18 @@ export function validarConteudo(conteudo: ConteudoDoAnuncio): ErrosDeCampo {
 export const SITUACOES = {
   AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
   PUBLICADO: "Publicado",
+  /** Feature 014: o dono tirou do caderno por um tempo; o prazo continua correndo (RN-141). */
+  DESATIVADO: "Desativado",
   REMOVIDO: "Removido",
 } as const
 
 export type Situacao = keyof typeof SITUACOES
 
-/** O que a tela mostra: "publicado" se divide em no ar e expirado pela data (RN-13). */
+/** O que a tela mostra: "publicado" e "desativado" se dividem pela data; depois do prazo, os dois são expirados (RN-13, RN-142). */
 export const SITUACOES_EXIBIDAS = {
   AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
   NO_AR: "No ar",
+  DESATIVADO: "Desativado",
   EXPIRADO: "Expirado",
   REMOVIDO: "Removido",
 } as const
@@ -121,11 +124,28 @@ export type SituacaoExibida = keyof typeof SITUACOES_EXIBIDAS
 export function situacaoExibida(situacao: Situacao, expiraEm: Date | null, agora: Date): SituacaoExibida {
   if (situacao === "REMOVIDO") return "REMOVIDO"
   if (situacao === "AGUARDANDO_PAGAMENTO") return "AGUARDANDO_PAGAMENTO"
-  return expiraEm && expiraEm.getTime() > agora.getTime() ? "NO_AR" : "EXPIRADO"
+  const noPrazo = expiraEm !== null && expiraEm.getTime() > agora.getTime()
+  if (!noPrazo) return "EXPIRADO"
+  return situacao === "DESATIVADO" ? "DESATIVADO" : "NO_AR"
 }
 
 export function estaNoAr(situacao: Situacao, expiraEm: Date | null, agora: Date): boolean {
   return situacaoExibida(situacao, expiraEm, agora) === "NO_AR"
+}
+
+/** RN-142 e RN-145: só se desativa o que está no ar. */
+export function podeDesativar(situacao: Situacao, expiraEm: Date | null, agora: Date): boolean {
+  return situacaoExibida(situacao, expiraEm, agora) === "NO_AR"
+}
+
+/** RN-142 e RN-145: só se ativa o desativado que ainda tem prazo; depois dele, o caminho é a renovação. */
+export function podeAtivar(situacao: Situacao, expiraEm: Date | null, agora: Date): boolean {
+  return situacaoExibida(situacao, expiraEm, agora) === "DESATIVADO"
+}
+
+/** RN-143: pagar soma os dias ao fim atual do anúncio publicado ou desativado; nos outros casos não há fim a aproveitar. */
+export function fimQueContaNaRenovacao(situacao: Situacao, expiraEm: Date | null): Date | null {
+  return situacao === "PUBLICADO" || situacao === "DESATIVADO" ? expiraEm : null
 }
 
 /**

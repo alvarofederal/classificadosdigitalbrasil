@@ -1,6 +1,6 @@
 // APLICAÇÃO — cobrança do espaço por plano, Pix automático e confirmação (RF-14, RF-15, RF-80 a RF-84; RN-12, RN-21, RN-22, RN-53, RN-54, RN-80, RN-81, RN-87 a RN-89).
 
-import { novaExpiracao } from "@/domain/anuncio/anuncio"
+import { fimQueContaNaRenovacao, novaExpiracao } from "@/domain/anuncio/anuncio"
 import { ALFABETO_DO_PAGAMENTO, TAMANHO_DO_CODIGO_DE_PAGAMENTO, VALIDADE_DO_PIX_MS } from "@/domain/pagamento/pagamento"
 import { gerarPixCopiaECola } from "@/domain/pagamento/pix"
 import { ehCodigoDePlano, ehPeriodo, type Periodo, prioridadeDoPlano, valorDoPeriodo } from "@/domain/plano/plano"
@@ -160,7 +160,8 @@ export class ConfirmarPagamentoUseCase {
     if (anuncio.situacao === "REMOVIDO") return falha("ANUNCIO_REMOVIDO", "O anúncio foi removido. Restaure-o antes de confirmar o pagamento.")
 
     const agora = this.relogio.agora()
-    const expiraEm = novaExpiracao(anuncio.situacao === "PUBLICADO" ? anuncio.expiraEm : null, agora, pagamento.dias)
+    // RN-143: o desativado também aproveita o fim atual, e o pagamento o põe no ar.
+    const expiraEm = novaExpiracao(fimQueContaNaRenovacao(anuncio.situacao, anuncio.expiraEm), agora, pagamento.dias)
     const confirmou = await this.pagamentos.confirmarEPublicar(
       { ...pagamento, situacao: "CONFIRMADO", confirmadoEm: agora, confirmadoPorId: entrada.adminId },
       {

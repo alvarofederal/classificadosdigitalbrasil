@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest"
 import { CadastrarAnuncianteUseCase } from "@/application/use-cases/acesso/conta"
 import { RemoverCategoriaUseCase } from "@/application/use-cases/admin/administracao"
-import { CriarAnuncioUseCase, EditarAnuncioUseCase, RemoverAnuncioUseCase, RestaurarAnuncioUseCase } from "@/application/use-cases/anuncios/gerenciar-anuncios"
+import {
+  AtivarOuDesativarAnuncioUseCase,
+  CriarAnuncioUseCase,
+  EditarAnuncioUseCase,
+  RemoverAnuncioUseCase,
+  RestaurarAnuncioUseCase,
+} from "@/application/use-cases/anuncios/gerenciar-anuncios"
 import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase } from "@/application/use-cases/anuncios/mensagens"
 import { ConfirmarPagamentoUseCase, MontarCobrancaPixUseCase, SolicitarRenovacaoUseCase } from "@/application/use-cases/pagamentos/pagamentos"
 import type { ConteudoDoAnuncio } from "@/domain/anuncio/anuncio"
@@ -34,6 +40,7 @@ function montar() {
     editar: new EditarAnuncioUseCase(c.anuncios, c.categorias, localidades),
     remover: new RemoverAnuncioUseCase(c.anuncios, c.pagamentos, c.gateway),
     restaurar: new RestaurarAnuncioUseCase(c.anuncios),
+    ativarOuDesativar: new AtivarOuDesativarAnuncioUseCase(c.anuncios, c.relogio),
     confirmar: new ConfirmarPagamentoUseCase(c.anuncios, c.pagamentos, c.relogio),
     renovar: new SolicitarRenovacaoUseCase(c.anuncios, c.depsDePagamento),
     mensagem: new EnviarMensagemUseCase(
@@ -149,6 +156,101 @@ describe("Editar, remover e restaurar (RN-11, RN-14)", () => {
     expect((await t.restaurar.executar({ usuarioId: "usuario-1", perfil: "ANUNCIANTE" }, id)).ok).toBe(false)
     expect((await t.restaurar.executar({ usuarioId: "admin", perfil: "ADMIN" }, id)).ok).toBe(true)
     expect((await t.anuncios.buscarPorId(id))!.situacao).toBe("AGUARDANDO_PAGAMENTO")
+  })
+})
+
+describe("Ativar e desativar (feature 014, RF-140, RN-140 a RN-145)", () => {
+  const DONO = { usuarioId: "usuario-1", perfil: "ANUNCIANTE" as const }
+
+  async function noAr(t: ReturnType<typeof montar>) {
+    const r = await t.criar.executar(USUARIO, novo)
+    if (!r.ok) throw new Error(r.mensagem)
+    const pendente = (await t.pagamentos.pendenteDoAnuncio(r.valor.anuncioId))!
+    await t.confirmar.executar({ pagamentoId: pendente.id, adminId: "admin" })
+    return (await t.anuncios.buscarPorId(r.valor.anuncioId))!
+  }
+
+  it("o dono desativa e ativa; o prazo não muda (RN-141)", async () => {
+    const t = montar()
+    const anuncio = await noAr(t)
+    const fim = anuncio.expiraEm!.getTime()
+
+    expect((await t.ativarOuDesativar.desativar(DONO, anuncio.id)).ok).toBe(true)
+    let agora = (await t.anuncios.buscarPorId(anuncio.id))!
+    expect(agora.situacao).toBe("DESATIVADO")
+    expect(agora.expiraEm!.getTime()).toBe(fim)
+
+    t.relogio.avancarDias(2)
+    expect((await t.ativarOuDesativar.ativar(DONO, anuncio.id)).ok).toBe(true)
+    agora = (await t.anuncios.buscarPorId(anuncio.id))!
+    expect(agora.situacao).toBe("PUBLICADO")
+    // Os dois dias desativado contaram: o fim é o mesmo de antes.
+    expect(agora.expiraEm!.getTime()).toBe(fim)
+  })
+
+  it("o admin desativa e ativa; outro anunciante não (RN-145)", async () => {
+    const t = montar()
+    const anuncio = await noAr(t)
+    expect((await t.ativarOuDesativar.desativar({ usuarioId: "intruso", perfil: "ANUNCIANTE" }, anuncio.id)).ok).toBe(false)
+    expect((await t.ativarOuDesativar.desativar({ usuarioId: "admin", perfil: "ADMIN" }, anuncio.id)).ok).toBe(true)
+    expect((await t.ativarOuDesativar.ativar({ usuarioId: "intruso", perfil: "ANUNCIANTE" }, anuncio.id)).ok).toBe(false)
+    expect((await t.ativarOuDesativar.ativar({ usuarioId: "admin", perfil: "ADMIN" }, anuncio.id)).ok).toBe(true)
+  })
+
+  it("não desativa anúncio aguardando pagamento, expirado ou removido (RN-142, RN-145)", async () => {
+    const t = montar()
+    const r = await t.criar.executar(USUARIO, novo)
+    if (!r.ok) throw new Error(r.mensagem)
+    expect((await t.ativarOuDesativar.desativar(DONO, r.valor.anuncioId)).ok).toBe(false)
+
+    const vencido = await noAr(t)
+    t.relogio.avancarDias(8)
+    expect((await t.ativarOuDesativar.desativar(DONO, vencido.id)).ok).toBe(false)
+
+    const removido = await noAr(t)
+    await t.remover.executar(DONO, removido.id)
+    expect((await t.ativarOuDesativar.desativar(DONO, removido.id)).ok).toBe(false)
+    expect((await t.ativarOuDesativar.ativar(DONO, removido.id)).ok).toBe(false)
+    expect((await t.anuncios.buscarPorId(removido.id))!.situacao).toBe("REMOVIDO")
+  })
+
+  it("desativado com prazo vencido não volta pelo botão; volta pela renovação (RN-142)", async () => {
+    const t = montar()
+    const anuncio = await noAr(t)
+    await t.ativarOuDesativar.desativar(DONO, anuncio.id)
+    t.relogio.avancarDias(8)
+    const r = await t.ativarOuDesativar.ativar(DONO, anuncio.id)
+    expect(r.ok).toBe(false)
+    expect((await t.anuncios.buscarPorId(anuncio.id))!.situacao).toBe("DESATIVADO")
+
+    const renovacao = await t.renovar.executar({ ...RENOVA, usuarioId: "usuario-1", anuncioId: anuncio.id })
+    if (!renovacao.ok) throw new Error(renovacao.mensagem)
+    await t.confirmar.executar({ pagamentoId: renovacao.valor.id, adminId: "admin" })
+    const depois = (await t.anuncios.buscarPorId(anuncio.id))!
+    expect(depois.situacao).toBe("PUBLICADO")
+    expect(depois.expiraEm!.getTime()).toBe(t.relogio.agora().getTime() + 7 * DIA)
+  })
+
+  it("pagar a renovação do desativado soma ao fim atual e põe no ar (RN-143)", async () => {
+    const t = montar()
+    const anuncio = await noAr(t)
+    await t.ativarOuDesativar.desativar(DONO, anuncio.id)
+    t.relogio.avancarDias(5)
+    const renovacao = await t.renovar.executar({ ...RENOVA, usuarioId: "usuario-1", anuncioId: anuncio.id })
+    if (!renovacao.ok) throw new Error(renovacao.mensagem)
+    await t.confirmar.executar({ pagamentoId: renovacao.valor.id, adminId: "admin" })
+    const depois = (await t.anuncios.buscarPorId(anuncio.id))!
+    expect(depois.situacao).toBe("PUBLICADO")
+    // Restavam 2 dias; com mais 7, fica no ar por 9 dias a partir de agora.
+    expect(depois.expiraEm!.getTime()).toBe(t.relogio.agora().getTime() + 9 * DIA)
+  })
+
+  it("desativado não recebe mensagem (RN-140)", async () => {
+    const t = montar()
+    const anuncio = await noAr(t)
+    await t.ativarOuDesativar.desativar(DONO, anuncio.id)
+    const r = await t.mensagem.executar(anuncio.id, { nome: "Maria", contato: "maria@exemplo.com", texto: "Ainda está à venda?" })
+    expect(r.ok).toBe(false)
   })
 })
 

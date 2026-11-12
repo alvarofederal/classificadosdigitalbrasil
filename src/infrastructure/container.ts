@@ -14,6 +14,7 @@ import {
   RemoverCategoriaUseCase,
 } from "@/application/use-cases/admin/administracao"
 import {
+  AtivarOuDesativarAnuncioUseCase,
   CriarAnuncioUseCase,
   EditarAnuncioUseCase,
   RemoverAnuncioUseCase,
@@ -145,6 +146,7 @@ function montar() {
     editarAnuncio: new EditarAnuncioUseCase(anuncios, categorias, localidades),
     removerAnuncio: new RemoverAnuncioUseCase(anuncios, pagamentos, gateway),
     restaurarAnuncio: new RestaurarAnuncioUseCase(anuncios),
+    ativarOuDesativar: new AtivarOuDesativarAnuncioUseCase(anuncios, relogio),
     registrarVisita: new RegistrarVisitaUseCase(anuncios, new PrismaVisitasRepository(prisma), anonimizador, relogio),
     resumirVisitas: new ResumirVisitasUseCase(new PrismaVisitasQuery(prisma), anonimizador, relogio),
 

@@ -1,11 +1,19 @@
-// APLICAÇÃO — criar, editar, remover e restaurar anúncios (RF-10 a RF-13, RF-34, RN-10, RN-11, RN-14, RN-87).
+// APLICAÇÃO — criar, editar, desativar, ativar, remover e restaurar anúncios (RF-10 a RF-13, RF-34, RF-140, RN-10, RN-11, RN-14, RN-87, RN-140 a RN-145).
 
-import { ALFABETO_DO_CODIGO, type ConteudoDoAnuncio, TAMANHO_DO_CODIGO, normalizarConteudo, validarConteudo } from "@/domain/anuncio/anuncio"
+import {
+  ALFABETO_DO_CODIGO,
+  type ConteudoDoAnuncio,
+  TAMANHO_DO_CODIGO,
+  normalizarConteudo,
+  podeAtivar,
+  podeDesativar,
+  validarConteudo,
+} from "@/domain/anuncio/anuncio"
 import { type ErrosDeCampo, type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
 import type { Perfil } from "@/domain/usuario/usuario"
 import type { AnuncioRegistro, AnuncioRepository, CategoriaRepository, GatewayPix, PagamentoRepository } from "../../ports/caderno"
 import type { Localidades } from "../../ports/localidades"
-import type { GeradorDeCodigo } from "../../ports/sistema"
+import type { GeradorDeCodigo, Relogio } from "../../ports/sistema"
 import { conferirCidade } from "../acesso/conta"
 import { type DepsDePagamento, abrirCobranca, cancelarNoGateway, conferirPlano } from "../pagamentos/pagamentos"
 
@@ -117,6 +125,39 @@ export class RemoverAnuncioUseCase {
       console.warn(`[pagamento] anúncio ${anuncio.codigo} removido com o Pix da cobrança ${pendente.codigo} já pago: devolver no Mercado Pago, se for o caso.`)
     }
     await this.pagamentos.cancelarPendentesDoAnuncio(anuncio.id)
+    return ok(true)
+  }
+}
+
+/** Feature 014: o dono (ou o admin) tira o anúncio do caderno por um tempo e o põe de volta. O prazo não para (RN-141). */
+export class AtivarOuDesativarAnuncioUseCase {
+  constructor(
+    private readonly anuncios: AnuncioRepository,
+    private readonly relogio: Relogio,
+  ) {}
+
+  async desativar(ator: Ator, anuncioId: string): Promise<Result<true>> {
+    const anuncio = await this.anuncios.buscarPorId(anuncioId)
+    if (!anuncio || !podeMexer(ator, anuncio)) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
+    if (anuncio.situacao === "DESATIVADO") return ok(true)
+    if (!podeDesativar(anuncio.situacao, anuncio.expiraEm, this.relogio.agora())) {
+      return falha("NAO_ESTA_NO_AR", "Só dá para desativar um anúncio que está no ar.")
+    }
+    await this.anuncios.atualizar({ ...anuncio, situacao: "DESATIVADO" })
+    return ok(true)
+  }
+
+  async ativar(ator: Ator, anuncioId: string): Promise<Result<true>> {
+    const anuncio = await this.anuncios.buscarPorId(anuncioId)
+    if (!anuncio || !podeMexer(ator, anuncio)) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
+    if (anuncio.situacao === "PUBLICADO") return ok(true)
+    if (!podeAtivar(anuncio.situacao, anuncio.expiraEm, this.relogio.agora())) {
+      return falha(
+        "SEM_PRAZO",
+        anuncio.situacao === "DESATIVADO" ? "O prazo deste anúncio acabou. Renove para ele voltar ao caderno." : "Este anúncio não está desativado.",
+      )
+    }
+    await this.anuncios.atualizar({ ...anuncio, situacao: "PUBLICADO" })
     return ok(true)
   }
 }
