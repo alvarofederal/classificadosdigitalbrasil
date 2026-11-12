@@ -39,7 +39,7 @@
 - [x] T-151 Porta, caso de uso e repositório falso, com testes (RF-122, RN-120, RN-121, RN-124)
 - [x] T-152 Coluna, índice e migration; repositório no Prisma
 - [x] T-153 Rota da tarefa com o segredo (RF-121, RN-123) e agendador em `vercel.json` (ADR-17)
-- [x] T-154 Publicar e conferir em produção: a migration aplicada, a rota recusa sem o segredo (401) e o agendador aparece na Vercel. *2026-11-12: commit `b6da736`, deploy das 10:03. O log do build mostra a migration `20261112000000_aviso_de_vencimento` aplicada. A rota responde 401 sem o segredo e com segredo errado, e 405 para POST; capa, anúncio, seção, sitemap e robots respondem 200. Não conferido: o agendador na tela da Vercel (a CLI 50 não lista agendadores) e uma rodada de verdade, que precisa do segredo. O deploy com `crons` passou, o que indica configuração aceita pela Vercel.*
+- [x] T-154 Publicar e conferir em produção: a migration aplicada, a rota recusa sem o segredo (401) e o agendador aparece na Vercel. *2026-11-12: commit `b6da736`, deploy das 10:03. O log do build mostra a migration `20261112000000_aviso_de_vencimento` aplicada. A rota responde 401 sem o segredo e com segredo errado, e 405 para POST; capa, anúncio, seção, sitemap e robots respondem 200. Não conferido: o agendador na tela da Vercel (a CLI 50 não lista agendadores) e uma rodada de verdade, que precisa do segredo. O deploy com `crons` passou, o que indica configuração aceita pela Vercel. Conferido depois, no mesmo dia: a variável `CRON_SECRET` existe na Vercel, em Preview e Production, desde cerca de 07/11; sem ela a rota recusaria todas as rodadas.*
 - [ ] T-155 Conferir o primeiro aviso de verdade: o do Astra, em 17/11/2026
 
 ## Depois

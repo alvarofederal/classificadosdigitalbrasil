@@ -51,6 +51,20 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da constituição).
 
+**Situação em 2026-11-12**
+
+- Publicado: feature 011 (anúncios no `sitemap.xml` e dados para o Google, commit `12192c1`) e feature 012 (e-mail "seu anúncio sai do caderno amanhã" pelo agendador diário da Vercel, ADR-17, commit `b6da736`, deploy das 10:03 com a migration aplicada). O Álvaro cadastrou o site no Search Console e enviou o sitemap (item 3.1).
+- O segredo do agendador (`CRON_SECRET`) existe na Vercel, em Preview e Production, desde cerca de 07/11/2026 (conferido pela lista de variáveis, sem ler o valor). O aviso do Astra não depende de nada do Álvaro.
+- Próximo marco: T-155, o primeiro aviso de verdade, o do Astra, em 17/11/2026 por volta das 9h. Conferir com o Álvaro se chegou.
+- Do lado do Álvaro, combinado na conversa da manhã: cartaz A4 com QR Code no vidro do Astra; link `/a/4DPUMX` no WhatsApp e nos grupos de compra e venda; conversar com o Igor Veículos sobre pôr o estoque da revenda no site (falta saber se ele topa e se a revenda é em Brasília). Abrir o Search Console por volta de 15/11 e ver se o sitemap aparece como "Sucesso".
+- Commits só de specs sem push: `e3c36db` e o deste registro. Vão no próximo push de código.
+
+**Conversa perdida em 2026-11-12**
+
+O arquivo da conversa da sessão "Classificados Digital" (id `fc325e15`) sumiu do disco entre 09:55 e 10:05, com a sessão aberta e trabalhando na feature 012. O backup guarda a conversa até 09:55, quando o Álvaro disse "Sim, faz" para o aviso de vencimento. Do trecho seguinte ficaram os commits `b6da736` e `e3c36db` e esta spec; só a mensagem final da sessão se perdeu. Às 11:23 o app reabriu a sessão em branco, com outro id.
+
+Pista nova sobre a causa: o arquivo `.last-cleanup` do Claude Code (marca a última limpeza automática) ficou com 10:04:16, dentro da janela do sumiço. Nenhuma configuração muda o prazo da limpeza (`cleanupPeriodDays` não aparece em nenhum `settings.json`), e a conversa tinha um dia, não 30. A suspeita passa a ser a limpeza automática apagando conversas de sessões em `.claude/worktrees`. Não confirmado. Claude Code 2.1.322.
+
 **Situação em 2026-11-11**
 
 - Publicado: os commits `f773a24` (aviso de mensagem por e-mail e T-86) e `adfcbf6` (`next` 16.4.5, `zod` 4.6.7 e arquivo de verificação do Google) estão no `main`, no GitHub e em produção (deploy de 2026-11-11, 00:57). O build de produção não achou migration pendente.
