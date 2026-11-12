@@ -65,6 +65,8 @@ O arquivo da conversa da sessão "Classificados Digital" (id `fc325e15`) sumiu d
 
 Pista nova sobre a causa: o arquivo `.last-cleanup` do Claude Code (marca a última limpeza automática) ficou com 10:04:16, dentro da janela do sumiço. Nenhuma configuração muda o prazo da limpeza (`cleanupPeriodDays` não aparece em nenhum `settings.json`), e a conversa tinha um dia, não 30. A suspeita passa a ser a limpeza automática apagando conversas de sessões em `.claude/worktrees`. Não confirmado. Claude Code 2.1.322.
 
+Teste da suspeita, com o OK do Álvaro (2026-11-12, por volta das 11:35): `cleanupPeriodDays` passou a 36500 dias no `settings.json` do usuário, ou seja, a limpeza automática não deve apagar mais nenhuma conversa. Vale para as sessões que começarem depois da mudança; as que já estavam abertas podem ter lido o valor antigo. Se uma conversa sumir de novo com esse valor, a limpeza por prazo deixa de ser a explicação.
+
 **Situação em 2026-11-11**
 
 - Publicado: os commits `f773a24` (aviso de mensagem por e-mail e T-86) e `adfcbf6` (`next` 16.4.5, `zod` 4.6.7 e arquivo de verificação do Google) estão no `main`, no GitHub e em produção (deploy de 2026-11-11, 00:57). O build de produção não achou migration pendente.
