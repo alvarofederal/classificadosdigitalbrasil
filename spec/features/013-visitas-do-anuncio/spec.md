@@ -46,7 +46,7 @@
 - [x] T-162 Tabela, migration e repositório no Prisma; consulta das visitas. *Migration e consultas conferidas num banco local (MariaDB do XAMPP, `cdb_local_visitas`).*
 - [x] T-163 Rota `POST /api/visitas` e aviso pelo navegador; tirar a soma da montagem da página. *Conferido no navegador, local: a visita sem login entra (linha do dia, chave cifrada); recarregar não soma; o dono logado não soma. A página do anúncio continua montada a cada acesso no build (ƒ).*
 - [x] T-164 Lista e tela do anúncio em Minha conta; tela do anúncio no Painel (RF-131, RF-132, RF-133). *Lista e tela do anúncio conferidas no navegador, no computador e no tamanho de celular, com visitas de exemplo. O Painel usa a mesma seção; não foi aberto.*
-- [ ] T-165 Segredo `VISITAS_SEGREDO` na Vercel, termos, publicar e conferir em produção. *Termos feitos. Criar o segredo pela CLI foi barrado pela proteção do Claude Code (gravar segredo pede permissão do Álvaro); falta ele criar ou autorizar.*
+- [ ] T-165 Segredo `VISITAS_SEGREDO` na Vercel, termos, publicar e conferir em produção. *Termos feitos. Criar o segredo pela CLI foi barrado pela proteção do Claude Code (gravar segredo pede permissão do Álvaro); falta ele criar ou autorizar.* Passos passados a ele em 2026-11-12: gerar o valor no computador dele já na área de transferência, sem aparecer na tela (`node -e "process.stdout.write(require('crypto').randomBytes(32).toString('hex'))" | clip`, 64 caracteres; o código exige pelo menos 32); na Vercel, projeto → Settings → Environment Variables, nome `VISITAS_SEGREDO`, colar o valor, marcar Production e Preview, Sensitive ligado, salvar. Não precisa de Redeploy: o push da feature 013 já sobe com ele. O valor não vai para nenhum arquivo do projeto.
 
 ## Depois
 
