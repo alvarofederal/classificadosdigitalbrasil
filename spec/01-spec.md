@@ -64,6 +64,9 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-110 | Todo anúncio no ar entra no `sitemap.xml` com o endereço público e a data de publicação; ao sair do ar, sai do sitemap. |
 | RF-111 | A página do anúncio traz dados estruturados (JSON-LD) com a trilha Início › cidade › seção › anúncio. |
 | RF-112 | Anúncio com preço traz também o produto e a oferta: título, texto, seção, fotos, preço em reais, validade e cidade. |
+| RF-120 | Uma vez por dia, o dono de cada anúncio no ar que sai do caderno nas próximas 36 horas recebe um e-mail com o dia e a hora em que sai, as visitas até agora, o botão para renovar e o link do anúncio. |
+| RF-121 | A tarefa do aviso de vencimento roda sozinha pelo agendador da Vercel, às 9h de Brasília, e responde com o resumo da rodada. |
+| RF-122 | Sem servidor de e-mail, o aviso de vencimento não envia nem marca nada. |
 
 ## Regras de negócio
 
@@ -104,6 +107,12 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-112 | Anúncio de Empregos e Formação Profissional não vira produto nos dados estruturados. |
 | RN-113 | O texto do anunciante entra no JSON-LD com `<`, `>` e `&` escapados (`<`, `>`, `&`), para nunca fechar o bloco nem virar código. |
 | RN-114 | O sitemap leva no máximo 40.000 anúncios, os publicados mais recentemente primeiro. |
+| RN-120 | Um aviso de vencimento por prazo: o anúncio guarda a data de fim já avisada; renovar muda a data e o prazo novo ganha o seu aviso. Rodar duas vezes não manda dois e-mails. |
+| RN-121 | Falha no envio do aviso de vencimento desfaz a marca, e o anúncio volta na rodada seguinte. |
+| RN-122 | Não recebem aviso de vencimento: conta desativada e endereço em domínio reservado para teste (`.test`, `.example`, `.invalid`, `.localhost`, `example.com`, `example.net`, `example.org`). |
+| RN-123 | A rota da tarefa só roda com o segredo do agendador (`CRON_SECRET`); sem a variável, recusa sempre. |
+| RN-124 | No máximo 200 avisos de vencimento por rodada. |
+| RN-125 | A carta do vencimento só leva o primeiro nome do dono e lembra que renovar é sempre pelo site. |
 
 ## Requisitos não funcionais
 

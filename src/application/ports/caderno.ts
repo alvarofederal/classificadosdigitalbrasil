@@ -56,6 +56,26 @@ export interface AnuncioRepository {
   somarVisita(codigo: string): Promise<void>
 }
 
+// ── Aviso de vencimento (feature 012, ADR-17) ──
+
+export interface AnuncioAVencer {
+  id: string
+  codigo: string
+  titulo: string
+  expiraEm: Date
+  visualizacoes: number
+  dono: { nome: string; email: string; ativo: boolean }
+}
+
+export interface AvisosDeVencimentoRepository {
+  /** Anúncios no ar com fim em (agora, ate] que ainda não foram avisados desse fim; os que saem antes vêm primeiro. */
+  aVencer(agora: Date, ate: Date, limite: number): Promise<AnuncioAVencer[]>
+  /** RN-120: marca o aviso deste fim. Falso se o fim mudou ou outra rodada já marcou. */
+  marcarAvisado(anuncioId: string, expiraEm: Date): Promise<boolean>
+  /** RN-121: desfaz a marca deste fim, para o anúncio voltar na rodada seguinte. */
+  desmarcar(anuncioId: string, expiraEm: Date): Promise<void>
+}
+
 // ── Fotos (ADR-05: upload direto e assinado ao Cloudinary) ──
 
 export interface FotoRegistro {

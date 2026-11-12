@@ -11,6 +11,7 @@ import type {
 import type {
   AnuncioRegistro,
   AnuncioRepository,
+  AvisosDeVencimentoRepository,
   CategoriaRepository,
   FotoRegistro,
   FotoRepository,
@@ -178,6 +179,47 @@ export class PrismaAnuncioRepository implements AnuncioRepository {
 
   async somarVisita(codigo: string) {
     await this.db.anuncio.updateMany({ where: { codigo }, data: { visualizacoes: { increment: 1 } } })
+  }
+}
+
+/** Feature 012 (ADR-17): `avisoDeVencimentoPara` guarda o fim de prazo que já teve aviso (RN-120). */
+export class PrismaAvisosDeVencimentoRepository implements AvisosDeVencimentoRepository {
+  constructor(private readonly db: PrismaClient) {}
+
+  async aVencer(agora: Date, ate: Date, limite: number) {
+    const linhas = await this.db.anuncio.findMany({
+      where: {
+        situacao: "PUBLICADO",
+        expiraEm: { gt: agora, lte: ate },
+        // Ainda não avisado deste fim. Uma marca antiga é de um prazo que já acabou: renovar só aumenta o fim,
+        // e o fim atual está no futuro, então a marca diferente dele é sempre anterior a agora.
+        OR: [{ avisoDeVencimentoPara: null }, { avisoDeVencimentoPara: { lt: agora } }],
+      },
+      select: { id: true, codigo: true, titulo: true, expiraEm: true, visualizacoes: true, usuario: { select: { nome: true, email: true, ativo: true } } },
+      orderBy: [{ expiraEm: "asc" }, { id: "asc" }],
+      take: limite,
+    })
+    return linhas.flatMap((l) =>
+      l.expiraEm ? [{ id: l.id, codigo: l.codigo, titulo: l.titulo, expiraEm: l.expiraEm, visualizacoes: l.visualizacoes, dono: l.usuario }] : [],
+    )
+  }
+
+  async marcarAvisado(anuncioId: string, expiraEm: Date) {
+    // Atualização condicionada: só uma rodada consegue marcar este fim (RN-120).
+    const { count } = await this.db.anuncio.updateMany({
+      where: {
+        id: anuncioId,
+        situacao: "PUBLICADO",
+        expiraEm,
+        OR: [{ avisoDeVencimentoPara: null }, { avisoDeVencimentoPara: { not: expiraEm } }],
+      },
+      data: { avisoDeVencimentoPara: expiraEm },
+    })
+    return count === 1
+  }
+
+  async desmarcar(anuncioId: string, expiraEm: Date) {
+    await this.db.anuncio.updateMany({ where: { id: anuncioId, avisoDeVencimentoPara: expiraEm }, data: { avisoDeVencimentoPara: null } })
   }
 }
 

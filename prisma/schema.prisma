@@ -132,6 +132,7 @@ model Anuncio {
   visualizacoes Int             @default(0) // RF-75, sem dados de quem visitou
   publicadoEm   DateTime?
   expiraEm      DateTime?
+  avisoDeVencimentoPara DateTime? // feature 012 (RN-120): o fim de prazo que já teve aviso por e-mail
   criadoEm      DateTime        @default(now())
   atualizadoEm  DateTime        @updatedAt
 
@@ -144,6 +145,7 @@ model Anuncio {
   // RNF-01: a lista pública é sempre de UMA cidade + UMA categoria, só o que está no ar.
   @@index([cidadeCodigo, categoriaId, situacao, expiraEm])
   @@index([planoCodigo, situacao, expiraEm]) // vitrine da capa (RF-47)
+  @@index([situacao, expiraEm]) // aviso de vencimento (feature 012): anúncios no ar que saem na janela
   @@index([usuarioId])
   @@index([categoriaId])
   @@index([uf, cidadeCodigo])

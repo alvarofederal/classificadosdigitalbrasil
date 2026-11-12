@@ -1,6 +1,6 @@
 // INFRAESTRUTURA — COMPOSITION ROOT. Único lugar que escolhe implementações (Art. 2 — D).
 
-import type { Correio } from "@/application/ports/correio"
+import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import { AutenticarUsuarioUseCase } from "@/application/use-cases/acesso/autenticar-usuario"
 import { AlterarSenhaUseCase, AtualizarPerfilUseCase, CadastrarAnuncianteUseCase } from "@/application/use-cases/acesso/conta"
 import { EncerrarSessaoUseCase, ObterSessaoUseCase } from "@/application/use-cases/acesso/sessao"
@@ -27,6 +27,7 @@ import {
   ReordenarFotosUseCase,
 } from "@/application/use-cases/anuncios/gerenciar-fotos"
 import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase, MarcarMensagensLidasUseCase } from "@/application/use-cases/anuncios/mensagens"
+import { AvisarVencimentosUseCase } from "@/application/use-cases/anuncios/vencimento"
 import {
   ConfirmarPagamentoUseCase,
   MontarCobrancaPixUseCase,
@@ -43,6 +44,7 @@ import { prisma } from "./prisma/cliente"
 import { PrismaClassificadosQuery, PrismaMinhaContaQuery, PrismaPainelQuery } from "./prisma/consultas"
 import {
   PrismaAnuncioRepository,
+  PrismaAvisosDeVencimentoRepository,
   PrismaCategoriaRepository,
   PrismaFotoRepository,
   PrismaMensagemRepository,
@@ -99,9 +101,13 @@ function montar() {
   const chamados = new PrismaChamadoRepository(prisma)
   const depsDePagamento = { pagamentos, planos, codigos, relogio, gateway }
 
-  const avisarMensagemNova = new AvisarMensagemNovaUseCase(usuarios, mensagens, correio, relogio, {
+  // Endereços que os e-mails citam (features 010 e 012).
+  const enderecos: EnderecosDoSite = {
     mensagensDoAnuncio: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}#titulo-mensagens`,
-  })
+    anuncioEmMinhaConta: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}`,
+    paginaDoAnuncio: (codigo) => `${enderecoDoSite}/anuncio/${codigo}`,
+  }
+  const avisarMensagemNova = new AvisarMensagemNovaUseCase(usuarios, mensagens, correio, relogio, enderecos)
   const confirmarPagamento = new ConfirmarPagamentoUseCase(anuncios, pagamentos, relogio)
   const processarPagamentoDoGateway = new ProcessarPagamentoDoGatewayUseCase(pagamentos, gateway, confirmarPagamento)
 
@@ -163,6 +169,8 @@ function montar() {
     atualizarConfiguracao: new AtualizarConfiguracaoUseCase(configuracao),
     atualizarChamado: new AtualizarChamadoUseCase(chamados, relogio),
     enviarEmailDeTeste: new EnviarEmailDeTesteUseCase(correio),
+    // Feature 012 (ADR-17): rodada diária chamada pelo agendador da Vercel.
+    avisarVencimentos: new AvisarVencimentosUseCase(new PrismaAvisosDeVencimentoRepository(prisma), correio, relogio, enderecos),
 
     classificados: new PrismaClassificadosQuery(prisma),
     minhaConta: new PrismaMinhaContaQuery(prisma),

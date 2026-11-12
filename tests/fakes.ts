@@ -2,8 +2,10 @@
 
 import type { GeradorDeToken, HashDeSenha, NovoUsuario, SessaoRepository, SessaoValida, UsuarioRegistro, UsuarioRepository } from "@/application/ports/acesso"
 import type {
+  AnuncioAVencer,
   AnuncioRegistro,
   AnuncioRepository,
+  AvisosDeVencimentoRepository,
   CancelamentoNoGateway,
   CategoriaRepository,
   ChamadoRegistro,
@@ -249,6 +251,49 @@ export class SegundoPlanoManual implements SegundoPlano {
 
 export const enderecosDeTeste: EnderecosDoSite = {
   mensagensDoAnuncio: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}#titulo-mensagens`,
+  anuncioEmMinhaConta: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}`,
+  paginaDoAnuncio: (codigo) => `https://classificados.teste/anuncio/${codigo}`,
+}
+
+/** Feature 012: anúncios com dono e a marca do aviso de vencimento (`avisadoPara`). */
+export class AvisosDeVencimentoEmMemoria implements AvisosDeVencimentoRepository {
+  itens: Array<AnuncioAVencer & { noAr: boolean; avisadoPara: Date | null }> = []
+  /** Simula outra rodada que marcou o anúncio entre a busca e a marca. */
+  outraRodadaMarcou = new Set<string>()
+
+  adicionar(anuncio: Partial<AnuncioAVencer> & Pick<AnuncioAVencer, "id" | "expiraEm">, extra: { noAr?: boolean; avisadoPara?: Date | null } = {}) {
+    this.itens.push({
+      codigo: anuncio.id.toUpperCase().padEnd(6, "X").slice(0, 6),
+      titulo: "Vendo Gol 2010",
+      visualizacoes: 0,
+      dono: { nome: "Álvaro Federal", email: "dono@exemplo.com.br", ativo: true },
+      ...anuncio,
+      noAr: extra.noAr ?? true,
+      avisadoPara: extra.avisadoPara ?? null,
+    })
+  }
+
+  async aVencer(agora: Date, ate: Date, limite: number) {
+    return this.itens
+      .filter((a) => a.noAr && a.expiraEm > agora && a.expiraEm <= ate && a.avisadoPara?.getTime() !== a.expiraEm.getTime())
+      .sort((a, b) => a.expiraEm.getTime() - b.expiraEm.getTime())
+      .slice(0, limite)
+      .map(({ noAr: _noAr, avisadoPara: _avisadoPara, ...anuncio }) => anuncio)
+  }
+
+  async marcarAvisado(anuncioId: string, expiraEm: Date) {
+    const anuncio = this.itens.find((a) => a.id === anuncioId)
+    if (!anuncio || anuncio.expiraEm.getTime() !== expiraEm.getTime()) return false
+    if (this.outraRodadaMarcou.has(anuncioId)) anuncio.avisadoPara = expiraEm
+    if (anuncio.avisadoPara?.getTime() === expiraEm.getTime()) return false
+    anuncio.avisadoPara = expiraEm
+    return true
+  }
+
+  async desmarcar(anuncioId: string, expiraEm: Date) {
+    const anuncio = this.itens.find((a) => a.id === anuncioId)
+    if (anuncio?.avisadoPara?.getTime() === expiraEm.getTime()) anuncio.avisadoPara = null
+  }
 }
 
 export class FotosEmMemoria implements FotoRepository {

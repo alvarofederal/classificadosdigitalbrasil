@@ -101,7 +101,7 @@ As peças 7.6 a 7.9 entram como valores de catálogo (Art. 2), na mesma tinta, e
 Vêm de *Próximos passos sugeridos* e do §4 de `07-insights.md` e do *Depois* da spec 010.
 
 - [ ] **8.1** Créditos (carteira) para renovar com um clique.
-- [ ] **8.2** E-mail "seu anúncio vence amanhã, renove". Precisa de agendador diário.
+- [x] **8.2** E-mail "seu anúncio vence amanhã, renove". Precisa de agendador diário. *2026-11-12: feito na feature 012 (`features/012-aviso-de-vencimento`, ADR-17), a pedido do Álvaro. O primeiro aviso de verdade deve ser o do Astra, em 17/11.*
 - [ ] **8.3** E-mail "seu anúncio está no ar", com os links para divulgar.
 - [ ] **8.4** Aviso de chamado novo para o administrador.
 - [ ] **8.5** Opção para o anunciante desligar o aviso de mensagem.

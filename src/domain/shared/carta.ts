@@ -1,6 +1,14 @@
 // DOMÍNIO — carta: o conteúdo de um e-mail do site, sem HTML (feature 010, ADR-15).
 // Quem monta a carta decide o que dizer; a cara do e-mail fica na infraestrutura (infrastructure/email/modelo.ts).
 
+/** Nome do site que assina os e-mails. */
+export const NOME_DO_JORNAL = "Classificados Digitais do Brasil"
+
+/** Saudação pelo primeiro nome: do cadastro, só ele entra na carta (RN-102, RN-125). */
+export function primeiroNome(nome: string): string {
+  return nome.trim().split(/\s+/)[0] ?? ""
+}
+
 export interface Destinatario {
   nome: string
   email: string

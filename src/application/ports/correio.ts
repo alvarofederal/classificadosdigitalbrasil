@@ -16,4 +16,8 @@ export interface Correio {
 export interface EnderecosDoSite {
   /** Lista de mensagens de um anúncio em Minha conta. */
   mensagensDoAnuncio(anuncioId: string): string
+  /** O anúncio em Minha conta, onde o dono renova (feature 012). */
+  anuncioEmMinhaConta(anuncioId: string): string
+  /** Página pública do anúncio. */
+  paginaDoAnuncio(codigo: string): string
 }

@@ -1,6 +1,6 @@
 // DOMÍNIO — aviso por e-mail ao dono do anúncio quando chega mensagem (feature 010: RF-100, RF-101, RN-101 a RN-105).
 
-import type { Carta } from "../shared/carta"
+import { type Carta, NOME_DO_JORNAL, primeiroNome } from "../shared/carta"
 import { somenteDigitos } from "../shared/texto"
 import type { NovaMensagem } from "./mensagem"
 
@@ -34,11 +34,7 @@ export function linkDoWhatsApp(contato: string): string | null {
   return null
 }
 
-function primeiroNome(nome: string): string {
-  return nome.trim().split(/\s+/)[0] ?? ""
-}
-
-const RODAPE = "Classificados Digitais do Brasil"
+const RODAPE = NOME_DO_JORNAL
 
 export interface DadosDoAvisoDeMensagem {
   dono: { nome: string }
