@@ -70,16 +70,16 @@ As ideias abaixo são as da resposta de 2026-11-10 sobre novidades e usuários d
 ## Prioridade 5 · Encher Brasília (trabalho do Álvaro, sem código novo)
 
 - [ ] **5.1** (Álvaro) Fechar o foco: só Brasília e duas ou três seções (Veículos, Serviços, Imóveis) até encher. Uma seção com 30 anúncios vale mais que 18 seções com 2.
-- [ ] **5.2** (Álvaro) Encher com cortesia pelo painel, com limite (os 100 primeiros da cidade). Começar por quem tem estoque, como uma revenda (Igor Veículos), e por quem renova, como prestador de serviço.
+- [ ] **5.2** (Álvaro) Encher com cortesia pelo painel, com limite (os 100 primeiros da cidade). Começar por quem tem estoque, como uma revenda (Igor Veículos), e por quem renova, como prestador de serviço. *2026-11-14: escolhido pelo Álvaro para os próximos passos. Ele propôs, junto, que todo anunciante novo ganhe 5 convites de cortesia para amigos, validados por e-mail ou WhatsApp. Os dois viram a feature 015 (`features/015-convites-de-cortesia/spec.md`), em rascunho com perguntas para ele.*
 - [ ] **5.3** (Álvaro) Atender como balcão: a pessoa manda o texto pelo WhatsApp, o Álvaro monta o anúncio e libera a cortesia.
-- [ ] **5.4** (Álvaro) Oferecer a placa, não o site: "Placa de VENDE-SE com QR Code por R$ 1". O cartaz A4 já existe.
+- [ ] **5.4** (Álvaro) Oferecer a placa, não o site: "Placa de VENDE-SE com QR Code por R$ 1". O cartaz A4 já existe. *2026-11-14: escolhido pelo Álvaro. O cartaz A4 (`/cartaz/CODIGO`) mostra o anúncio e o QR Code ("Aponte a câmera do celular..."), mas não tem um VENDE-SE escrito. Falta ver com ele se a placa precisa desse título grande.*
 - [ ] **5.5** (Álvaro) A história como pauta: oferecer "classificados com cara de jornal, a R$ 1" a páginas de bairro e grupos de nostalgia da cidade.
 
 ## Prioridade 6 · Edição da semana e indicação
 
 - [ ] **6.1** Edição da semana: cada cidade ganha número e data de edição; a página sai como imagem para grupo e status do WhatsApp e como A4 com QR Code para imprimir.
 - [ ] **6.2** (Álvaro) Circular a edição uma vez por semana nos grupos de compra e venda, com o OK do administrador, e impressa em padaria, igreja e condomínio. Depende do 6.1.
-- [ ] **6.3** Indique e ganhe dias: quem chega pelo "Anuncie você também" do rodapé de um anúncio e publica dá 7 dias ao dono daquele anúncio. Falta registrar de quem veio a indicação e a regra dos dias.
+- [ ] **6.3** Indique e ganhe dias: quem chega pelo "Anuncie você também" do rodapé de um anúncio e publica dá 7 dias ao dono daquele anúncio. Falta registrar de quem veio a indicação e a regra dos dias. *2026-11-14: entra na feature 015 (convites de cortesia), como a pergunta 6.*
 
 ## Prioridade 7 · Demais novidades com cara de jornal
 

@@ -65,6 +65,17 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 - **Feature 014 (ativar e desativar), 2026-11-12 à noite.** Pedida pelo Álvaro enquanto se conferia a 013 ("um botão de ativar e desativar, para o status do anúncio"). Publicada às 20:21 com o OK dele (push de `5787cd3` e `d0843d1`); o deploy aplicou a migration `20261112200000_anuncio_desativado`, e as páginas públicas, a seção Veículos de Brasília e o sitemap continuam com o Astra. Decisão tomada sem perguntar, que ele pode mudar: o prazo corre enquanto o anúncio está desativado (RN-141). Por volta das 20:30 o Álvaro testou os botões no Astra (desativar, ver fora do ar, ativar de novo) e funcionou. Feature 014 concluída.
 - Backup (no computador do Álvaro, fora do repositório), a pedido dele ("sempre salve backup do que for útil"): desde 2026-11-12 19:43 a cópia das conversas roda a cada 2 minutos, e não 15, e lê o arquivo sem travá-lo. A cópia automática do repositório a cada commit (gancho do Git) foi barrada pela proteção do Claude Code; ela segue sendo feita à mão depois de cada commit.
 
+**Escolhas de 2026-11-14**
+
+O Álvaro marcou numa lista o que vem a seguir:
+
+- **Levar o projeto para uma sessão nova, na pasta normal** (`classificadodigital/workspace/classificadosdigitalbrasil`), fora do worktree desta sessão, que perdeu a conversa quatro vezes. A pasta normal estava no primeiro commit ("projeto base"); passa a acompanhar o `main` do GitHub. O trabalho continua lá a partir desta data.
+- **`VISITAS_SEGREDO` também em Preview.** Só afeta as versões de teste. Depende dele na Vercel; os passos foram passados a ele.
+- **5.2, cortesia para os 100 primeiros**, e a ideia nova dele: cada anunciante novo ganha 5 convites de cortesia para amigos, validados por e-mail ou WhatsApp. Os dois viram a feature 015, em rascunho, com seis perguntas para ele antes do plano.
+- **5.4, placa VENDE-SE com QR Code por R$ 1.** O cartaz A4 já existe, mas não tem um VENDE-SE escrito; ver com ele se precisa.
+
+Datas que continuam valendo: Search Console por volta de 15/11, primeiro aviso de vencimento do Astra em 17/11 por volta das 9h (T-155) e fim do Astra em 18/11.
+
 **Conversa perdida em 2026-11-12**
 
 O arquivo da conversa da sessão "Classificados Digital" (id `fc325e15`) sumiu do disco entre 09:55 e 10:05, com a sessão aberta e trabalhando na feature 012. O backup guarda a conversa até 09:55, quando o Álvaro disse "Sim, faz" para o aviso de vencimento. Do trecho seguinte ficaram os commits `b6da736` e `e3c36db` e esta spec; só a mensagem final da sessão se perdeu. Às 11:23 o app reabriu a sessão em branco, com outro id.
