@@ -70,7 +70,7 @@ Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da consti
 O Álvaro marcou numa lista o que vem a seguir:
 
 - **Levar o projeto para uma sessão nova, na pasta normal** (`classificadodigital/workspace/classificadosdigitalbrasil`), fora do worktree desta sessão, que perdeu a conversa quatro vezes. A pasta normal estava no primeiro commit ("projeto base"); passa a acompanhar o `main` do GitHub. O trabalho continua lá a partir desta data.
-- **`VISITAS_SEGREDO` também em Preview.** Só afeta as versões de teste. Depende dele na Vercel; os passos foram passados a ele.
+- ~~**`VISITAS_SEGREDO` também em Preview.** Só afeta as versões de teste. Depende dele na Vercel; os passos foram passados a ele.~~ *Cancelado pelo Álvaro em 2026-11-15: o segredo fica só em Production.*
 - **5.2, cortesia para os 100 primeiros**, e a ideia nova dele: cada anunciante novo ganha 5 convites de cortesia para amigos, validados por e-mail ou WhatsApp. Os dois viram a feature 015, em rascunho, com seis perguntas para ele antes do plano.
 - **5.4, placa VENDE-SE com QR Code por R$ 1.** O cartaz A4 já existe, mas não tem um VENDE-SE escrito; ver com ele se precisa.
 
@@ -81,7 +81,7 @@ Datas que continuam valendo: Search Console por volta de 15/11, primeiro aviso d
 - A pasta normal virou a pasta de trabalho: `npm install`, 239 testes e typecheck passando no commit `2a62f07`, sem mudar código.
 - O Álvaro respondeu às perguntas da 015 e trouxe ideias novas: dois anúncios de presente (um Simples e um Com foto, 7 dias cada) para todo usuário novo no lugar dos 100 primeiros; um banco de anúncios e dias na conta; vencidos guardados por 180 dias e mensagens por 90, como na OLX; e código por e-mail para liberar a conta nova. Tudo registrado em `features/015-convites-de-cortesia/spec.md`, com a análise e a ordem proposta: 016 (código por e-mail), 017 (banco de anúncios), 015 (convites) e 018 (vencidos).
 - Faltam três respostas dele (T-183): o banco como proposto, a saída dos períodos maiores da venda e o VENDE-SE do cartaz, pergunta refeita com figura. A 016 e a 018 já estão decididas.
-- `VISITAS_SEGREDO` em Preview: o Álvaro disse que pôs, mas às 15/11 a lista da Vercel (`vercel env ls`, só nomes) mostra a variável apenas em Production. Passos para marcar Preview passados a ele.
+- **`VISITAS_SEGREDO` fica só em Production (decisão do Álvaro, 2026-11-15).** "É para ficar apenas em Production mesmo." A lista da Vercel (`vercel env ls`, só nomes) confirma: a variável existe só em Production. O item "também em Preview" das escolhas de 14/11 está cancelado. Efeito: nas versões de teste da Vercel o site soma só o total de visitas, sem pessoas nem cidades (RN-135); o site no ar não muda.
 
 **Conversa perdida em 2026-11-12**
 
