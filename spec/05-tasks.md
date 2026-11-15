@@ -76,6 +76,13 @@ O Álvaro marcou numa lista o que vem a seguir:
 
 Datas que continuam valendo: Search Console por volta de 15/11, primeiro aviso de vencimento do Astra em 17/11 por volta das 9h (T-155) e fim do Astra em 18/11.
 
+**Situação em 2026-11-15**
+
+- A pasta normal virou a pasta de trabalho: `npm install`, 239 testes e typecheck passando no commit `2a62f07`, sem mudar código.
+- O Álvaro respondeu às perguntas da 015 e trouxe ideias novas: dois anúncios de presente (um Simples e um Com foto, 7 dias cada) para todo usuário novo no lugar dos 100 primeiros; um banco de anúncios e dias na conta; vencidos guardados por 180 dias e mensagens por 90, como na OLX; e código por e-mail para liberar a conta nova. Tudo registrado em `features/015-convites-de-cortesia/spec.md`, com a análise e a ordem proposta: 016 (código por e-mail), 017 (banco de anúncios), 015 (convites) e 018 (vencidos).
+- Faltam três respostas dele (T-183): o banco como proposto, a saída dos períodos maiores da venda e o VENDE-SE do cartaz, pergunta refeita com figura. A 016 e a 018 já estão decididas.
+- `VISITAS_SEGREDO` em Preview: o Álvaro disse que pôs, mas às 15/11 a lista da Vercel (`vercel env ls`, só nomes) mostra a variável apenas em Production. Passos para marcar Preview passados a ele.
+
 **Conversa perdida em 2026-11-12**
 
 O arquivo da conversa da sessão "Classificados Digital" (id `fc325e15`) sumiu do disco entre 09:55 e 10:05, com a sessão aberta e trabalhando na feature 012. O backup guarda a conversa até 09:55, quando o Álvaro disse "Sim, faz" para o aviso de vencimento. Do trecho seguinte ficaram os commits `b6da736` e `e3c36db` e esta spec; só a mensagem final da sessão se perdeu. Às 11:23 o app reabriu a sessão em branco, com outro id.

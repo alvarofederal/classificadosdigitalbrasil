@@ -1,6 +1,6 @@
 # 015 · Convites de cortesia
 
-*Rascunho de 2026-11-14. Só a Spec; o Plano e as Tarefas esperam as respostas do Álvaro (perguntas no fim).*
+*Rascunho de 2026-11-14; respostas do Álvaro em 2026-11-15. O Plano e as Tarefas esperam a confirmação do banco de anúncios (fim desta Spec).*
 
 ## Spec
 
@@ -8,34 +8,61 @@
 
 **Ideia do Álvaro (2026-11-14).** "Além dos 100 primeiros, bolar um plano para quando alguém novo chegar, usando cortesia ou não, ele ganha 5 cortesias para entregar a amigos, validado pelo e-mail ou WhatsApp."
 
-**Proposta (para ele confirmar).**
+### Respostas do Álvaro (2026-11-15)
 
-1. **Os 100 primeiros de cada cidade** (item 5.2) passam a ser automáticos: o primeiro anúncio dos 100 primeiros anunciantes de uma cidade sai como cortesia, sem o administrador precisar publicar um por um.
-2. **Cinco convites para cada anunciante novo.** Quem publica o primeiro anúncio, pago ou de cortesia, ganha 5 convites e os vê em Minha conta.
-3. **O convite vai para uma pessoa.** O anunciante informa o e-mail (ou o WhatsApp) do amigo. O site manda o link do convite para esse endereço, e o convite só vale para quem abrir o link, isto é, para quem tem acesso àquele e-mail ou número. Assim, quem convida não usa o convite em si mesmo.
-4. **Quem recebe** cria a conta, com o CPF de sempre (RN-02: um CPF, uma conta), e publica o primeiro anúncio como cortesia. Quem já tinha conta ou anúncio não usa convite.
-5. **A corrente continua:** quem entrou por convite também ganha os seus 5 convites ao publicar.
-6. **Quem convidou** pode ganhar dias quando o amigo publica. É o item 6.3 ("Indique e ganhe dias"), que entraria aqui.
+As seis perguntas do rascunho de 14/11 foram respondidas, e duas ideias novas mudaram a proposta.
 
-**O que já existe e serve.** O e-mail sai pelo Resend (ADR-16), então a validação por e-mail não pede serviço novo. O CPF único já impede uma pessoa de abrir várias contas. A cortesia do Painel (RF-84) já registra o pagamento de R$ 0,00 como cortesia, e os convites podem usar o mesmo caminho.
+1. **O que a cortesia dá:** Com foto por 7 dias. "Ele tendo a sensação que está ganhando muito, pode voltar mesmo pelo pouco. R$ 1,00 que entra, já é grana feita."
+2. **Validação:** as duas formas. O convite vai por e-mail, com conferência, e também por um botão "Enviar pelo WhatsApp", sem conferência. O botão fica na tela de acompanhamento dos anúncios (Minha conta).
+3. **Presente de boas-vindas (ideia nova, substitui os 100 primeiros).** "Cada usuário novo, sendo por cortesia ou não, vai ganhar dois anúncios, com 7 dias, um com foto e outro sem foto. Só isso, sem complicar."
+4. **Convites:** todo anunciante tem 5 convites. Quando o amigo convidado cria a conta e publica um anúncio, com ou sem foto, quem convidou ganha mais um anúncio. O convite vale por 30 dias; se não for usado, volta para quem convidou. Sem limite por cidade; o Painel ganha um botão para desligar os convites de uma vez.
+5. **Os 100 primeiros:** deixam de existir como regra própria; o presente de boas-vindas do item 3 vale para todo usuário novo, em qualquer cidade.
+6. **Banco de anúncios e dias (ideia nova, o Álvaro pediu opinião).** O que se paga ou se ganha vai para um banco da conta: um anúncio Com foto de 7 dias custa R$ 10,00; R$ 5,00 compram 5 anúncios Simples, ou 35 dias. O anunciante vê o saldo assim que entra em Minha conta e vai usando: publicar um anúncio novo ou renovar um vencido desconta do banco.
+7. **Vencidos, como na OLX.** O anúncio vencido fica em *Expirados* por até 180 dias, e pode ser renovado sem reescrever; depois é apagado de vez. As mensagens ficam para leitura por 90 dias depois do vencimento e depois são apagadas; renovando antes disso, o anúncio volta a receber mensagens.
+8. **Segurança da conta.** "Quando um usuário novo fizer uma conta, tem que mandar um código para o e-mail dele [...] e aí sim a conta dele vai ser liberada." O CPF continua obrigatório e prende os anúncios à pessoa. "Tudo que a gente puder colocar para melhorar a segurança de quem vai usar com seriedade, vamos implementar. Pois vamos mexer com dinheiro."
+9. **Cartaz VENDE-SE (item 5.4):** a pergunta não ficou clara; foi refeita com uma figura.
 
-**WhatsApp.** Mandar o convite ou um código de validação pelo WhatsApp de forma automática pede a API oficial do WhatsApp (Meta), que cobra por conversa e exige cadastro da empresa. Sem ela, o que dá para fazer é um botão "Enviar pelo WhatsApp", que abre o WhatsApp do próprio anunciante com o link pronto. Nesse caso não há validação: quem tiver o link usa o convite.
+### Análise (Claude, 2026-11-15)
 
-## Perguntas para o Álvaro
+**O banco de anúncios junta tudo numa regra só.** Boas-vindas, prêmio do convite, cortesia do Painel e compra pelo Pix viram a mesma coisa: anúncios de 7 dias no saldo da conta. É o item 8.1 (créditos) do `08-lancamento.md`. Também resolve a taxa do Mercado Pago (0,99% por Pix): cinco anúncios num Pix de R$ 5,00 em vez de cinco Pix de R$ 1,00.
 
-1. **O que a cortesia dá:** qual plano e quantos dias? Por exemplo, Simples por 7 dias (vale R$ 1,00) ou Com foto por 7 dias (vale R$ 10,00).
-2. **Validação:** começar só pelo e-mail, que já funciona, e deixar o WhatsApp como botão sem validação?
-3. **Quem ganha os 5 convites:** todo anunciante novo ou só quem publicou o primeiro anúncio? Quem entrou por convite também ganha os seus 5?
-4. **Prazo e limite:** o convite vale por quantos dias depois de enviado? Há um limite de convites por cidade ou no total?
-5. **Os 100 primeiros:** automáticos por cidade, como na proposta, ou continuam manuais pelo Painel?
-6. **Quem convidou ganha algo** quando o amigo publica (item 6.3)? Se ganhar, quantos dias?
+**Os períodos maiores perdem o sentido.** A tabela de 2026-11-09 cobra R$ 25,00 por 30 dias do Simples, mas quatro anúncios de 7 dias saem por R$ 4,00. Isso já acontece hoje com quatro renovações; o banco só torna o caminho mais fácil. Sugestão: vender só o anúncio de 7 dias (Simples R$ 1,00, Com foto R$ 10,00) e tirar 10, 15, 20 e 30 dias da venda.
+
+**O CPF hoje só é conferido pela conta dos dígitos.** Qualquer pessoa consegue gerar um número válido. Com dois anúncios de presente por conta nova, isso abre espaço para contas falsas. Por isso entram juntos: o código por e-mail (uma caixa de e-mail de verdade por conta), o mesmo e-mail do Gmail escrito de outro jeito contando como um só (`fulano+1@gmail.com`, `f.ulano@gmail.com`), limite de cadastros por conexão e o botão do Painel para desligar presente e convites. Conferir o CPF na Receita exige serviço pago; fica para depois.
+
+**Separação em funcionalidades.** O pedido de 15/11 passa a ser quatro entregas, nesta ordem, cada uma com a sua pasta:
+
+| Ordem | Funcionalidade | Situação |
+|---|---|---|
+| 1 | 016 · Código por e-mail: no cadastro, na troca de e-mail e no "esqueci a senha" (hoje não existe) | Decidido; pode começar |
+| 2 | 017 · Banco de anúncios: saldo, presente de boas-vindas, compra pelo Pix, uso para publicar e renovar | Espera a confirmação do Álvaro (perguntas abaixo) |
+| 3 | 015 · Convites (esta pasta): 5 por conta, e-mail e WhatsApp, prêmio pelo banco | Depende da 016 e da 017 |
+| 4 | 018 · Expirados por 180 dias e mensagens por 90 (regra da OLX) | Decidido; independe das outras |
+
+O cartaz VENDE-SE (5.4) é uma mudança pequena no cartaz da feature 005 e entra quando o Álvaro responder.
+
+### Propostas que valem sem pergunta (o Álvaro pode mudar)
+
+- As contas que já existem também ganham os 2 anúncios de presente e os 5 convites. Não ganham: administrador e contas de teste (e-mail em domínio de teste, RN-122).
+- As contas que já existem contam como confirmadas; o código vale para as novas e para quem trocar de e-mail.
+- O prêmio de quem convidou é um anúncio Com foto de 7 dias, como na resposta 1.
+- Anúncio do banco não vence.
+- Um anúncio Com foto do banco pode publicar um anúncio sem foto; o contrário não.
+- Os pagamentos nunca são apagados com o anúncio vencido: são registro de dinheiro.
+
+### Perguntas para o Álvaro (2026-11-15)
+
+1. **Banco de anúncios:** fazer como proposto, com o anúncio de 7 dias como unidade e vários anúncios do banco podendo somar dias no mesmo anúncio (5 anúncios = 35 dias)?
+2. **Períodos maiores:** tirar 10, 15, 20 e 30 dias da venda e vender só o anúncio de 7 dias?
+3. **Cartaz:** pôr VENDE-SE grande no alto do cartaz A4 (pergunta refeita com figura)?
 
 ## Plano
 
-A fazer depois das respostas. Deve pedir ADR: tabela nova de convites, e-mail novo e a cortesia automática.
+A fazer depois das respostas. Deve pedir ADR: banco de anúncios (tabela de saldo e movimentos), código por e-mail, tabela de convites e a limpeza dos vencidos pelo agendador diário.
 
 ## Tarefas
 
 - [x] T-180 Rascunho da Spec com a ideia e as perguntas (este arquivo)
-- [ ] T-181 Respostas do Álvaro às perguntas
+- [x] T-181 Respostas do Álvaro às perguntas *(2026-11-15; trouxeram o presente de boas-vindas, o banco de anúncios, a regra dos vencidos e o código por e-mail)*
 - [ ] T-182 Spec fechada, Plano com ADR e Tarefas
+- [ ] T-183 Respostas às três perguntas de 2026-11-15
