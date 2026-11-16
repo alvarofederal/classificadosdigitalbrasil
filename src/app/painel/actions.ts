@@ -246,3 +246,13 @@ export async function ligarPresenteAction(ligado: boolean): Promise<EstadoFormul
   revalidatePath("/painel/configuracoes")
   return { ok: true, mensagem: ligado ? "Presente de boas-vindas ligado." : "Presente de boas-vindas desligado. Contas confirmadas a partir de agora não ganham os dias." }
 }
+
+// ── Convites (feature 015: RF-256, RN-255) ──
+
+export async function ligarConvitesAction(ligado: boolean): Promise<EstadoFormulario> {
+  const admin = await autorizar("ADMIN")
+  if (!admin) return NAO_AUTORIZADO
+  await container().configuracao.ligarConvites(ligado)
+  revalidatePath("/painel/configuracoes")
+  return { ok: true, mensagem: ligado ? "Convites ligados." : "Convites desligados. Quem já aceitou um convite continua com o prêmio garantido." }
+}

@@ -52,11 +52,39 @@ model Usuario {
   confirmados     Pagamento[]        @relation("PagamentoConfirmadoPor")
   codigosPorEmail CodigoPorEmail[]
   movimentos      MovimentoDoBanco[]
+  convitesFeitos  Convite[]          @relation("ConvitesFeitos")
+  conviteAceito   Convite?           @relation("ConviteAceito")
 
   @@index([criadoEm])
   @@index([emailCanonico])
   @@index([ipDoCadastro, criadoEm])
   @@map("usuarios")
+}
+
+// Feature 015 (ADR-22): convites de cortesia. O link leva um código; aqui fica só o hash dele (RN-256).
+enum CanalDoConvite {
+  EMAIL
+  WHATSAPP
+}
+
+model Convite {
+  id           String         @id @default(cuid())
+  convidanteId String
+  canal        CanalDoConvite
+  emailDestino String?        @db.VarChar(160) // só no convite por e-mail (RN-252)
+  codigoHash   String         @unique @db.Char(64)
+  criadoEm     DateTime       @default(now())
+  expiraEm     DateTime
+  aceitoPorId  String?        @unique // uma conta aceita no máximo um convite
+  aceitoEm     DateTime?
+  premiadoEm   DateTime? // RN-254: o prêmio de quem convidou saiu
+  canceladoEm  DateTime?
+
+  convidante Usuario  @relation("ConvitesFeitos", fields: [convidanteId], references: [id], onDelete: Cascade)
+  aceitoPor  Usuario? @relation("ConviteAceito", fields: [aceitoPorId], references: [id])
+
+  @@index([convidanteId, criadoEm])
+  @@map("convites")
 }
 
 // Feature 017 (ADR-21): extrato do banco de dias. Positivo entra, negativo sai.
@@ -339,12 +367,13 @@ model Pagamento {
 
 // Recebedor do Pix estático (reserva quando o gateway não está configurado).
 model Configuracao {
-  id             String   @id @default("geral")
-  pixChave       String   @default("") @db.VarChar(77)
-  pixNome        String   @default("") @db.VarChar(25)
-  pixCidade      String   @default("") @db.VarChar(15)
-  presenteLigado Boolean  @default(true) // feature 017 (RF-174): presente de boas-vindas
-  atualizadoEm   DateTime @updatedAt
+  id              String   @id @default("geral")
+  pixChave        String   @default("") @db.VarChar(77)
+  pixNome         String   @default("") @db.VarChar(25)
+  pixCidade       String   @default("") @db.VarChar(15)
+  presenteLigado  Boolean  @default(true) // feature 017 (RF-174): presente de boas-vindas
+  convitesLigados Boolean  @default(true) // feature 015 (RF-256): convites
+  atualizadoEm    DateTime @updatedAt
 
   @@map("configuracoes")
 }

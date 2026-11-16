@@ -231,4 +231,7 @@ export interface ConfiguracaoRepository {
   /** Feature 017 (RF-174): o presente de boas-vindas está ligado? */
   presenteLigado(): Promise<boolean>
   ligarPresente(ligado: boolean): Promise<void>
+  /** Feature 015 (RF-256, RN-255): os convites estão ligados? */
+  convitesLigados(): Promise<boolean>
+  ligarConvites(ligado: boolean): Promise<void>
 }

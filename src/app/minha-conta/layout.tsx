@@ -25,6 +25,9 @@ export default async function LayoutDaConta({ children }: { children: React.Reac
           <Link href="/minha-conta/banco" className="hover:underline">
             Banco de dias
           </Link>
+          <Link href="/minha-conta/convites" className="hover:underline">
+            Convites
+          </Link>
           <Link href="/minha-conta/perfil" className="hover:underline">
             Meus dados
           </Link>

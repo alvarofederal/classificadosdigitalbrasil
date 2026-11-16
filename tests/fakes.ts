@@ -35,6 +35,7 @@ import type {
   PlanoRepository,
 } from "@/application/ports/caderno"
 import type { BancoDeDiasRepository, ReferenciasDoMovimento } from "@/application/ports/banco"
+import type { ConviteRegistro, ConviteRepository } from "@/application/ports/convites"
 import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import type { GeradorDeCodigo, Relogio, SegundoPlano } from "@/application/ports/sistema"
 import type { AnonimizadorDeVisitante, RegistroDaVisita, VisitaDaPessoa, VisitasQuery, VisitasRepository } from "@/application/ports/visitas"
@@ -228,6 +229,52 @@ export class ConfiguracaoEmMemoria implements ConfiguracaoRepository {
   async ligarPresente(ligado: boolean) {
     this.presente = ligado
   }
+  convites = true
+  async convitesLigados() {
+    return this.convites
+  }
+  async ligarConvites(ligado: boolean) {
+    this.convites = ligado
+  }
+}
+
+// ── Convites (feature 015) ──
+
+export class ConvitesEmMemoria implements ConviteRepository {
+  itens: ConviteRegistro[] = []
+  async inserir(c: Omit<ConviteRegistro, "id">) {
+    const id = novoId()
+    this.itens.push({ id, ...c })
+    return id
+  }
+  async doConvidante(convidanteId: string) {
+    return this.itens.filter((c) => c.convidanteId === convidanteId)
+  }
+  async porCodigoHash(codigoHash: string) {
+    return this.itens.find((c) => c.codigoHash === codigoHash) ?? null
+  }
+  async aceitar(id: string, usuarioId: string, quando: Date) {
+    const c = this.itens.find((x) => x.id === id)
+    if (!c || c.aceitoPorId || c.canceladoEm) return false
+    c.aceitoPorId = usuarioId
+    c.aceitoEm = quando
+    return true
+  }
+  async aceitoPor(usuarioId: string) {
+    return this.itens.find((c) => c.aceitoPorId === usuarioId) ?? null
+  }
+  async premiar(id: string, quando: Date) {
+    const c = this.itens.find((x) => x.id === id)
+    if (!c || c.premiadoEm) return false
+    c.premiadoEm = quando
+    return true
+  }
+  async cancelar(id: string, convidanteId: string, quando: Date) {
+    const c = this.itens.find((x) => x.id === id && x.convidanteId === convidanteId)
+    if (!c || c.aceitoPorId || c.canceladoEm) return false
+    c.canceladoEm = quando
+    return true
+  }
 }
 
 // ── Banco de dias (feature 017) ──
@@ -316,6 +363,7 @@ export const enderecosDeTeste: EnderecosDoSite = {
   paginaDoAnuncio: (codigo) => `https://classificados.teste/anuncio/${codigo}`,
   contato: () => "https://classificados.teste/como-funciona#contato",
   resultadoDoAnuncio: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}#fechou-negocio`,
+  convite: (codigo) => `https://classificados.teste/convite/${codigo}`,
 }
 
 /** Feature 012: anúncios com dono e a marca do aviso de vencimento (`avisadoPara`). */

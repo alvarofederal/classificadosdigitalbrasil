@@ -6,6 +6,7 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 |---|---|---|
 | `usuarios` | Anunciantes e administradores | nome, cpf (único), email (único), celular, uf, cidadeCodigo (IBGE), senhaHash, perfil, ativo, deveTrocarSenha, aceitouTermosEm |
 | `sessoes` | Login | tokenHash (SHA-256, único), expiraEm |
+| `convites` | Convites de cortesia (feature 015, ADR-22) | convidanteId, canal (EMAIL, WHATSAPP), emailDestino, codigoHash (SHA-256, único), criadoEm, expiraEm, aceitoPorId (único), aceitoEm, premiadoEm, canceladoEm |
 | `movimentos_do_banco` | Extrato do banco de dias (feature 017, ADR-21) | usuarioId, planoCodigo (SIMPLES ou FOTOS), dias (positivo entra, negativo sai), motivo (BOAS_VINDAS, USO, DEVOLUCAO, CONVITE, COMPRA, CORTESIA), anuncioId, pagamentoId, criadoEm |
 | `codigos_por_email` | Código de 6 números (feature 016, ADR-20) | usuarioId, finalidade (CADASTRO, TROCA_DE_EMAIL, NOVA_SENHA), email (destino), codigoHash (SHA-256), tentativas, expiraEm, encerradoEm, criadoEm |
 | `tentativas_login` | Freio contra força bruta | email, ip, sucesso, criadoEm |

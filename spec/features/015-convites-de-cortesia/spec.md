@@ -76,13 +76,47 @@ O banco guarda **dias**, separados em sem foto e com foto, em vez de contar anú
 
 A troca da tabela de preços para a proporcional entra junto com o banco (017), não antes.
 
+### Spec fechada dos convites (2026-11-16)
+
+O código por e-mail (016) e o banco de dias (017) já estão no ar; os convites usam os dois. Começo autorizado pelo Álvaro em 2026-11-16 ("Pode começar").
+
+| ID | Requisito |
+|---|---|
+| RF-250 | Toda conta de anunciante tem 5 convites. Minha conta mostra quantos restam e a lista dos enviados, com a situação de cada um. |
+| RF-251 | Convidar por e-mail: o dono informa o e-mail do amigo, e o site manda a carta com o link do convite. |
+| RF-252 | Convidar pelo WhatsApp: o site cria o convite e abre o WhatsApp do dono com o texto e o link prontos. |
+| RF-253 | O link do convite abre uma página com quem convidou (primeiro nome), o presente de boas-vindas e o botão para criar a conta. |
+| RF-254 | Quem cria a conta pelo convite fica ligado a ele; quando publica o primeiro anúncio, com ou sem foto, quem convidou ganha 7 dias com foto no banco. |
+| RF-255 | O dono pode cancelar um convite que ainda não foi aceito; o convite volta. |
+| RF-256 | Painel → Configurações liga e desliga os convites; o resumo do Painel conta convites enviados, aceitos e premiados. |
+
+| ID | Regra |
+|---|---|
+| RN-250 | 5 convites por conta, para sempre. Contam os aceitos e os que ainda valem; o vencido e o cancelado voltam. |
+| RN-251 | O convite vale 30 dias a partir do envio. |
+| RN-252 | O convite por e-mail só vale para a conta criada com aquele e-mail (o mesmo e-mail canônico, RN-155), e o código da 016 confirma que a pessoa lê aquela caixa. O do WhatsApp vale para quem tiver o link. |
+| RN-253 | Não se convida um e-mail que já tem conta nem o próprio e-mail. |
+| RN-254 | O prêmio sai uma vez por convite, na primeira publicação de um anúncio de quem foi convidado, e entra no extrato do banco como "Prêmio de convite" (RN-178). |
+| RN-255 | Com os convites desligados no Painel, não se criam convites novos e os links não ligam contas novas; o prêmio de quem já aceitou continua valendo. |
+| RN-256 | O link leva um código aleatório; o banco guarda só o hash dele, como na sessão. |
+| RN-257 | Quem foi convidado ganha o mesmo presente de boas-vindas de toda conta nova (RN-174); o convite não dá dias a mais para ele. |
+
 ## Plano
 
-A fazer depois das respostas. Deve pedir ADR: banco de anúncios (tabela de saldo e movimentos), código por e-mail, tabela de convites e a limpeza dos vencidos pelo agendador diário.
+- **Domínio** (`src/domain/convite/convite.ts`): constantes (RN-250, RN-251, prêmio), situação do convite (aguardando, aceito, premiado, vencido, cancelado), convites disponíveis, a carta do convite e o texto do WhatsApp.
+- **Aplicação**: porta `ConviteRepository`; casos de uso `ConvidarPorEmailUseCase`, `ConvidarPeloWhatsAppUseCase`, `VerConviteUseCase`, `CancelarConviteUseCase`, `PremiarConviteUseCase`; `CadastrarAnuncianteUseCase` liga a conta ao convite; `ConfirmarPagamentoUseCase` avisa o prêmio na primeira publicação de um anúncio (porta `AoPublicar`), sem deixar uma falha do prêmio derrubar a confirmação. `ConfiguracaoRepository` ganha os convites ligados.
+- **Banco** (migration `20261116180000_convites`): tabela `convites` (convidante, canal, e-mail de destino, hash do código, validade, aceito por, aceito em, premiado em, cancelado em) e `configuracoes.convitesLigados`.
+- **Apresentação**: caixa "Convide amigos" em Minha conta, página `/minha-conta/convites`, página pública `/convite/[codigo]`, cadastro com o convite, botão e números no Painel.
+- **ADR-22** em `02-plan.md`.
 
 ## Tarefas
 
 - [x] T-180 Rascunho da Spec com a ideia e as perguntas (este arquivo)
 - [x] T-181 Respostas do Álvaro às perguntas *(2026-11-15; trouxeram o presente de boas-vindas, o banco de anúncios, a regra dos vencidos e o código por e-mail)*
-- [ ] T-182 Spec fechada, Plano com ADR e Tarefas
+- [x] T-182 Spec fechada, Plano com ADR e Tarefas *(2026-11-16)*
 - [x] T-183 Respostas às três perguntas de 2026-11-15 *(banco aprovado "a gente testa"; banco em dias com preço proporcional; VENDE-SE aprovado)*
+- [x] T-184 Domínio, porta e casos de uso, com testes (RF-250 a RF-255, RN-250 a RN-257) *(`tests/unit/convites.test.ts`, 13 testes)*
+- [x] T-185 Migration, repositório e consultas *(migration `20261116180000_convites`)*
+- [x] T-186 Telas: caixa e página de convites, página do convite, cadastro, Painel (RF-250 a RF-256)
+- [x] T-187 Testes, typecheck, build e telas num banco local *(2026-11-16: 321 testes, typecheck e build. No `next dev` com MariaDB local, o caminho inteiro: a Joana convidou por e-mail (carta no terminal, com o link), o amigo abriu o link e viu o presente e o e-mail certo, criou a conta com o e-mail já preenchido, confirmou o código, ganhou 7 + 7 dias e publicou um anúncio com os dias; o convite ficou premiado e a Joana ganhou 7 dias com foto, com o extrato "CONVITE". O Painel mostrou o botão dos convites e a linha do resumo. Não conferido na tela: o botão do WhatsApp, que abre outro aplicativo; coberto pelos testes)*
+- [ ] T-188 Publicar com o OK do Álvaro

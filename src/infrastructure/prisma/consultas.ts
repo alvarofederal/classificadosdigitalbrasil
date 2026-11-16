@@ -13,6 +13,7 @@ import type {
   MeuAnuncioDetalheDTO,
   MinhaContaQuery,
   MovimentoDoBancoDTO,
+  ConviteDTO,
   Pagina,
   PainelQuery,
   PagamentoResumoDTO,
@@ -21,6 +22,7 @@ import type {
   UsuarioAdminDTO,
 } from "@/application/queries/consultas"
 import { type SaldoDoBanco, ehTipoDeDia } from "@/domain/banco/banco-de-dias"
+import { primeiroNome } from "@/domain/shared/carta"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
 import type { Plano } from "@/domain/plano/plano"
@@ -294,6 +296,15 @@ export class PrismaMinhaContaQuery implements MinhaContaQuery {
     return { SIMPLES: linha?.bancoDiasSimples ?? 0, FOTOS: linha?.bancoDiasFotos ?? 0 }
   }
 
+  async convites(usuarioId: string): Promise<ConviteDTO[]> {
+    const linhas = await this.db.convite.findMany({
+      where: { convidanteId: usuarioId },
+      orderBy: { criadoEm: "desc" },
+      include: { aceitoPor: { select: { nome: true } } },
+    })
+    return linhas.map(({ aceitoPor, convidanteId: _c, aceitoPorId: _a, codigoHash: _h, ...c }) => ({ ...c, convidado: aceitoPor ? primeiroNome(aceitoPor.nome) : null }))
+  }
+
   async extratoDoBanco(usuarioId: string, limite: number): Promise<MovimentoDoBancoDTO[]> {
     const linhas = await this.db.movimentoDoBanco.findMany({ where: { usuarioId }, orderBy: [{ criadoEm: "desc" }, { id: "desc" }], take: limite })
     const ids = [...new Set(linhas.map((l) => l.anuncioId).filter((id): id is string => id !== null))]
@@ -314,7 +325,7 @@ export class PrismaPainelQuery implements PainelQuery {
   constructor(private readonly db: PrismaClient) {}
 
   async resumo(agora: Date): Promise<ResumoDoPainelDTO> {
-    const [usuarios, anunciosNoAr, aguardandoPagamento, confirmados, chamadosAbertos, respostas] = await Promise.all([
+    const [usuarios, anunciosNoAr, aguardandoPagamento, confirmados, chamadosAbertos, respostas, enviados, aceitos, premiados] = await Promise.all([
       this.db.usuario.count({ where: { perfil: "ANUNCIANTE" } }),
       this.db.anuncio.count({ where: noAr(agora) }),
       this.db.anuncio.count({ where: { situacao: "AGUARDANDO_PAGAMENTO" } }),
@@ -322,6 +333,10 @@ export class PrismaPainelQuery implements PainelQuery {
       this.db.chamado.count({ where: { situacao: "ABERTO" } }),
       // Feature 021 (RF-213): uma contagem por resposta do "Fechou negócio?".
       this.db.anuncio.groupBy({ by: ["resultado"], where: { resultado: { not: null } }, _count: { _all: true } }),
+      // Feature 015 (RF-256)
+      this.db.convite.count({ where: { canceladoEm: null } }),
+      this.db.convite.count({ where: { aceitoEm: { not: null } } }),
+      this.db.convite.count({ where: { premiadoEm: { not: null } } }),
     ])
     const resultados = { PELO_CLASSIFICADOS: 0, POR_OUTRO_LUGAR: 0, AINDA_NAO: 0 }
     for (const r of respostas) if (r.resultado) resultados[r.resultado] = r._count._all
@@ -333,6 +348,7 @@ export class PrismaPainelQuery implements PainelQuery {
       valorRecebidoCentavos: centavos(confirmados._sum.valor) ?? 0,
       chamadosAbertos,
       resultados,
+      convites: { enviados, aceitos, premiados },
     }
   }
 

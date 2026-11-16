@@ -241,3 +241,32 @@ export async function registrarResultadoAction(anuncioId: string, resultado: str
   if (r.ok) revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
   return deResultado(r, r.ok && r.valor === "AINDA_NAO" ? "Resposta guardada." : "Resposta guardada. Obrigado por contar.")
 }
+
+// ── Convites (feature 015: RF-250 a RF-255) ──
+
+export async function convidarPorEmailAction(formData: FormData): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  const lido = lerFormulario(z.object({ email: texto }), formData)
+  if (!lido.ok) return lido.estado
+  const r = await container().convidarPorEmail.executar(usuario.id, lido.dados.email)
+  if (r.ok) revalidatePath("/minha-conta/convites")
+  return deResultado(r, r.ok ? `Convite enviado para ${r.valor.email}.` : undefined)
+}
+
+export async function convidarPeloWhatsAppAction(): Promise<{ ok: true; texto: string } | { ok: false; mensagem: string }> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return { ok: false, mensagem: NAO_AUTORIZADO.mensagem }
+  const r = await container().convidarPeloWhatsApp.executar(usuario.id)
+  if (!r.ok) return { ok: false, mensagem: r.mensagem }
+  revalidatePath("/minha-conta/convites")
+  return { ok: true, texto: r.valor.texto }
+}
+
+export async function cancelarConviteAction(conviteId: string): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  const r = await container().cancelarConvite.executar(usuario.id, conviteId)
+  if (r.ok) revalidatePath("/minha-conta/convites")
+  return deResultado(r, "Convite cancelado; ele voltou para você.")
+}

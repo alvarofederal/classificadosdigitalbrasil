@@ -49,6 +49,14 @@ import {
   VerificarPagamentoUseCase,
 } from "@/application/use-cases/pagamentos/pagamentos"
 import { DarPresenteDeBoasVindasUseCase, UsarDiasDoBancoUseCase } from "@/application/use-cases/banco/banco-de-dias"
+import {
+  AceitarConviteUseCase,
+  CancelarConviteUseCase,
+  ConvidarPeloWhatsAppUseCase,
+  ConvidarPorEmailUseCase,
+  PremiarConviteUseCase,
+  VerConviteUseCase,
+} from "@/application/use-cases/convites/convites"
 import { AbrirChamadoUseCase, LocalizarCidadeUseCase } from "@/application/use-cases/publico/publico"
 import { CorreioDesligado, CorreioNoTerminal, CorreioSmtp, lerConfiguracaoDoCorreio } from "./email/correio-smtp"
 import { CatalogoIbge } from "./localidades/catalogo-ibge"
@@ -70,6 +78,7 @@ import {
   PrismaBancoDeDiasRepository,
   PrismaChamadoRepository,
   PrismaConfiguracaoRepository,
+  PrismaConviteRepository,
   PrismaPagamentoRepository,
   PrismaPlanoRepository,
 } from "./prisma/repositorios-pagamento"
@@ -136,14 +145,18 @@ function montar() {
     paginaDoAnuncio: (codigo) => `${enderecoDoSite}/anuncio/${codigo}`,
     contato: () => `${enderecoDoSite}/como-funciona#contato`,
     resultadoDoAnuncio: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}#fechou-negocio`,
+    convite: (codigo) => `${enderecoDoSite}/convite/${codigo}`,
   }
   // Feature 016 (ADR-20): código por e-mail.
   const segundoPlano = new DepoisDaResposta()
   const depsDoCodigo = { codigosPorEmail: new PrismaCodigoPorEmailRepository(prisma), correio, codigos, tokens, relogio }
   const avisarMensagemNova = new AvisarMensagemNovaUseCase(usuarios, mensagens, correio, relogio, enderecos)
-  const confirmarPagamento = new ConfirmarPagamentoUseCase(anuncios, pagamentos, relogio)
   // Feature 017 (ADR-21): banco de dias e presente de boas-vindas.
   const banco = new PrismaBancoDeDiasRepository(prisma)
+  // Feature 015 (ADR-22): convites; o prêmio sai quando o anúncio do convidado vai ao ar pela primeira vez.
+  const convites = new PrismaConviteRepository(prisma)
+  const depsDosConvites = { convites, usuarios, configuracao, codigos, tokens, relogio, enderecos }
+  const confirmarPagamento = new ConfirmarPagamentoUseCase(anuncios, pagamentos, relogio, new PremiarConviteUseCase(convites, banco, relogio))
   const presente = new DarPresenteDeBoasVindasUseCase(usuarios, banco, configuracao, relogio)
   const usarDiasDoBanco = new UsarDiasDoBancoUseCase(anuncios, banco, depsDePagamento, confirmarPagamento)
   const processarPagamentoDoGateway = new ProcessarPagamentoDoGatewayUseCase(pagamentos, gateway, confirmarPagamento)
@@ -171,7 +184,11 @@ function montar() {
     autenticar: new AutenticarUsuarioUseCase(usuarios, sessoes, tentativas, hash, tokens, relogio),
     obterSessao: new ObterSessaoUseCase(sessoes, tokens, relogio),
     encerrarSessao: new EncerrarSessaoUseCase(sessoes, tokens),
-    cadastrarAnunciante: new CadastrarAnuncianteUseCase(usuarios, sessoes, hash, tokens, localidades, relogio, depsDoCodigo),
+    cadastrarAnunciante: new CadastrarAnuncianteUseCase(usuarios, sessoes, hash, tokens, localidades, relogio, depsDoCodigo, new AceitarConviteUseCase(depsDosConvites)),
+    convidarPorEmail: new ConvidarPorEmailUseCase(depsDosConvites, correio),
+    convidarPeloWhatsApp: new ConvidarPeloWhatsAppUseCase(depsDosConvites),
+    verConvite: new VerConviteUseCase(depsDosConvites),
+    cancelarConvite: new CancelarConviteUseCase(depsDosConvites),
     atualizarPerfil: new AtualizarPerfilUseCase(usuarios, localidades),
     alterarSenha: new AlterarSenhaUseCase(usuarios, sessoes, hash, tokens),
     confirmarEmail: new ConfirmarEmailUseCase(usuarios, depsDoCodigo, presente),

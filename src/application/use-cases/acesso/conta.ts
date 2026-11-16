@@ -36,14 +36,18 @@ export class CadastrarAnuncianteUseCase {
     private readonly localidades: Localidades,
     private readonly relogio: Relogio,
     private readonly codigo: DepsDoCodigo,
+    /** Feature 015 (RF-254): liga a conta nova ao convite. */
+    private readonly convites?: { aceitar(codigo: string, conta: { id: string; email: string }): Promise<boolean> },
   ) {}
 
   /**
    * RF-150: a conta nasce aguardando a confirmação do e-mail, já com a sessão aberta para a tela do código.
    * `codigoEnviado` falso = o envio falhou; a tela oferece mandar de novo (RN-158).
    */
-  async executar(entrada: DadosDeCadastro & { ip?: string | null }): Promise<Result<{ token: string; expiraEm: Date; codigoEnviado: boolean }>> {
-    const { ip = null, ...cadastro } = entrada
+  async executar(
+    entrada: DadosDeCadastro & { ip?: string | null; convite?: string | null },
+  ): Promise<Result<{ token: string; expiraEm: Date; codigoEnviado: boolean }>> {
+    const { ip = null, convite = null, ...cadastro } = entrada
     const dados = { ...normalizarDadosPessoais(cadastro), cpf: somenteDigitos(cadastro.cpf) }
     const erros = validarCadastro(dados)
     conferirCidade(this.localidades, dados.uf, dados.cidadeCodigo, erros)
@@ -69,6 +73,8 @@ export class CadastrarAnuncianteUseCase {
       aceitouTermosEm: this.relogio.agora(),
       emailConfirmadoEm: null,
     }, ip)
+    // RF-254: o convite que não vale (vencido, de outro e-mail) só não é ligado; a conta é criada do mesmo jeito.
+    if (convite && this.convites) await this.convites.aceitar(convite, { id: usuarioId, email: dados.email })
     const envio = await emitirCodigo(this.codigo, { id: usuarioId, nome: dados.nome }, "CADASTRO", dados.email)
     const sessao = await abrirSessao({ sessoes: this.sessoes, tokens: this.tokens, relogio: this.relogio }, usuarioId)
     return ok({ ...sessao, codigoEnviado: envio.ok })

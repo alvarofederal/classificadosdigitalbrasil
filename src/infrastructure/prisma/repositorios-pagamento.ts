@@ -1,6 +1,7 @@
 // INFRAESTRUTURA — repositórios Prisma de planos, pagamentos, configuração do Pix, banco de dias e chamados.
 
 import type { BancoDeDiasRepository, ReferenciasDoMovimento } from "@/application/ports/banco"
+import type { ConviteRegistro, ConviteRepository } from "@/application/ports/convites"
 import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type {
   AnuncioRegistro,
@@ -168,6 +169,60 @@ export class PrismaConfiguracaoRepository implements ConfiguracaoRepository {
 
   async ligarPresente(ligado: boolean) {
     await this.db.configuracao.upsert({ where: { id: "geral" }, update: { presenteLigado: ligado }, create: { id: "geral", presenteLigado: ligado } })
+  }
+
+  /** Feature 015 (RF-256). Sem a linha de configuração, vale o padrão: ligado. */
+  async convitesLigados() {
+    const linha = await this.db.configuracao.findUnique({ where: { id: "geral" }, select: { convitesLigados: true } })
+    return linha?.convitesLigados ?? true
+  }
+
+  async ligarConvites(ligado: boolean) {
+    await this.db.configuracao.upsert({ where: { id: "geral" }, update: { convitesLigados: ligado }, create: { id: "geral", convitesLigados: ligado } })
+  }
+}
+
+// ── Convites (feature 015, ADR-22) ──
+
+export class PrismaConviteRepository implements ConviteRepository {
+  constructor(private readonly db: PrismaClient) {}
+
+  async inserir(convite: Omit<ConviteRegistro, "id">) {
+    const { id } = await this.db.convite.create({ data: convite, select: { id: true } })
+    return id
+  }
+
+  async doConvidante(convidanteId: string) {
+    return this.db.convite.findMany({ where: { convidanteId }, orderBy: { criadoEm: "desc" } })
+  }
+
+  async porCodigoHash(codigoHash: string) {
+    return this.db.convite.findUnique({ where: { codigoHash } })
+  }
+
+  /** Condicionada: dois cadastros com o mesmo link não aceitam o mesmo convite. */
+  async aceitar(id: string, usuarioId: string, quando: Date) {
+    try {
+      const { count } = await this.db.convite.updateMany({ where: { id, aceitoPorId: null, canceladoEm: null }, data: { aceitoPorId: usuarioId, aceitoEm: quando } })
+      return count === 1
+    } catch {
+      // aceitoPorId é único: a conta que já aceitou outro convite não aceita este.
+      return false
+    }
+  }
+
+  async aceitoPor(usuarioId: string) {
+    return this.db.convite.findUnique({ where: { aceitoPorId: usuarioId } })
+  }
+
+  async premiar(id: string, quando: Date) {
+    const { count } = await this.db.convite.updateMany({ where: { id, premiadoEm: null }, data: { premiadoEm: quando } })
+    return count === 1
+  }
+
+  async cancelar(id: string, convidanteId: string, quando: Date) {
+    const { count } = await this.db.convite.updateMany({ where: { id, convidanteId, aceitoPorId: null, canceladoEm: null }, data: { canceladoEm: quando } })
+    return count === 1
   }
 }
 

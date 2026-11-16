@@ -134,12 +134,13 @@ export function FormularioEntrar({ voltar }: { voltar?: string }) {
   )
 }
 
-export function FormularioCadastro({ voltar }: { voltar?: string }) {
+export function FormularioCadastro({ voltar, convite, emailDoConvite }: { voltar?: string; convite?: string; emailDoConvite?: string | null }) {
   const { estado, pendente, onSubmit, formRef, erro } = useFormularioAcao(cadastrarAction)
   return (
     <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <MensagemFormulario estado={estado} />
       {voltar && <input type="hidden" name="voltar" value={voltar} />}
+      {convite && <input type="hidden" name="convite" value={convite} />}
       <Campo rotulo="Nome completo" nome="nome" erro={erro("nome")} obrigatorio>
         <input {...aria("nome", erro("nome"))} className="campo" autoComplete="name" maxLength={120} />
       </Campo>
@@ -152,7 +153,7 @@ export function FormularioCadastro({ voltar }: { voltar?: string }) {
         </Campo>
       </div>
       <Campo rotulo="E-mail" nome="email" erro={erro("email")} obrigatorio>
-        <input {...aria("email", erro("email"))} type="email" className="campo" autoComplete="email" maxLength={160} />
+        <input {...aria("email", erro("email"))} type="email" className="campo" autoComplete="email" maxLength={160} defaultValue={emailDoConvite ?? undefined} />
       </Campo>
       <SeletorLocalidade erroUf={erro("uf")} erroCidade={erro("cidadeCodigo")} obrigatorio rotuloCidade="Sua cidade" />
       <div className="grid gap-4 sm:grid-cols-2">

@@ -7,7 +7,7 @@ import { Faixa } from "@/components/jornal/pecas"
 import { container } from "@/infrastructure/container"
 import { exigirPerfil } from "@/lib/sessao"
 import { BotaoAcao } from "../_componentes/botao-acao"
-import { enviarEmailDeTesteAction, ligarPresenteAction } from "../actions"
+import { enviarEmailDeTesteAction, ligarConvitesAction, ligarPresenteAction } from "../actions"
 import { FormularioConfiguracao } from "./formulario-configuracao"
 
 export const metadata: Metadata = { title: "Configurações", robots: { index: false } }
@@ -40,11 +40,12 @@ export default async function Configuracoes() {
   const mp = c.mercadoPago
   const correio = c.correio
   // As três conferências saem juntas: servidor de e-mail lento não soma ao tempo do Mercado Pago.
-  const [cfg, { conta, erro: erroDaConta }, conexao, presenteLigado] = await Promise.all([
+  const [cfg, { conta, erro: erroDaConta }, conexao, presenteLigado, convitesLigados] = await Promise.all([
     c.configuracao.obter(),
     conferirMercadoPago(mp.conta),
     correio.ligado ? correio.conferir() : Promise.resolve(null),
     c.configuracao.presenteLigado(),
+    c.configuracao.convitesLigados(),
   ])
   const ligado = Boolean(conta?.producao)
   const emailLigado = Boolean(conexao?.ok)
@@ -150,6 +151,24 @@ export default async function Configuracoes() {
             rotulo={presenteLigado ? "Desligar o presente" : "Ligar o presente"}
             vazado={presenteLigado}
             confirmacao={presenteLigado ? "Desligar o presente de boas-vindas? Contas confirmadas a partir de agora não ganham os dias." : undefined}
+          />
+        </div>
+      </section>
+
+      {/* Feature 015 (RF-256): convites de cortesia. */}
+      <section className={convitesLigados ? "border-2 border-sucesso p-4" : "border-2 border-tinta p-4"}>
+        <p className="font-titulo text-lg font-bold uppercase">Convites</p>
+        <p className="mt-2 text-sm">
+          {convitesLigados
+            ? "Ligados: cada anunciante tem 5 convites, e quem convida ganha 7 dias com foto quando o amigo publica o primeiro anúncio."
+            : "Desligados: ninguém cria convites novos e os links não ligam contas novas. Quem já aceitou um convite continua com o prêmio garantido."}
+        </p>
+        <div className="mt-3">
+          <BotaoAcao
+            acao={ligarConvitesAction.bind(null, !convitesLigados)}
+            rotulo={convitesLigados ? "Desligar os convites" : "Ligar os convites"}
+            vazado={convitesLigados}
+            confirmacao={convitesLigados ? "Desligar os convites? Ninguém cria convites novos, e os links enviados param de valer." : undefined}
           />
         </div>
       </section>

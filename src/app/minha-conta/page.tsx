@@ -7,12 +7,14 @@ import { CaixaAnuncio } from "@/components/jornal/caixa-anuncio"
 import { Faixa } from "@/components/jornal/pecas"
 import { VisitasNaLista } from "@/components/visitas/visitas"
 import { situacaoExibida } from "@/domain/anuncio/anuncio"
+import { convitesDisponiveis } from "@/domain/convite/convite"
 import { planoTemDestaque } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDia, formatarReais, plural } from "@/lib/formatadores"
 import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { exigirPerfil } from "@/lib/sessao"
 import { BotaoAtivarDesativar } from "./_componentes/botoes-anuncio"
+import { CaixaDeConvites } from "./_componentes/caixa-de-convites"
 import { CaixaDoBanco } from "./_componentes/caixa-do-banco"
 import { SeloSituacao } from "./_componentes/selo-situacao"
 
@@ -22,7 +24,12 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
   const usuario = await exigirPerfil("ANUNCIANTE")
   const c = container()
   const agora = c.relogio.agora()
-  const [anuncios, saldo] = await Promise.all([c.minhaConta.meusAnuncios(usuario.id), c.minhaConta.saldoDoBanco(usuario.id)])
+  const [anuncios, saldo, convites, convitesLigados] = await Promise.all([
+    c.minhaConta.meusAnuncios(usuario.id),
+    c.minhaConta.saldoDoBanco(usuario.id),
+    c.minhaConta.convites(usuario.id),
+    c.configuracao.convitesLigados(),
+  ])
   const visitas = await c.resumirVisitas.daLista(anuncios.filter((a) => a.publicadoEm !== null))
   const removido = (await searchParams).removido === "1"
 
@@ -39,6 +46,8 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
       {removido && <p className="border border-tinta bg-papel-escuro px-3 py-2 text-sm">Anúncio removido do caderno.</p>}
       {/* Feature 017 (RF-170): o saldo do banco, logo que o anunciante entra. */}
       <CaixaDoBanco saldo={saldo} />
+      {/* Feature 015 (RF-250): convites, logo abaixo do banco, onde o prêmio entra. */}
+      {convitesLigados && <CaixaDeConvites disponiveis={convitesDisponiveis(convites, agora)} />}
 
       {anuncios.length === 0 ? (
         <div className="cartao flex flex-col items-start gap-3 p-5">

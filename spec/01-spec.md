@@ -118,6 +118,18 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-204 | Texto pronto com título, preço, cidade, começo do texto e link curto, copiado com um toque. |
 | RF-205 | O aviso de recém-publicado e a lista de Minha conta levam à seção Divulgar. |
 
+### Convites de cortesia (feature 015)
+
+| ID | Requisito |
+|---|---|
+| RF-250 | Toda conta de anunciante tem 5 convites; Minha conta mostra quantos restam e os enviados, com a situação. |
+| RF-251 | Convidar por e-mail: a carta leva o link do convite. |
+| RF-252 | Convidar pelo WhatsApp: o site cria o convite e abre o WhatsApp do dono com o texto e o link. |
+| RF-253 | O link abre a página com quem convidou, o presente de boas-vindas e o botão para criar a conta. |
+| RF-254 | A conta criada pelo convite fica ligada a ele; na primeira publicação dela, quem convidou ganha 7 dias com foto. |
+| RF-255 | O convite ainda não aceito pode ser cancelado e volta. |
+| RF-256 | Painel → Configurações liga e desliga os convites; o resumo conta enviados, aceitos e premiados. |
+
 ### QR Code do anúncio (feature 022)
 
 | ID | Requisito |
@@ -228,6 +240,14 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-202 | A foto entra só se o anúncio tiver foto; sem foto, o texto sai maior. |
 | RN-203 | O texto do anúncio entra resumido sem cortar palavra, com reticências. |
 | RN-204 | O link das imagens e do texto é sempre o link curto. |
+| RN-250 | 5 convites por conta, para sempre; o vencido e o cancelado voltam. |
+| RN-251 | O convite vale 30 dias. |
+| RN-252 | O convite por e-mail só vale para a conta criada com aquele e-mail; o do WhatsApp, para quem tiver o link. |
+| RN-253 | Não se convida e-mail que já tem conta nem o próprio. |
+| RN-254 | O prêmio sai uma vez por convite, na primeira publicação de quem foi convidado, e entra no extrato do banco. |
+| RN-255 | Com os convites desligados, não se criam convites e os links não ligam contas; o prêmio de quem já aceitou continua. |
+| RN-256 | O banco guarda só o hash do código do link. |
+| RN-257 | Quem foi convidado ganha o presente de boas-vindas de toda conta nova, sem dias a mais. |
 | RN-220 | O QR Code leva sempre ao link curto do anúncio. |
 | RN-221 | QR em tinta preta sobre branco, com margem e correção de erro média. |
 | RN-222 | Os quadrinhos do caderno, da seção e da pesquisa não têm QR Code. |

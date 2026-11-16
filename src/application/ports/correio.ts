@@ -24,4 +24,6 @@ export interface EnderecosDoSite {
   contato(): string
   /** A pergunta "Fechou negócio?" na tela do anúncio em Minha conta (feature 021). */
   resultadoDoAnuncio(anuncioId: string): string
+  /** A página do convite (feature 015, RF-253). */
+  convite(codigo: string): string
 }

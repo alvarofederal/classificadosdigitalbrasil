@@ -3,6 +3,7 @@
 
 import type { EstiloDoAnuncio, Situacao, SituacaoExibida } from "@/domain/anuncio/anuncio"
 import type { ResultadoDoAnuncio } from "@/domain/anuncio/resultado"
+import type { CanalDoConvite } from "@/domain/convite/convite"
 import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
@@ -142,6 +143,22 @@ export interface MinhaContaQuery {
   saldoDoBanco(usuarioId: string): Promise<SaldoDoBanco>
   /** RF-171: os movimentos mais recentes primeiro. */
   extratoDoBanco(usuarioId: string, limite: number): Promise<MovimentoDoBancoDTO[]>
+  /** Feature 015 (RF-250): os convites que a conta fez, os mais novos primeiro. */
+  convites(usuarioId: string): Promise<ConviteDTO[]>
+}
+
+/** Feature 015: um convite na lista de quem convidou. */
+export interface ConviteDTO {
+  id: string
+  canal: CanalDoConvite
+  emailDestino: string | null
+  criadoEm: Date
+  expiraEm: Date
+  aceitoEm: Date | null
+  premiadoEm: Date | null
+  canceladoEm: Date | null
+  /** Primeiro nome de quem criou a conta pelo convite. */
+  convidado: string | null
 }
 
 // ── Painel do administrador ──
@@ -155,6 +172,8 @@ export interface ResumoDoPainelDTO {
   chamadosAbertos: number
   /** Feature 021 (RF-213): quantos anúncios têm cada resposta do "Fechou negócio?". */
   resultados: Record<ResultadoDoAnuncio, number>
+  /** Feature 015 (RF-256): convites enviados (fora os cancelados), aceitos e premiados. */
+  convites: { enviados: number; aceitos: number; premiados: number }
 }
 
 export type FiltroDePagamento = "TODOS" | "PAGOS" | "PENDENTES" | "SEM_PAGAMENTO"

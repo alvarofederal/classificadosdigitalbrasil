@@ -51,14 +51,16 @@ const schemaCadastro = z.object({
   confirmacaoSenha: texto,
   aceitouTermos: checkbox,
   voltar: z.string().optional(),
+  // Feature 015 (RF-254): o código do convite, quando a conta vem de um.
+  convite: z.string().max(40).optional(),
 })
 
 export async function cadastrarAction(formData: FormData): Promise<EstadoFormulario> {
   const lido = lerFormulario(schemaCadastro, formData)
   if (!lido.ok) return lido.estado
-  const { voltar, ...dados } = lido.dados
+  const { voltar, convite, ...dados } = lido.dados
   // RN-176 (feature 017): a conexão de onde a conta é criada, para o limite de contas por dia.
-  const resultado = await container().cadastrarAnunciante.executar({ ...dados, ip: await ipDaRequisicao() })
+  const resultado = await container().cadastrarAnunciante.executar({ ...dados, ip: await ipDaRequisicao(), convite: convite ?? null })
   if (!resultado.ok) return deResultado(resultado)
   await gravarCookieDeSessao(resultado.valor.token, resultado.valor.expiraEm)
   // RF-150: a conta nova vai para a tela do código; depois dele, segue para onde ia.

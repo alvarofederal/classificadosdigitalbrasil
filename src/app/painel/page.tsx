@@ -64,6 +64,10 @@ export default async function Resumo() {
         </ul>
         <p className="text-sm text-tinta-suave">Respostas dos anunciantes, na tela do anúncio e no e-mail de vencimento.</p>
       </section>
+      {/* Feature 015 (RF-256) */}
+      <p className="text-sm">
+        <strong>Convites:</strong> {resumo.convites.enviados} enviados · {resumo.convites.aceitos} com conta criada · {resumo.convites.premiados} com anúncio publicado.
+      </p>
       {resumo.aguardandoPagamento > 0 && (
         <p>
           Há {resumo.aguardandoPagamento} anúncio(s) esperando a confirmação do Pix.{" "}

@@ -15,6 +15,7 @@ import type {
   PagamentoRepository,
   PlanoRepository,
 } from "../../ports/caderno"
+import type { AoPublicarPelaPrimeiraVez } from "../../ports/convites"
 import type { GeradorDeCodigo, Relogio } from "../../ports/sistema"
 
 export interface DepsDePagamento {
@@ -149,6 +150,8 @@ export class ConfirmarPagamentoUseCase {
     private readonly anuncios: AnuncioRepository,
     private readonly pagamentos: PagamentoRepository,
     private readonly relogio: Relogio,
+    /** Feature 015 (RF-254): avisado quando um anúncio vai ao ar pela primeira vez (o prêmio do convite). */
+    private readonly aoPublicar?: AoPublicarPelaPrimeiraVez,
   ) {}
 
   async executar(entrada: { pagamentoId: string; adminId: string | null }): Promise<Result<{ expiraEm: Date }>> {
@@ -174,6 +177,14 @@ export class ConfirmarPagamentoUseCase {
       },
     )
     if (!confirmou) return falha("JA_PROCESSADO", "Este pagamento já foi processado.")
+    if (anuncio.publicadoEm === null && this.aoPublicar) {
+      // O prêmio do convite nunca derruba a confirmação: o pagamento e a publicação já estão gravados.
+      try {
+        await this.aoPublicar.aoPublicar(anuncio.usuarioId)
+      } catch (erro) {
+        console.error("[convite] prêmio não registrado", anuncio.codigo, erro)
+      }
+    }
     return ok({ expiraEm })
   }
 }
