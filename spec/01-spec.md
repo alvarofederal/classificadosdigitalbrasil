@@ -96,6 +96,13 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-155 | O e-mail antigo recebe um aviso quando a troca acontece. |
 | RF-156 | O Painel marca, na lista de usuários, quem não confirmou o e-mail. |
 
+### Cartaz com VENDE-SE (feature 019)
+
+| ID | Requisito |
+|---|---|
+| RF-190 | O alto do cartaz A4 traz uma palavra grande: VENDE-SE, ALUGA-SE ou CLASSIFICADOS; com as duas primeiras, o jornal, a cidade e a seção vão numa linha menor logo abaixo. |
+| RF-191 | Acima do cartaz, fora da impressão, quem vai imprimir escolhe a palavra. |
+
 ## Regras de negócio
 
 | ID | Regra |
@@ -164,6 +171,9 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-157 | Criar a senha nova pelo código também confirma o e-mail. |
 | RN-158 | Sem servidor de e-mail o código não sai e a tela avisa; fora da produção, a carta vai para o terminal. |
 | RN-159 | A carta do código leva só o primeiro nome, diz para que serve e lembra que o site nunca pede o código por telefone ou mensagem. |
+| RN-190 | O cartaz já vem com VENDE-SE, menos em Empregos, Serviços, Festas e Eventos, Turismo e Lazer e Música, Arte e Cultura, que vêm com CLASSIFICADOS. |
+| RN-191 | A palavra escolhida vai no endereço (`?titulo=`) e não fica gravada no anúncio; valor desconhecido vale como o padrão da seção. |
+| RN-192 | Voltar ao cartaz antigo em todas as seções é trocar o padrão no domínio (`tituloPadraoDoCartaz`). |
 
 ## Requisitos não funcionais
 
