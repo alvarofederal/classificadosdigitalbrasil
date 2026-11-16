@@ -29,4 +29,4 @@
 
 - [x] T-193 Domínio com testes (RN-190, RN-191) *(`tests/unit/cartaz.test.ts`)*
 - [x] T-194 Cartaz com a palavra grande e a escolha (RF-190, RF-191) *(2026-11-15, conferido no `next dev` com os anúncios de demonstração num MariaDB local: Veículos abre com VENDE-SE, Serviços com CLASSIFICADOS, os três links trocam a palavra. Com VENDE-SE a foto passou de 80 mm para 72 mm de altura: medido com o texto e o título do Astra na largura da folha, o cartaz ocupa 1015 dos 1032 pontos de altura de um A4 com margem de 12 mm; com 80 mm passaria para uma segunda folha)*
-- [ ] T-195 Publicar com o OK do Álvaro e conferir o cartaz do Astra
+- [x] T-195 Publicar com o OK do Álvaro e conferir o cartaz do Astra *(2026-11-15, 22:40, junto com a 016. No ar, o cartaz do Astra abre com VENDE-SE marcado e em letra grande; `?titulo=classificados` também responde. Falta o Álvaro imprimir e ver na folha)*

@@ -71,6 +71,7 @@
 - [x] T-203 Telas: confirmar e-mail, esqueci a senha, Meus dados, barreira na sessão, Painel (RF-150 a RF-156) *(em Meus dados o e-mail saiu do formulário dos dados e ganhou a caixa própria, com o código)*
 - [x] T-204 Correio no terminal fora da produção (RN-158) e seed do admin confirmado
 - [x] T-205 Testes, typecheck, build e telas num banco local *(2026-11-15: 267 testes, typecheck e build passando. No `next dev` com um MariaDB local, conferidos: cadastro levando à tela do código, Minha conta barrada antes do código, código errado com "Restam 4 tentativas", código certo liberando a conta, troca de e-mail com código e o aviso ao endereço antigo, saída, "Esqueci a senha" com código e senha nova entrando em Minha conta. Sem erro no console nem no servidor. Não conferido na tela: a marca do Painel, que pede entrar como administrador)*
-- [ ] T-206 Publicar com o OK do Álvaro e conferir em produção com uma conta nova de teste
+- [x] T-206 Publicar com o OK do Álvaro *(2026-11-15, 22:40: push de `f276219` a `a0f41c9` com o "Pode publicar" dele; o deploy aplicou a migration `20261115220000_codigo_por_email`. Conferido no ar: Entrar com o link "Esqueci a senha", as páginas `/esqueci-a-senha` e `/cadastro`, `/confirmar-email` e Minha conta mandando para o Entrar quem não está logado, e as páginas públicas)*
+- [ ] T-207 Conferir em produção com uma conta nova de teste: o Álvaro cria a conta com outro e-mail dele e vê o código chegar
 
 **Achado ao testar.** Num banco novo, o seed falha ao criar os planos: a migration `20261109120000_precos_por_periodo` grava os preços de SIMPLES e FOTOS mesmo sem os planos existirem, e o seed tenta criar de novo. Não afeta a produção (os planos já existem lá). Anotado como item 8.10 do `08-lancamento.md`.

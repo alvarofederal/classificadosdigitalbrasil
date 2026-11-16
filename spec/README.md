@@ -48,6 +48,6 @@ A memória do projeto é esta pasta, não a conversa (Art. 7 da constituição).
 | `features/013-visitas-do-anuncio` | Visitas por pessoa, dia e cidade, sem guardar IP, na lista e na tela do anúncio | Feito em 2026-11-12 |
 | `features/011-google` | Anúncios no sitemap e dados estruturados para o Google | Entregue (2026-11-12); site no Search Console com o sitemap enviado |
 | `features/015-convites-de-cortesia` | Presente de boas-vindas, banco de dias e convites: respostas do Álvaro e ordem das entregas | Spec com as respostas (2026-11-15); plano depois da 016 e da 017 |
-| `features/016-codigo-por-email` | Código de 6 números por e-mail no cadastro, na troca de e-mail e no "esqueci a senha" | Feito em 2026-11-15; espera o OK para publicar |
-| `features/019-cartaz-vende-se` | VENDE-SE, ALUGA-SE ou CLASSIFICADOS no alto do cartaz A4 | Feito em 2026-11-15; espera o OK para publicar |
+| `features/016-codigo-por-email` | Código de 6 números por e-mail no cadastro, na troca de e-mail e no "esqueci a senha" | No ar desde 2026-11-15 |
+| `features/019-cartaz-vende-se` | VENDE-SE, ALUGA-SE ou CLASSIFICADOS no alto do cartaz A4 | No ar desde 2026-11-15 |
 | `features/010-aviso-de-mensagem` | Aviso por e-mail ao dono quando chega mensagem | Em produção desde 2026-11-11; envio pelo Resend (T-126) conferido em produção no mesmo dia (T-125 feita) |
