@@ -39,4 +39,4 @@
 - [x] T-241 Cartaz e página do anúncio com o componente (RF-220, RF-221)
 - [x] T-242 QR nas imagens de divulgação e o arquivo do QR na seção Divulgar (RF-222, RF-223, RN-223) *(para caber o QR no rodapé, a foto da vertical passou de 520 para 470 px de altura e a da quadrada de 440 para 390)*
 - [x] T-243 Testes, typecheck, build e imagens conferidas *(2026-11-16: 305 testes, typecheck e build. No `next dev` com MariaDB local, com o texto, a foto e o preço iguais aos do Astra: as duas imagens trazem o QR no rodapé e tudo cabe; `qrcode.png` sai com 1000 px; a página pública mostra o QR com a legenda e o cartaz continua com o QR)*
-- [ ] T-244 Publicar com o OK do Álvaro
+- [x] T-244 Publicar com o OK do Álvaro *(2026-11-16, 10:53: "Pode publicar". Conferido no ar: a página do Astra mostra o QR com a legenda; as imagens de status e quadrada trazem o QR e o link curto inteiro numa linha; `qrcode.png` responde; capa, Brasília e cartaz abrem)*
