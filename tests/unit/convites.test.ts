@@ -153,8 +153,20 @@ describe("Convidar (RF-250 a RF-252, RN-251 a RN-253)", () => {
     t.codigosDoConvite.proximos = ["WHATS2345678"]
     const r = await t.peloWhatsApp.executar("quem-convida")
     expect(r.ok && r.valor.link).toBe("https://classificados.teste/convite/WHATS2345678")
-    expect(r.ok && r.valor.texto).toContain("https://classificados.teste/convite/WHATS2345678")
+    // Redação do Álvaro (2026-11-16), uma ideia por linha.
+    expect(r.ok && r.valor.texto).toBe(
+      [
+        "Estou anunciando no novo Classificados Digitais do Brasil, os classificados da cidade com cara de jornal.",
+        "Criando a conta, você ganha 1 anúncio por 7 dias sem foto e outro anúncio por 7 dias com foto de graça.",
+        "Este é o meu convite para você:",
+        "https://classificados.teste/convite/WHATS2345678",
+      ].join("\n"),
+    )
     expect(t.convites.itens[0]).toMatchObject({ canal: "WHATSAPP", emailDestino: null })
+    // Com o presente desligado, a linha do presente some.
+    t.configuracao.presente = false
+    const semPresente = await t.peloWhatsApp.executar("quem-convida")
+    expect(semPresente.ok && semPresente.valor.texto.split("\n")).toHaveLength(3)
   })
 
   it("RN-250: no sexto convite, recusa; cancelando um, ele volta", async () => {

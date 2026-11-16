@@ -124,7 +124,7 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 |---|---|
 | RF-250 | Toda conta de anunciante tem 5 convites; Minha conta mostra quantos restam e os enviados, com a situação. |
 | RF-251 | Convidar por e-mail: a carta leva o link do convite. |
-| RF-252 | Convidar pelo WhatsApp: o site cria o convite e abre o WhatsApp do dono com o texto e o link. |
+| RF-252 | Convidar pelo WhatsApp: o site cria o convite e abre o WhatsApp do dono com o texto e o link, uma ideia por linha e o link sozinho na última. |
 | RF-253 | O link abre a página com quem convidou, o presente de boas-vindas e o botão para criar a conta. |
 | RF-254 | A conta criada pelo convite fica ligada a ele; na primeira publicação dela, quem convidou ganha 7 dias com foto. |
 | RF-255 | O convite ainda não aceito pode ser cancelado e volta. |

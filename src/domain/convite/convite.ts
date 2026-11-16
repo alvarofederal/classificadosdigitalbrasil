@@ -78,10 +78,20 @@ export function montarCartaDoConvite(dados: { nomeDeQuemConvida: string; link: s
   }
 }
 
-/** RF-252: o texto que abre no WhatsApp de quem convida. */
+/**
+ * RF-252: o texto que abre no WhatsApp de quem convida, na redação do Álvaro (2026-11-16), uma ideia por linha
+ * e o link sozinho na última, para o WhatsApp mostrar a prévia.
+ */
 export function textoDoConviteNoWhatsApp(dados: { link: string; presente: SaldoDoBanco | null }): string {
-  const presente = fraseDoPresente(dados.presente)
-  return [`Estou anunciando no ${NOME_DO_JORNAL}, os classificados da cidade com cara de jornal.`, presente, `Este é o meu convite para você: ${dados.link}`]
+  const temPresente = dados.presente && dados.presente.SIMPLES + dados.presente.FOTOS > 0
+  return [
+    `Estou anunciando no novo ${NOME_DO_JORNAL}, os classificados da cidade com cara de jornal.`,
+    temPresente
+      ? `Criando a conta, você ganha 1 anúncio por ${dados.presente!.SIMPLES} dias sem foto e outro anúncio por ${dados.presente!.FOTOS} dias com foto de graça.`
+      : null,
+    "Este é o meu convite para você:",
+    dados.link,
+  ]
     .filter(Boolean)
-    .join(" ")
+    .join("\n")
 }
