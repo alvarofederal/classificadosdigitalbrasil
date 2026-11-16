@@ -65,12 +65,10 @@ O banco guarda **dias**, separados em sem foto e com foto, em vez de contar anú
   | Dias | Sem foto | Com foto |
   |---|---|---|
   | 7 | R$ 1,00 | R$ 10,00 |
-  | 10 | R$ 1,43 | R$ 14,29 |
   | 15 | R$ 2,14 | R$ 21,43 |
-  | 20 | R$ 2,86 | R$ 28,57 |
   | 30 | R$ 4,29 | R$ 42,86 |
 
-  Os valores continuam editáveis em Painel → Planos; o Álvaro pode arredondar.
+  Os períodos de 10 e 20 dias saem da venda: "Arranca esse 10 [...] e esse 20" (Álvaro, 2026-11-15). Os valores continuam editáveis em Painel → Planos; o Álvaro pode arredondar.
 - **Entram no banco:** presente de boas-vindas (7 dias sem foto e 7 com foto), prêmio do convite (7 dias com foto), compra pelo Pix (qualquer período da tabela, um Pix só) e cortesia do Painel.
 - **Saem do banco:** publicar um anúncio novo, ou renovar um vencido, usa no mínimo 7 dias, e a pessoa escolhe quantos; dias que sobram (menos de 7) só prolongam um anúncio que já está no ar.
 - Dias com foto podem ser usados num anúncio sem foto; o contrário não. Os dias do banco não vencem.
