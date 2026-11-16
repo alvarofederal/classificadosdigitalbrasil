@@ -2,10 +2,14 @@
 
 const MARCADOR = "/image/upload/"
 
-export function urlImagem(url: string, { largura, altura, recorte = false }: { largura: number; altura?: number; recorte?: boolean }): string {
+export function urlImagem(
+  url: string,
+  { largura, altura, recorte = false, formato = "auto" }: { largura: number; altura?: number; recorte?: boolean; formato?: "auto" | "jpg" },
+): string {
   const posicao = url.indexOf(MARCADOR)
   if (!url.includes("res.cloudinary.com") || posicao < 0) return url // imagens locais (seed de demonstração)
-  const transformacao = ["f_auto", "q_auto", recorte ? "c_fill,g_auto" : "c_limit", `w_${largura}`, altura ? `h_${altura}` : null]
+  // "jpg": o gerador de imagem do next/og (feature 020) não lê WebP nem AVIF, que o f_auto pode entregar.
+  const transformacao = [`f_${formato}`, "q_auto", recorte ? "c_fill,g_auto" : "c_limit", `w_${largura}`, altura ? `h_${altura}` : null]
     .filter(Boolean)
     .join(",")
   const inicio = posicao + MARCADOR.length

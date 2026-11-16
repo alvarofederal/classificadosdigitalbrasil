@@ -6,16 +6,18 @@ import { notFound } from "next/navigation"
 import { Faixa } from "@/components/jornal/pecas"
 import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, avisoDoRecemCriado, situacaoExibida } from "@/domain/anuncio/anuncio"
+import { textoParaDivulgar } from "@/domain/anuncio/divulgacao"
 import { ORIGENS_DO_PAGAMENTO, SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDataHora, formatarDia, formatarReais, plural, reaisParaCampo } from "@/lib/formatadores"
 import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { exigirPerfil } from "@/lib/sessao"
-import { caminhoDaSecao, caminhoDoAnuncio } from "@/lib/site"
+import { caminhoDaSecao, caminhoDoAnuncio, urlDoSite } from "@/lib/site"
 import { AlbumFotos } from "../../_componentes/album-fotos"
 import { BotaoAtivarDesativar, BotaoRemover, RenovarComPlano } from "../../_componentes/botoes-anuncio"
 import { CobrancaPixCartao } from "../../_componentes/cobranca-pix"
 import { EditorAnuncio } from "../../_componentes/editor-anuncio"
+import { KitDeDivulgacao } from "../../_componentes/kit-de-divulgacao"
 import { SeloSituacao } from "../../_componentes/selo-situacao"
 import { adicionarFotosAction, editarAnuncioAction, prepararUploadAction, removerFotoAction, reordenarFotosAction } from "../../actions"
 
@@ -118,11 +120,33 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
               ? "Anúncio publicado com dias do banco."
               : "Pagamento confirmado."}{" "}
           O anúncio está no caderno até {formatarDia(anuncio.expiraEm)}.
-          {faltamFotos && " Falta subir as fotos do álbum, mais abaixo."}
+          {faltamFotos && " Falta subir as fotos do álbum, mais abaixo."}{" "}
+          {/* Feature 020 (RF-205): logo depois de publicar, o próximo passo é divulgar. */}
+          <a href="#divulgar" className="link font-bold">
+            Divulgue agora
+          </a>
+          .
         </p>
       )}
 
       {cobranca && <CobrancaPixCartao cobranca={cobranca} anuncioId={anuncio.id} />}
+
+      {/* Feature 020 (RF-200): kit de divulgação, só para o anúncio no ar (RN-200). */}
+      {situacao === "NO_AR" && (
+        <section id="divulgar" aria-labelledby="titulo-divulgar" className="flex scroll-mt-4 flex-col gap-3">
+          <h2 id="titulo-divulgar" className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">
+            Divulgar
+          </h2>
+          <p className="text-sm">
+            O caderno leva o anúncio a quem procura no site e no Google. Para chegar a mais gente, mande o anúncio onde as pessoas já estão: no status, nos grupos e
+            no papel.
+          </p>
+          <KitDeDivulgacao
+            codigo={anuncio.codigo}
+            texto={textoParaDivulgar(anuncio, cidade ? `${cidade.nome}/${cidade.uf}` : null, `${urlDoSite()}/a/${anuncio.codigo}`)}
+          />
+        </section>
+      )}
 
       {visitas && <SecaoDeVisitas detalhe={visitas} publicadoEm={anuncio.publicadoEm} deQuem="dono" />}
 

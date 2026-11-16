@@ -92,6 +92,12 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
                   <Link href={`/minha-conta/anuncios/${anuncio.id}`} className="botao botao-vazado botao-pequeno">
                     {anuncio.pagamentoPendente ? "Pagar e editar" : situacao === "EXPIRADO" ? "Renovar e editar" : "Abrir"}
                   </Link>
+                  {/* Feature 020 (RF-205): atalho para o kit de divulgação. */}
+                  {situacao === "NO_AR" && (
+                    <Link href={`/minha-conta/anuncios/${anuncio.id}#divulgar`} className="botao botao-pequeno">
+                      Divulgar
+                    </Link>
+                  )}
                   {(situacao === "NO_AR" || situacao === "DESATIVADO") && (
                     <BotaoAtivarDesativar anuncioId={anuncio.id} desativado={situacao === "DESATIVADO"} ate={formatarDia(anuncio.expiraEm)} />
                   )}

@@ -107,6 +107,17 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-174 | Painel → Configurações liga e desliga o presente de boas-vindas. |
 | RF-175 | Painel → Usuários mostra o saldo do banco de cada conta. |
 
+### Kit de divulgação (feature 020)
+
+| ID | Requisito |
+|---|---|
+| RF-200 | O anúncio no ar tem, em Minha conta, a seção Divulgar: imagem para o status, imagem quadrada, texto pronto, link curto, envio pelo WhatsApp e cartaz. |
+| RF-201 | Imagem para o status (1080 × 1920) com a cara do caderno, a palavra do cartaz, a primeira foto, título, texto, preço, cidade, seção e o link curto. |
+| RF-202 | Imagem quadrada (1080 × 1080) para grupos e redes, com o mesmo conteúdo. |
+| RF-203 | No celular que permite, "Compartilhar com a imagem" abre o compartilhar do aparelho com a imagem e o texto; nos outros, baixar e copiar. |
+| RF-204 | Texto pronto com título, preço, cidade, começo do texto e link curto, copiado com um toque. |
+| RF-205 | O aviso de recém-publicado e a lista de Minha conta levam à seção Divulgar. |
+
 ### Cartaz com VENDE-SE (feature 019)
 
 | ID | Requisito |
@@ -194,6 +205,11 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-179 | Usar dias do banco cancela a cobrança Pix em aberto do anúncio; se o Pix já foi pago, o uso é recusado e os dias voltam. |
 | RN-180 | Tabela proporcional: o dia custa o mesmo em 7, 15 e 30 dias (sem foto R$ 1,00, R$ 2,14, R$ 4,29; com foto R$ 10,00, R$ 21,43, R$ 42,86); 10 e 20 dias saíram da venda. |
 | RN-181 | O uso do banco aparece nos pagamentos do anúncio como "Dias do banco", com valor zero. |
+| RN-200 | As imagens do kit só existem para anúncio no ar; fora do ar, "não encontrado". |
+| RN-201 | Imagens e texto pronto mostram só o que a página pública mostra; nunca dados do dono. |
+| RN-202 | A foto entra só se o anúncio tiver foto; sem foto, o texto sai maior. |
+| RN-203 | O texto do anúncio entra resumido sem cortar palavra, com reticências. |
+| RN-204 | O link das imagens e do texto é sempre o link curto. |
 | RN-190 | O cartaz já vem com VENDE-SE, menos em Empregos, Serviços, Festas e Eventos, Turismo e Lazer e Música, Arte e Cultura, que vêm com CLASSIFICADOS. |
 | RN-191 | A palavra escolhida vai no endereço (`?titulo=`) e não fica gravada no anúncio; valor desconhecido vale como o padrão da seção. |
 | RN-192 | Voltar ao cartaz antigo em todas as seções é trocar o padrão no domínio (`tituloPadraoDoCartaz`). |
