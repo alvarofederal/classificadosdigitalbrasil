@@ -34,6 +34,6 @@ export function textoParaDivulgar(anuncio: AnuncioParaDivulgar, cidade: string |
 }
 
 /** Nome do arquivo baixado: o código do anúncio e o formato, sem acento nem espaço. */
-export function nomeDoArquivoDaImagem(codigo: string, formato: "status" | "quadrado"): string {
+export function nomeDoArquivoDaImagem(codigo: string, formato: "status" | "quadrado" | "qrcode"): string {
   return `classificados-${codigo.toLowerCase()}-${formato}.png`
 }

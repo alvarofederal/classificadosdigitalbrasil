@@ -40,5 +40,6 @@ describe("Kit de divulgação (feature 020)", () => {
   it("o arquivo baixado leva o código do anúncio e o formato", () => {
     expect(nomeDoArquivoDaImagem("4DPUMX", "status")).toBe("classificados-4dpumx-status.png")
     expect(nomeDoArquivoDaImagem("4DPUMX", "quadrado")).toBe("classificados-4dpumx-quadrado.png")
+    expect(nomeDoArquivoDaImagem("4DPUMX", "qrcode")).toBe("classificados-4dpumx-qrcode.png")
   })
 })

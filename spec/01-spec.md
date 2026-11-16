@@ -118,6 +118,15 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-204 | Texto pronto com título, preço, cidade, começo do texto e link curto, copiado com um toque. |
 | RF-205 | O aviso de recém-publicado e a lista de Minha conta levam à seção Divulgar. |
 
+### QR Code do anúncio (feature 022)
+
+| ID | Requisito |
+|---|---|
+| RF-220 | Um componente do sistema gera o QR Code do anúncio, usado no cartaz, na página do anúncio, nas imagens de divulgação e no arquivo do QR. |
+| RF-221 | A página pública do anúncio mostra o QR Code com "Aponte a câmera do celular para abrir este anúncio". |
+| RF-222 | As imagens para o status e quadrada trazem o QR Code junto do link curto. |
+| RF-223 | A seção Divulgar oferece o QR Code sozinho para baixar. |
+
 ### Fechou negócio? (feature 021)
 
 | ID | Requisito |
@@ -219,6 +228,10 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-202 | A foto entra só se o anúncio tiver foto; sem foto, o texto sai maior. |
 | RN-203 | O texto do anúncio entra resumido sem cortar palavra, com reticências. |
 | RN-204 | O link das imagens e do texto é sempre o link curto. |
+| RN-220 | O QR Code leva sempre ao link curto do anúncio. |
+| RN-221 | QR em tinta preta sobre branco, com margem e correção de erro média. |
+| RN-222 | Os quadrinhos do caderno, da seção e da pesquisa não têm QR Code. |
+| RN-223 | O arquivo do QR só existe para anúncio no ar. |
 | RN-210 | Só se pergunta "Fechou negócio?" sobre anúncio que já esteve no caderno e não foi removido. |
 | RN-211 | Só o dono responde; a resposta fica gravada com a data e vale a última. |
 | RN-212 | Responder não muda a situação do anúncio; tirar do caderno é escolha à parte. |

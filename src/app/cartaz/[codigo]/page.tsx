@@ -5,13 +5,12 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import QRCode from "qrcode"
 import { codigoValido } from "@/domain/anuncio/anuncio"
 import { TITULOS_DO_CARTAZ, type TituloDoCartaz, tituloDoCartaz } from "@/domain/anuncio/cartaz"
 import { container } from "@/infrastructure/container"
 import { formatarReais } from "@/lib/formatadores"
 import { urlImagem } from "@/lib/imagens"
-import { urlDoSite } from "@/lib/site"
+import { linkCurtoDoAnuncio, qrCodeDoAnuncioEmDataUrl } from "@/lib/qrcode"
 import { BotaoImprimir } from "./botao-imprimir"
 
 export const dynamic = "force-dynamic"
@@ -24,8 +23,9 @@ export default async function Cartaz({ params, searchParams }: { params: Promise
   const anuncio = await c.classificados.anuncioNoAr(codigo, c.relogio.agora())
   if (!anuncio) notFound()
   const cidade = c.localidades.cidade(anuncio.cidadeCodigo)
-  const link = `${urlDoSite()}/a/${anuncio.codigo}`
-  const qr = await QRCode.toDataURL(link, { margin: 1, width: 520, errorCorrectionLevel: "M", color: { dark: "#111111", light: "#ffffff" } })
+  // Feature 022 (RF-220): o mesmo QR Code do anúncio usado em todo o sistema.
+  const link = linkCurtoDoAnuncio(anuncio.codigo)
+  const qr = await qrCodeDoAnuncioEmDataUrl(anuncio.codigo, 520)
   const foto = anuncio.fotos[0]
   // RN-190 e RN-191: a palavra do alto vem do endereço ou do padrão da seção.
   const titulo = tituloDoCartaz((await searchParams).titulo, anuncio.categoriaSlug)

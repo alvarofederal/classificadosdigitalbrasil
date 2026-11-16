@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { nomeDoArquivoDaImagem } from "@/domain/anuncio/divulgacao"
 
-type Formato = "status" | "quadrado"
+type Formato = "status" | "quadrado" | "qrcode"
 
 export function KitDeDivulgacao({ codigo, texto }: { codigo: string; texto: string }) {
   const [podeCompartilharArquivo, setPodeCompartilharArquivo] = useState(false)
@@ -18,6 +18,8 @@ export function KitDeDivulgacao({ codigo, texto }: { codigo: string; texto: stri
   const imagens: Array<{ formato: Formato; rotulo: string; dica: string; url: string }> = [
     { formato: "status", rotulo: "Imagem para o status", dica: "Vertical, do tamanho da tela do celular.", url: `/imagem/${codigo}/status.png` },
     { formato: "quadrado", rotulo: "Imagem para grupos e redes", dica: "Quadrada, para grupos, Facebook e Instagram.", url: `/imagem/${codigo}/quadrado.png` },
+    // Feature 022 (RF-223): o QR Code sozinho, para panfleto, cardápio, cartão ou adesivo.
+    { formato: "qrcode", rotulo: "QR Code do anúncio", dica: "Para pôr no seu panfleto, cartão ou adesivo: a câmera do celular abre o anúncio.", url: `/imagem/${codigo}/qrcode.png` },
   ]
 
   // RF-203: só oferece "compartilhar com a imagem" no aparelho que aceita arquivo no compartilhar.
@@ -69,13 +71,19 @@ export function KitDeDivulgacao({ codigo, texto }: { codigo: string; texto: stri
               src={imagem.url}
               alt={`${imagem.rotulo} do anúncio`}
               loading="lazy"
-              className={imagem.formato === "status" ? "mx-auto h-72 w-auto border border-tinta" : "mx-auto h-72 w-72 max-w-full border border-tinta object-contain"}
+              className={
+                imagem.formato === "status"
+                  ? "mx-auto h-72 w-auto border border-tinta"
+                  : imagem.formato === "qrcode"
+                    ? "mx-auto h-48 w-48 border border-tinta"
+                    : "mx-auto h-72 w-72 max-w-full border border-tinta object-contain"
+              }
             />
             <figcaption className="text-sm">
               <strong>{imagem.rotulo}.</strong> {imagem.dica}
             </figcaption>
             <div className="flex flex-wrap gap-2">
-              {podeCompartilharArquivo && (
+              {podeCompartilharArquivo && imagem.formato !== "qrcode" && (
                 <button type="button" className="botao botao-pequeno" disabled={enviando !== null} onClick={() => compartilhar(imagem.formato, imagem.url)}>
                   <Share2 className="size-4" aria-hidden />
                   {enviando === imagem.formato ? "Preparando…" : "Compartilhar com a imagem"}

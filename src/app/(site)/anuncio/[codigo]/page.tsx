@@ -7,6 +7,7 @@ import Link from "next/link"
 import { AcoesAnuncio, FormularioMensagem } from "@/components/jornal/acoes-anuncio"
 import { CaixaAnuncio } from "@/components/jornal/caixa-anuncio"
 import { Divulgar } from "@/components/jornal/divulgar"
+import { QrCodeDoAnuncio } from "@/components/jornal/qr-code"
 import { Galeria } from "@/components/jornal/galeria"
 import { AvisoDeVisita } from "@/components/visitas/aviso-de-visita"
 import { codigoValido } from "@/domain/anuncio/anuncio"
@@ -108,6 +109,8 @@ export default async function PaginaDoAnuncio({ params }: Props) {
           <h2 id="titulo-divulgar" className="tarja-secao mb-3">
             Divulgue este anúncio
           </h2>
+          {/* Feature 022 (RF-221): quem vê o anúncio no computador abre no celular pela câmera. */}
+          <QrCodeDoAnuncio codigo={anuncio.codigo} tamanho={120} className="mb-3" />
           <Divulgar titulo={anuncio.titulo} link={linkCurto} codigo={anuncio.codigo} />
         </section>
 

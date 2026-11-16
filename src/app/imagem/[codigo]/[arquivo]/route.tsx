@@ -1,6 +1,7 @@
 // APRESENTAÇÃO — imagens do kit de divulgação (feature 020: RF-201, RF-202; RN-200 a RN-202, RN-204).
 // status.png (1080 × 1920) para o status do WhatsApp; quadrado.png (1080 × 1080) para grupos e redes.
 // Mesma técnica da prévia do link (feature 005, RF-73): next/og, fontes do Google só com os caracteres usados.
+// qrcode.png: o QR Code do anúncio sozinho, para baixar (feature 022, RF-223); as outras duas trazem o QR no rodapé (RF-222).
 
 import { ImageResponse } from "next/og"
 import { codigoValido } from "@/domain/anuncio/anuncio"
@@ -10,6 +11,7 @@ import { container } from "@/infrastructure/container"
 import { formatarReais } from "@/lib/formatadores"
 import { urlImagem } from "@/lib/imagens"
 import { carregarFonte } from "@/lib/og"
+import { linkCurtoDoAnuncio, qrCodeDoAnuncioEmDataUrl, qrCodeDoAnuncioEmPng } from "@/lib/qrcode"
 import { urlDoSite } from "@/lib/site"
 
 export const dynamic = "force-dynamic"
@@ -17,6 +19,7 @@ export const dynamic = "force-dynamic"
 const FORMATOS = {
   "status.png": { largura: 1080, altura: 1920 },
   "quadrado.png": { largura: 1080, altura: 1080 },
+  "qrcode.png": { largura: 1000, altura: 1000 },
 } as const
 
 const TINTA = "#111111"
@@ -29,6 +32,11 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
   // RN-200: só anúncio no ar.
   const anuncio = await c.classificados.anuncioNoAr(codigo, c.relogio.agora())
   if (!anuncio) return new Response("Não encontrado.", { status: 404 })
+  // Feature 022 (RF-223, RN-223): o QR sozinho, também só para anúncio no ar.
+  if (arquivo === "qrcode.png") {
+    const png = await qrCodeDoAnuncioEmPng(anuncio.codigo, FORMATOS["qrcode.png"].largura)
+    return new Response(new Uint8Array(png), { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=3600" } })
+  }
 
   const formato = FORMATOS[arquivo as keyof typeof FORMATOS]
   const vertical = arquivo === "status.png"
@@ -41,7 +49,9 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
   const titulo = anuncio.titulo.toUpperCase()
   const preco = anuncio.precoCentavos !== null ? formatarReais(anuncio.precoCentavos) : null
   // RN-204: o link curto, sem o "https://", em letra grande.
-  const link = `${urlDoSite()}/a/${anuncio.codigo}`.replace(/^https?:\/\//, "")
+  const link = linkCurtoDoAnuncio(anuncio.codigo).replace(/^https?:\/\//, "")
+  // RF-222: o mesmo QR Code do anúncio (feature 022), no rodapé.
+  const qr = await qrCodeDoAnuncioEmDataUrl(anuncio.codigo, vertical ? 360 : 280)
 
   // RN-202: a foto entra só se houver; em JPG, que o gerador lê.
   const primeira = anuncio.fotos[0]?.url
@@ -52,7 +62,7 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
 
   const [manchete, corpo] = await Promise.all([
     carregarFonte("Anton", `CLASSIFICADOS${vendeSe ?? ""}: ${titulo}${preco ?? ""}`),
-    carregarFonte("PT+Serif", `DIGITAIS DO BRASIL${ondeEQue}${texto}Fotos e contato:${link}`),
+    carregarFonte("PT+Serif", `DIGITAIS DO BRASIL${ondeEQue}${texto}Fotos e contato: aponte a câmera ou acesse${link}`),
   ])
   const ANTON = manchete ? "Anton" : undefined
   const fontes = [
@@ -83,10 +93,15 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
     </div>
   )
 
+  const ladoDoQr = vertical ? 180 : 130
   const rodape = (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", borderTop: `3px solid ${TINTA}`, paddingTop: vertical ? 24 : 14 }}>
-      <div style={{ display: "flex", fontSize: vertical ? 34 : 26 }}>Fotos e contato:</div>
-      <div style={{ display: "flex", fontSize: vertical ? 38 : 34, fontWeight: 700, textAlign: "center" }}>{link}</div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: vertical ? 28 : 24, borderTop: `3px solid ${TINTA}`, paddingTop: vertical ? 18 : 12 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={qr} alt="" width={ladoDoQr} height={ladoDoQr} />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", fontSize: vertical ? 32 : 24 }}>Fotos e contato: aponte a câmera ou acesse</div>
+        <div style={{ display: "flex", fontSize: vertical ? 32 : 26, fontWeight: 700 }}>{link}</div>
+      </div>
     </div>
   )
 
@@ -107,7 +122,7 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
         <div style={{ display: "flex", flexShrink: 0, justifyContent: "center", textAlign: "center", background: TINTA, color: "#fff", fontSize: foto ? 58 : 80, fontFamily: ANTON, padding: "8px 16px", lineHeight: 1.15 }}>
           {titulo}
         </div>
-        {foto && <div style={{ display: "flex", flexShrink: 0 }}>{imagemDaFoto(872, 520)}</div>}
+        {foto && <div style={{ display: "flex", flexShrink: 0 }}>{imagemDaFoto(872, 470)}</div>}
         <div style={{ display: "flex", flexShrink: 0, fontSize: foto ? 38 : 56, lineHeight: 1.3, textAlign: "center", justifyContent: "center" }}>{texto}</div>
         {preco && <div style={{ display: "flex", flexShrink: 0, justifyContent: "center", fontSize: foto ? 104 : 150, fontFamily: ANTON, lineHeight: 1 }}>{preco}</div>}
       </div>
@@ -120,7 +135,7 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
         </div>
         {foto ? (
           <div style={{ display: "flex", flex: 1, marginTop: 18, gap: 22 }}>
-            {imagemDaFoto(440, 440)}
+            {imagemDaFoto(390, 390)}
             <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <div style={{ display: "flex", fontSize: 30, lineHeight: 1.3 }}>{texto}</div>
               {preco && <div style={{ display: "flex", fontSize: 84, fontFamily: ANTON, marginTop: "auto", lineHeight: 1 }}>{preco}</div>}
