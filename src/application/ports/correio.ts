@@ -22,4 +22,6 @@ export interface EnderecosDoSite {
   paginaDoAnuncio(codigo: string): string
   /** Formulário de contato com o administrador (feature 016, aviso de troca de e-mail). */
   contato(): string
+  /** A pergunta "Fechou negócio?" na tela do anúncio em Minha conta (feature 021). */
+  resultadoDoAnuncio(anuncioId: string): string
 }

@@ -37,6 +37,7 @@ import {
   ReordenarFotosUseCase,
 } from "@/application/use-cases/anuncios/gerenciar-fotos"
 import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase, MarcarMensagensLidasUseCase } from "@/application/use-cases/anuncios/mensagens"
+import { RegistrarResultadoUseCase } from "@/application/use-cases/anuncios/resultado"
 import { AvisarVencimentosUseCase } from "@/application/use-cases/anuncios/vencimento"
 import { RegistrarVisitaUseCase, ResumirVisitasUseCase } from "@/application/use-cases/anuncios/visitas"
 import {
@@ -134,6 +135,7 @@ function montar() {
     anuncioEmMinhaConta: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}`,
     paginaDoAnuncio: (codigo) => `${enderecoDoSite}/anuncio/${codigo}`,
     contato: () => `${enderecoDoSite}/como-funciona#contato`,
+    resultadoDoAnuncio: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}#fechou-negocio`,
   }
   // Feature 016 (ADR-20): código por e-mail.
   const segundoPlano = new DepoisDaResposta()
@@ -187,6 +189,8 @@ function montar() {
     removerAnuncio: new RemoverAnuncioUseCase(anuncios, pagamentos, gateway),
     restaurarAnuncio: new RestaurarAnuncioUseCase(anuncios),
     ativarOuDesativar: new AtivarOuDesativarAnuncioUseCase(anuncios, relogio),
+    // Feature 021: "Fechou negócio?".
+    registrarResultado: new RegistrarResultadoUseCase(anuncios, relogio),
     registrarVisita: new RegistrarVisitaUseCase(anuncios, new PrismaVisitasRepository(prisma), anonimizador, relogio),
     resumirVisitas: new ResumirVisitasUseCase(new PrismaVisitasQuery(prisma), anonimizador, relogio),
 

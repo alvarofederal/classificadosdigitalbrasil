@@ -20,6 +20,7 @@ function carta(anuncio = ASTRA, agora = RODADA) {
     agora,
     linkParaRenovar: "https://classificados.teste/minha-conta/anuncios/a1",
     linkDoAnuncio: "https://classificados.teste/anuncio/4DPUMX",
+    linkDoResultado: "https://classificados.teste/minha-conta/anuncios/a1#fechou-negocio",
   })
 }
 
@@ -32,7 +33,11 @@ describe("Carta do aviso de vencimento (RF-120, RN-125)", () => {
     expect(c.paragrafos[1]).toBe("Até agora ele teve 12 visitas na página do anúncio.")
     expect(c.paragrafos[2]).toContain("os dias novos entram depois do prazo atual")
     expect(c.botao).toEqual({ rotulo: "Renovar o anúncio", url: "https://classificados.teste/minha-conta/anuncios/a1" })
-    expect(c.linhas).toEqual([{ rotulo: "Página do anúncio", valor: "https://classificados.teste/anuncio/4DPUMX", link: "https://classificados.teste/anuncio/4DPUMX" }])
+    expect(c.linhas).toEqual([
+      { rotulo: "Página do anúncio", valor: "https://classificados.teste/anuncio/4DPUMX", link: "https://classificados.teste/anuncio/4DPUMX" },
+      // RF-211 (feature 021)
+      { rotulo: "Já fechou negócio? Conte pra gente", valor: "responder em Minha conta", link: "https://classificados.teste/minha-conta/anuncios/a1#fechou-negocio" },
+    ])
     expect(c.responderPara).toBeNull()
   })
 

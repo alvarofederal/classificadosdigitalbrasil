@@ -20,6 +20,12 @@ export default async function Resumo() {
     { rotulo: "Recebido", valor: formatarReais(resumo.valorRecebidoCentavos), href: "/painel/usuarios?pagamento=PAGOS" },
     { rotulo: "Chamados abertos", valor: String(resumo.chamadosAbertos), href: "/painel/chamados" },
   ]
+  // Feature 021 (RF-213): o que os donos contaram no "Fechou negócio?".
+  const negocios = [
+    { rotulo: "Negócios pelo Classificados", valor: resumo.resultados.PELO_CLASSIFICADOS },
+    { rotulo: "Negócios por outro lugar", valor: resumo.resultados.POR_OUTRO_LUGAR },
+    { rotulo: "Ainda sem negócio", valor: resumo.resultados.AINDA_NAO },
+  ]
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,6 +50,20 @@ export default async function Resumo() {
           </li>
         ))}
       </ul>
+      <section aria-labelledby="titulo-negocios" className="flex flex-col gap-2">
+        <h2 id="titulo-negocios" className="font-titulo text-lg font-bold uppercase">
+          Fechou negócio?
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {negocios.map((n) => (
+            <li key={n.rotulo} className="cartao p-4">
+              <span className="rotulo block text-tinta-suave">{n.rotulo}</span>
+              <span className="mt-1 block font-manchete text-3xl">{n.valor}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-sm text-tinta-suave">Respostas dos anunciantes, na tela do anúncio e no e-mail de vencimento.</p>
+      </section>
       {resumo.aguardandoPagamento > 0 && (
         <p>
           Há {resumo.aguardandoPagamento} anúncio(s) esperando a confirmação do Pix.{" "}

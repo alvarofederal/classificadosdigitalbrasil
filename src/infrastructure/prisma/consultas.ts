@@ -248,11 +248,13 @@ async function detalheDoAnuncio(db: PrismaClient, where: Prisma.AnuncioWhereInpu
     select: {
       ...SELECAO_MEU_ANUNCIO,
       mensagens: { orderBy: { criadoEm: "desc" }, select: { id: true, nome: true, contato: true, texto: true, lida: true, criadoEm: true } },
+      resultado: true,
+      resultadoEm: true,
     },
   })
   if (!linha) return null
   const historico = await db.pagamento.findMany({ where: { anuncioId: linha.id }, orderBy: { criadoEm: "desc" } })
-  return { ...paraMeuAnuncio(linha), mensagens: linha.mensagens, pagamentos: historico.map(paraPagamentoResumo) }
+  return { ...paraMeuAnuncio(linha), mensagens: linha.mensagens, pagamentos: historico.map(paraPagamentoResumo), resultado: linha.resultado, resultadoEm: linha.resultadoEm }
 }
 
 export class PrismaMinhaContaQuery implements MinhaContaQuery {
@@ -312,13 +314,17 @@ export class PrismaPainelQuery implements PainelQuery {
   constructor(private readonly db: PrismaClient) {}
 
   async resumo(agora: Date): Promise<ResumoDoPainelDTO> {
-    const [usuarios, anunciosNoAr, aguardandoPagamento, confirmados, chamadosAbertos] = await Promise.all([
+    const [usuarios, anunciosNoAr, aguardandoPagamento, confirmados, chamadosAbertos, respostas] = await Promise.all([
       this.db.usuario.count({ where: { perfil: "ANUNCIANTE" } }),
       this.db.anuncio.count({ where: noAr(agora) }),
       this.db.anuncio.count({ where: { situacao: "AGUARDANDO_PAGAMENTO" } }),
       this.db.pagamento.aggregate({ where: { situacao: "CONFIRMADO" }, _count: { _all: true }, _sum: { valor: true } }),
       this.db.chamado.count({ where: { situacao: "ABERTO" } }),
+      // Feature 021 (RF-213): uma contagem por resposta do "Fechou negócio?".
+      this.db.anuncio.groupBy({ by: ["resultado"], where: { resultado: { not: null } }, _count: { _all: true } }),
     ])
+    const resultados = { PELO_CLASSIFICADOS: 0, POR_OUTRO_LUGAR: 0, AINDA_NAO: 0 }
+    for (const r of respostas) if (r.resultado) resultados[r.resultado] = r._count._all
     return {
       usuarios,
       anunciosNoAr,
@@ -326,6 +332,7 @@ export class PrismaPainelQuery implements PainelQuery {
       pagamentosConfirmados: confirmados._count._all,
       valorRecebidoCentavos: centavos(confirmados._sum.valor) ?? 0,
       chamadosAbertos,
+      resultados,
     }
   }
 

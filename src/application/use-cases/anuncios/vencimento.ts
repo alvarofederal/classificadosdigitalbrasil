@@ -66,6 +66,7 @@ export class AvisarVencimentosUseCase {
       agora,
       linkParaRenovar: this.enderecos.anuncioEmMinhaConta(anuncio.id),
       linkDoAnuncio: this.enderecos.paginaDoAnuncio(anuncio.codigo),
+      linkDoResultado: this.enderecos.resultadoDoAnuncio(anuncio.id),
     })
     try {
       return await this.correio.enviar({ nome: anuncio.dono.nome, email: anuncio.dono.email }, carta)

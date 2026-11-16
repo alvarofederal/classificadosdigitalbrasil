@@ -39,6 +39,7 @@ import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import type { GeradorDeCodigo, Relogio, SegundoPlano } from "@/application/ports/sistema"
 import type { AnonimizadorDeVisitante, RegistroDaVisita, VisitaDaPessoa, VisitasQuery, VisitasRepository } from "@/application/ports/visitas"
 import type { Dia, LocalDaVisita, VisitasDoDia } from "@/domain/anuncio/visitas"
+import type { ResultadoDoAnuncio } from "@/domain/anuncio/resultado"
 import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
@@ -135,6 +136,10 @@ export class AnunciosEmMemoria implements AnuncioRepository {
   }
   async somarVisita(codigo: string) {
     this.visitas.set(codigo, (this.visitas.get(codigo) ?? 0) + 1)
+  }
+  resultados = new Map<string, { resultado: ResultadoDoAnuncio; quando: Date }>()
+  async registrarResultado(anuncioId: string, resultado: ResultadoDoAnuncio, quando: Date) {
+    this.resultados.set(anuncioId, { resultado, quando })
   }
 }
 
@@ -310,6 +315,7 @@ export const enderecosDeTeste: EnderecosDoSite = {
   anuncioEmMinhaConta: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}`,
   paginaDoAnuncio: (codigo) => `https://classificados.teste/anuncio/${codigo}`,
   contato: () => "https://classificados.teste/como-funciona#contato",
+  resultadoDoAnuncio: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}#fechou-negocio`,
 }
 
 /** Feature 012: anúncios com dono e a marca do aviso de vencimento (`avisadoPara`). */

@@ -20,6 +20,8 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `visitas_anuncio` | Visitas do anúncio (feature 013, ADR-18) | anuncioId + dia (DATE, Brasília) + chave (HMAC, sem IP) como chave primária, vezes (até 20), cidade, uf, pais |
 | `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
 
+`anuncios` ganhou na migração `20261116120000_resultado_do_anuncio` (feature 021): `resultado` (PELO_CLASSIFICADOS, POR_OUTRO_LUGAR, AINDA_NAO; nulo = sem resposta) e `resultadoEm`.
+
 `usuarios` ganhou na migração `20261115220000_codigo_por_email` (feature 016): `emailConfirmadoEm` (nulo = aguardando o código; as contas antigas vieram preenchidas com `criadoEm`) e `emailCanonico` (RN-155, com índice, sem `UNIQUE`).
 
 Na migração `20261116000000_banco_de_dias` (feature 017): `usuarios` ganhou `bancoDiasSimples` e `bancoDiasFotos` (saldo), `presenteEm` (RN-174) e `ipDoCadastro` (RN-176, com índice junto de `criadoEm`); `configuracoes` ganhou `presenteLigado`; `pagamentos.gateway` passou a aceitar `BANCO`; os preços de 10 e 20 dias saíram e os de 15 e 30 ficaram proporcionais (RN-180).

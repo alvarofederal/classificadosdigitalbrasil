@@ -2,6 +2,7 @@
 // A infraestrutura implementa com Prisma; a apresentação só conhece estes contratos.
 
 import type { EstiloDoAnuncio, Situacao, SituacaoExibida } from "@/domain/anuncio/anuncio"
+import type { ResultadoDoAnuncio } from "@/domain/anuncio/resultado"
 import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
@@ -105,6 +106,9 @@ export interface MensagemDTO {
 export interface MeuAnuncioDetalheDTO extends MeuAnuncioDTO {
   mensagens: MensagemDTO[]
   pagamentos: PagamentoResumoDTO[]
+  /** Feature 021: a resposta do "Fechou negócio?"; null = sem resposta. */
+  resultado: ResultadoDoAnuncio | null
+  resultadoEm: Date | null
 }
 
 export interface PerfilDTO {
@@ -149,6 +153,8 @@ export interface ResumoDoPainelDTO {
   pagamentosConfirmados: number
   valorRecebidoCentavos: number
   chamadosAbertos: number
+  /** Feature 021 (RF-213): quantos anúncios têm cada resposta do "Fechou negócio?". */
+  resultados: Record<ResultadoDoAnuncio, number>
 }
 
 export type FiltroDePagamento = "TODOS" | "PAGOS" | "PENDENTES" | "SEM_PAGAMENTO"

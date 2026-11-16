@@ -50,6 +50,8 @@ export interface DadosDoAvisoDeVencimento {
   linkParaRenovar: string
   /** Página pública do anúncio. */
   linkDoAnuncio: string
+  /** Feature 021 (RF-211): a pergunta "Fechou negócio?" em Minha conta. */
+  linkDoResultado: string
 }
 
 /** RF-120: o que o dono lê quando o anúncio está para sair. RN-125: do cadastro, só o primeiro nome. */
@@ -69,7 +71,11 @@ export function montarAvisoDeVencimento(dados: DadosDoAvisoDeVencimento): Carta 
     saudacao: `Olá, ${primeiroNome(dados.dono.nome)}.`,
     paragrafos,
     citacao: null,
-    linhas: [{ rotulo: "Página do anúncio", valor: dados.linkDoAnuncio, link: dados.linkDoAnuncio }],
+    linhas: [
+      { rotulo: "Página do anúncio", valor: dados.linkDoAnuncio, link: dados.linkDoAnuncio },
+      // RF-211 (feature 021): a resposta mostra se o Classificados ajudou a fechar negócio.
+      { rotulo: "Já fechou negócio? Conte pra gente", valor: "responder em Minha conta", link: dados.linkDoResultado },
+    ],
     botao: { rotulo: "Renovar o anúncio", url: dados.linkParaRenovar },
     observacoes: [
       "Se já vendeu, não precisa fazer nada: o anúncio sai sozinho no fim do prazo.",

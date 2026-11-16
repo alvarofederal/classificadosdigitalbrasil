@@ -1,6 +1,7 @@
 // APLICAÇÃO — portas do caderno: categorias, planos, anúncios, fotos, mensagens, pagamentos, gateway, chamados e configuração.
 
 import type { EstiloDoAnuncio, Situacao } from "@/domain/anuncio/anuncio"
+import type { ResultadoDoAnuncio } from "@/domain/anuncio/resultado"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
@@ -55,6 +56,8 @@ export interface AnuncioRepository {
   buscarPorCodigo(codigo: string): Promise<AnuncioRegistro | null>
   /** RF-75: soma uma visita ao total do anúncio (feature 013: só a visita que conta, RN-130). */
   somarVisita(codigo: string): Promise<void>
+  /** Feature 021 (RN-211): grava a resposta do "Fechou negócio?", com a data; vale a última. */
+  registrarResultado(anuncioId: string, resultado: ResultadoDoAnuncio, quando: Date): Promise<void>
 }
 
 // ── Aviso de vencimento (feature 012, ADR-17) ──

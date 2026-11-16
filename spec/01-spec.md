@@ -118,6 +118,15 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-204 | Texto pronto com título, preço, cidade, começo do texto e link curto, copiado com um toque. |
 | RF-205 | O aviso de recém-publicado e a lista de Minha conta levam à seção Divulgar. |
 
+### Fechou negócio? (feature 021)
+
+| ID | Requisito |
+|---|---|
+| RF-210 | A tela do anúncio em Minha conta pergunta "Fechou negócio?": sim, pelo Classificados; sim, por outro lugar; ainda não. |
+| RF-211 | O e-mail do vencimento traz "Já fechou negócio? Conte pra gente", com o link para a pergunta. |
+| RF-212 | Quem responde "sim" com o anúncio no ar recebe a oferta de tirá-lo do caderno. |
+| RF-213 | O Painel conta as respostas e mostra a de cada anúncio. |
+
 ### Cartaz com VENDE-SE (feature 019)
 
 | ID | Requisito |
@@ -210,6 +219,9 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-202 | A foto entra só se o anúncio tiver foto; sem foto, o texto sai maior. |
 | RN-203 | O texto do anúncio entra resumido sem cortar palavra, com reticências. |
 | RN-204 | O link das imagens e do texto é sempre o link curto. |
+| RN-210 | Só se pergunta "Fechou negócio?" sobre anúncio que já esteve no caderno e não foi removido. |
+| RN-211 | Só o dono responde; a resposta fica gravada com a data e vale a última. |
+| RN-212 | Responder não muda a situação do anúncio; tirar do caderno é escolha à parte. |
 | RN-190 | O cartaz já vem com VENDE-SE, menos em Empregos, Serviços, Festas e Eventos, Turismo e Lazer e Música, Arte e Cultura, que vêm com CLASSIFICADOS. |
 | RN-191 | A palavra escolhida vai no endereço (`?titulo=`) e não fica gravada no anúncio; valor desconhecido vale como o padrão da seção. |
 | RN-192 | Voltar ao cartaz antigo em todas as seções é trocar o padrão no domínio (`tituloPadraoDoCartaz`). |

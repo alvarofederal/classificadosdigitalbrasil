@@ -7,6 +7,7 @@ import { Faixa } from "@/components/jornal/pecas"
 import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, avisoDoRecemCriado, situacaoExibida } from "@/domain/anuncio/anuncio"
 import { textoParaDivulgar } from "@/domain/anuncio/divulgacao"
+import { podePerguntarResultado } from "@/domain/anuncio/resultado"
 import { ORIGENS_DO_PAGAMENTO, SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDataHora, formatarDia, formatarReais, plural, reaisParaCampo } from "@/lib/formatadores"
@@ -17,6 +18,7 @@ import { AlbumFotos } from "../../_componentes/album-fotos"
 import { BotaoAtivarDesativar, BotaoRemover, RenovarComPlano } from "../../_componentes/botoes-anuncio"
 import { CobrancaPixCartao } from "../../_componentes/cobranca-pix"
 import { EditorAnuncio } from "../../_componentes/editor-anuncio"
+import { FechouNegocio } from "../../_componentes/fechou-negocio"
 import { KitDeDivulgacao } from "../../_componentes/kit-de-divulgacao"
 import { SeloSituacao } from "../../_componentes/selo-situacao"
 import { adicionarFotosAction, editarAnuncioAction, prepararUploadAction, removerFotoAction, reordenarFotosAction } from "../../actions"
@@ -149,6 +151,11 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
       )}
 
       {visitas && <SecaoDeVisitas detalhe={visitas} publicadoEm={anuncio.publicadoEm} deQuem="dono" />}
+
+      {/* Feature 021 (RF-210, RN-210): só para anúncio que já esteve no caderno. */}
+      {podePerguntarResultado(anuncio) && (
+        <FechouNegocio anuncioId={anuncio.id} resultado={anuncio.resultado} noAr={situacao === "NO_AR"} ate={formatarDia(anuncio.expiraEm)} />
+      )}
 
       <details
         className="border border-fio p-4"

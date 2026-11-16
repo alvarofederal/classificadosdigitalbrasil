@@ -20,6 +20,7 @@ import type {
   MensagemRepository,
   NovaFoto,
 } from "@/application/ports/caderno"
+import type { ResultadoDoAnuncio } from "@/domain/anuncio/resultado"
 import type { Categoria } from "@/domain/categoria/categoria"
 import { type FinalidadeDoCodigo, emailCanonico } from "@/domain/usuario/codigo-por-email"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
@@ -233,6 +234,10 @@ export class PrismaAnuncioRepository implements AnuncioRepository {
 
   async somarVisita(codigo: string) {
     await this.db.anuncio.updateMany({ where: { codigo }, data: { visualizacoes: { increment: 1 } } })
+  }
+
+  async registrarResultado(anuncioId: string, resultado: ResultadoDoAnuncio, quando: Date) {
+    await this.db.anuncio.update({ where: { id: anuncioId }, data: { resultado, resultadoEm: quando } })
   }
 }
 

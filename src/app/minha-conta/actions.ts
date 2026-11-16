@@ -231,3 +231,13 @@ export async function cancelarTrocaDeEmailAction(): Promise<EstadoFormulario> {
   revalidatePath("/minha-conta/perfil")
   return { ok: true, mensagem: "Troca de e-mail cancelada." }
 }
+
+// ── "Fechou negócio?" (feature 021: RF-210, RN-211) ──
+
+export async function registrarResultadoAction(anuncioId: string, resultado: string): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  const r = await container().registrarResultado.executar({ usuarioId: usuario.id, anuncioId, resultado })
+  if (r.ok) revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
+  return deResultado(r, r.ok && r.valor === "AINDA_NAO" ? "Resposta guardada." : "Resposta guardada. Obrigado por contar.")
+}

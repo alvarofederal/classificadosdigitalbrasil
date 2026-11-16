@@ -158,6 +158,13 @@ enum SituacaoAnuncio {
   REMOVIDO
 }
 
+// Feature 021: a resposta do dono ao "Fechou negócio?".
+enum ResultadoDoAnuncio {
+  PELO_CLASSIFICADOS
+  POR_OUTRO_LUGAR
+  AINDA_NAO
+}
+
 enum Moldura {
   NENHUMA
   SIMPLES
@@ -177,28 +184,30 @@ enum Alinhamento {
 }
 
 model Anuncio {
-  id                    String          @id @default(cuid())
-  codigo                String          @unique @db.Char(6) // endereço público /anuncio/<codigo>
+  id                    String              @id @default(cuid())
+  codigo                String              @unique @db.Char(6) // endereço público /anuncio/<codigo>
   usuarioId             String
   categoriaId           String
-  uf                    String          @db.Char(2)
+  uf                    String              @db.Char(2)
   cidadeCodigo          Int
-  titulo                String          @db.VarChar(40)
-  texto                 String          @db.VarChar(400)
-  preco                 Decimal?        @db.Decimal(12, 2)
-  moldura               Moldura         @default(SIMPLES)
-  estiloTitulo          EstiloTitulo    @default(NEGRITO)
-  alinhamento           Alinhamento     @default(ESQUERDA)
-  estrelas              Boolean         @default(false)
-  situacao              SituacaoAnuncio @default(AGUARDANDO_PAGAMENTO)
-  planoCodigo           String          @default("SIMPLES") @db.VarChar(20) // plano escolhido / em vigor (feature 003)
-  prioridade            Int             @default(0) // RN-50: definida quando o pagamento é confirmado
-  visualizacoes         Int             @default(0) // RF-75: total de visitas; por dia, pessoa e cidade em visitas_anuncio (feature 013)
+  titulo                String              @db.VarChar(40)
+  texto                 String              @db.VarChar(400)
+  preco                 Decimal?            @db.Decimal(12, 2)
+  moldura               Moldura             @default(SIMPLES)
+  estiloTitulo          EstiloTitulo        @default(NEGRITO)
+  alinhamento           Alinhamento         @default(ESQUERDA)
+  estrelas              Boolean             @default(false)
+  situacao              SituacaoAnuncio     @default(AGUARDANDO_PAGAMENTO)
+  planoCodigo           String              @default("SIMPLES") @db.VarChar(20) // plano escolhido / em vigor (feature 003)
+  prioridade            Int                 @default(0) // RN-50: definida quando o pagamento é confirmado
+  visualizacoes         Int                 @default(0) // RF-75: total de visitas; por dia, pessoa e cidade em visitas_anuncio (feature 013)
   publicadoEm           DateTime?
   expiraEm              DateTime?
   avisoDeVencimentoPara DateTime? // feature 012 (RN-120): o fim de prazo que já teve aviso por e-mail
-  criadoEm              DateTime        @default(now())
-  atualizadoEm          DateTime        @updatedAt
+  resultado             ResultadoDoAnuncio? // feature 021 (RN-211): "Fechou negócio?"; nulo = sem resposta
+  resultadoEm           DateTime?
+  criadoEm              DateTime            @default(now())
+  atualizadoEm          DateTime            @updatedAt
 
   usuario    Usuario         @relation(fields: [usuarioId], references: [id])
   categoria  Categoria       @relation(fields: [categoriaId], references: [id])

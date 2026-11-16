@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import { Faixa } from "@/components/jornal/pecas"
 import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, situacaoExibida } from "@/domain/anuncio/anuncio"
+import { RESULTADOS_DO_ANUNCIO } from "@/domain/anuncio/resultado"
 import { ORIGENS_DO_PAGAMENTO, SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
 import { formatarCelular, formatarDataHora, formatarDia, formatarReais, plural, reaisParaCampo } from "@/lib/formatadores"
@@ -165,6 +166,12 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
           </ul>
         )}
       </section>
+
+      {/* Feature 021 (RF-213): a resposta do dono ao "Fechou negócio?". */}
+      <p className="text-sm">
+        <strong>Fechou negócio?</strong>{" "}
+        {anuncio.resultado ? `${RESULTADOS_DO_ANUNCIO[anuncio.resultado]} (respondido em ${formatarDataHora(anuncio.resultadoEm)})` : "Sem resposta do dono."}
+      </p>
 
       <section className="flex flex-col gap-3">
         <h2 className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">Pagamentos</h2>
