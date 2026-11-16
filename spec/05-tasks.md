@@ -61,6 +61,9 @@ Correção na 0.2: o endereço do site passou a vir do domínio de produção da
 
 Onde o trabalho está. Atualizar ao parar com algo pela metade (Art. 7 da constituição).
 
+**Parado pela metade em 2026-11-16, por volta das 13h.** A sessão "Classificados Digital · continuação" (pasta normal, fora de worktree) parou com o erro "Error during compaction: EPERM" ao abrir o arquivo da própria conversa. O arquivo tinha sumido do disco em 15/11, por volta das 21:32, com a sessão trabalhando, e ela seguiu sem ele até parar. O backup guarda a conversa até 15/11 21:31. Todo o trabalho até `1f66d0e` (convites publicados) está nos commits. Ficou sem commit, e sem publicar, a troca do texto do convite pelo WhatsApp para a redação do Álvaro (uma ideia por linha, o link sozinho na última): `src/domain/convite/convite.ts` e `tests/unit/convites.test.ts`, com os 13 testes de convites passando. Cópia dessa alteração em `Backup-Claude_repositoriosclassificadosdigitalbrasil-2026-11-16-1f66d0e-alteracoes-sem-commit.patch`. Falta: conferir com o Álvaro se a redação está certa, rodar todos os testes, commitar e publicar. `1f66d0e` também está sem push.
+
+
 **Situação em 2026-11-12**
 
 - Publicado: feature 011 (anúncios no `sitemap.xml` e dados para o Google, commit `12192c1`) e feature 012 (e-mail "seu anúncio sai do caderno amanhã" pelo agendador diário da Vercel, ADR-17, commit `b6da736`, deploy das 10:03 com a migration aplicada). O Álvaro cadastrou o site no Search Console e enviou o sitemap (item 3.1).
