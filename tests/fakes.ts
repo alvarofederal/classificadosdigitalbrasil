@@ -1,6 +1,16 @@
 // Implementações em memória das portas: os casos de uso rodam sem banco, sem rede e sem relógio real.
 
-import type { GeradorDeToken, HashDeSenha, NovoUsuario, SessaoRepository, SessaoValida, UsuarioRegistro, UsuarioRepository } from "@/application/ports/acesso"
+import type {
+  CodigoPorEmailRegistro,
+  CodigoPorEmailRepository,
+  GeradorDeToken,
+  HashDeSenha,
+  NovoUsuario,
+  SessaoRepository,
+  SessaoValida,
+  UsuarioRegistro,
+  UsuarioRepository,
+} from "@/application/ports/acesso"
 import type {
   AnuncioAVencer,
   AnuncioRegistro,
@@ -33,6 +43,7 @@ import type { NovaMensagem } from "@/domain/mensagem/mensagem"
 import { PLANOS_INICIAIS, type Plano } from "@/domain/plano/plano"
 import type { Carta, Destinatario } from "@/domain/shared/carta"
 import { type Result, falha, ok } from "@/domain/shared/result"
+import { type FinalidadeDoCodigo, emailCanonico } from "@/domain/usuario/codigo-por-email"
 import { CatalogoIbge } from "@/infrastructure/localidades/catalogo-ibge"
 
 export class RelogioFixo implements Relogio {
@@ -258,6 +269,7 @@ export const enderecosDeTeste: EnderecosDoSite = {
   mensagensDoAnuncio: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}#titulo-mensagens`,
   anuncioEmMinhaConta: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}`,
   paginaDoAnuncio: (codigo) => `https://classificados.teste/anuncio/${codigo}`,
+  contato: () => "https://classificados.teste/como-funciona#contato",
 }
 
 /** Feature 012: anúncios com dono e a marca do aviso de vencimento (`avisadoPara`). */
@@ -351,8 +363,9 @@ export class UsuariosEmMemoria implements UsuarioRepository {
   async buscarPorEmail(email: string) {
     return [...this.itens.values()].find((u) => u.email === email) ?? null
   }
+  /** Como o repositório Prisma: o e-mail exato ou o mesmo e-mail canônico (RN-155). */
   async existeEmail(email: string, exceto?: string) {
-    return [...this.itens.values()].some((u) => u.email === email && u.id !== exceto)
+    return [...this.itens.values()].some((u) => (u.email === email || emailCanonico(u.email) === emailCanonico(email)) && u.id !== exceto)
   }
   async existeCpf(cpf: string) {
     return [...this.itens.values()].some((u) => u.cpf === cpf)
@@ -382,6 +395,46 @@ export class SessoesEmMemoria implements SessaoRepository {
   }
   async removerTodasDoUsuario(usuarioId: string, exceto?: string) {
     this.itens = this.itens.filter((s) => s.usuarioId !== usuarioId || s.tokenHash === exceto)
+  }
+}
+
+// ── Código por e-mail (feature 016) ──
+
+export class CodigosPorEmailEmMemoria implements CodigoPorEmailRepository {
+  itens: CodigoPorEmailRegistro[] = []
+  async inserir(c: Omit<CodigoPorEmailRegistro, "id">) {
+    const id = novoId()
+    this.itens.push({ id, ...c })
+    return id
+  }
+  async emAberto(usuarioId: string, finalidade: FinalidadeDoCodigo) {
+    const abertos = this.itens.filter((c) => c.usuarioId === usuarioId && c.finalidade === finalidade && !c.encerradoEm)
+    return abertos.sort((a, b) => b.criadoEm.getTime() - a.criadoEm.getTime())[0] ?? null
+  }
+  async criadosDesde(usuarioId: string, finalidade: FinalidadeDoCodigo, desde: Date) {
+    return this.itens.filter((c) => c.usuarioId === usuarioId && c.finalidade === finalidade && c.criadoEm >= desde).map((c) => c.criadoEm)
+  }
+  async encerrarEmAberto(usuarioId: string, finalidade: FinalidadeDoCodigo, quando: Date) {
+    for (const c of this.itens) if (c.usuarioId === usuarioId && c.finalidade === finalidade && !c.encerradoEm) c.encerradoEm = quando
+  }
+  async somarTentativa(id: string) {
+    const c = this.itens.find((x) => x.id === id)!
+    c.tentativas++
+    return c.tentativas
+  }
+  async encerrar(id: string, quando: Date) {
+    const c = this.itens.find((x) => x.id === id)
+    if (!c || c.encerradoEm) return false
+    c.encerradoEm = quando
+    return true
+  }
+}
+
+/** Gerador de código que devolve o que o teste mandar: o teste sabe qual código "chegou" no e-mail. */
+export class CodigosDoTeste implements GeradorDeCodigo {
+  constructor(public proximos: string[] = []) {}
+  codigo(alfabeto: string, tamanho: number) {
+    return this.proximos.shift() ?? alfabeto[1].repeat(tamanho)
   }
 }
 

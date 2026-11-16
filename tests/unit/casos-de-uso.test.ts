@@ -12,7 +12,17 @@ import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase } from "@/application/
 import { ConfirmarPagamentoUseCase, MontarCobrancaPixUseCase, SolicitarRenovacaoUseCase } from "@/application/use-cases/pagamentos/pagamentos"
 import type { ConteudoDoAnuncio } from "@/domain/anuncio/anuncio"
 import { ESTILO_PADRAO } from "@/domain/anuncio/anuncio"
-import { SessoesEmMemoria, UsuariosEmMemoria, caderno, enderecosDeTeste, hashFalso, localidades, tokensFalsos } from "../fakes"
+import {
+  CodigosDoTeste,
+  CodigosPorEmailEmMemoria,
+  SessoesEmMemoria,
+  UsuariosEmMemoria,
+  caderno,
+  enderecosDeTeste,
+  hashFalso,
+  localidades,
+  tokensFalsos,
+} from "../fakes"
 
 const DIA = 86_400_000
 const BRASILIA = 5300108
@@ -289,17 +299,21 @@ describe("Cadastro do anunciante (RF-01, RN-01, RN-02)", () => {
     aceitouTermos: true,
   }
 
-  it("cria a conta já logada e recusa e-mail ou CPF repetidos", async () => {
+  it("cria a conta já logada, aguardando o código do e-mail (RF-150), e recusa e-mail ou CPF repetidos", async () => {
     const usuarios = new UsuariosEmMemoria()
     const sessoes = new SessoesEmMemoria()
-    const { relogio } = caderno()
-    const cadastrar = new CadastrarAnuncianteUseCase(usuarios, sessoes, hashFalso, tokensFalsos, localidades, relogio)
+    const { relogio, correio } = caderno()
+    const depsDoCodigo = { codigosPorEmail: new CodigosPorEmailEmMemoria(), correio, codigos: new CodigosDoTeste(["482913"]), tokens: tokensFalsos, relogio }
+    const cadastrar = new CadastrarAnuncianteUseCase(usuarios, sessoes, hashFalso, tokensFalsos, localidades, relogio, depsDoCodigo)
 
     const r = await cadastrar.executar(dados)
-    expect(r.ok).toBe(true)
+    expect(r.ok && r.valor.codigoEnviado).toBe(true)
     const [usuario] = [...usuarios.itens.values()]
-    expect(usuario).toMatchObject({ email: "maria@exemplo.com", cpf: "52998224725", celular: "61999998888", perfil: "ANUNCIANTE" })
+    expect(usuario).toMatchObject({ email: "maria@exemplo.com", cpf: "52998224725", celular: "61999998888", perfil: "ANUNCIANTE", emailConfirmadoEm: null })
     expect(sessoes.itens).toHaveLength(1)
+    expect(correio.enviadas).toHaveLength(1)
+    expect(correio.enviadas[0].para.email).toBe("maria@exemplo.com")
+    expect(correio.enviadas[0].carta.destaque).toBe("482913")
 
     const repetido = await cadastrar.executar({ ...dados, cpf: "111.444.777-35" })
     expect(!repetido.ok && repetido.campos?.email).toBeTruthy()

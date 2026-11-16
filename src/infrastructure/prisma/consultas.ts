@@ -269,11 +269,20 @@ export class PrismaMinhaContaQuery implements MinhaContaQuery {
     return detalheDoAnuncio(this.db, { id: anuncioId, usuarioId, situacao: { not: "REMOVIDO" } })
   }
 
-  async perfil(usuarioId: string): Promise<PerfilDTO | null> {
-    return this.db.usuario.findUnique({
-      where: { id: usuarioId },
-      select: { nome: true, cpf: true, email: true, celular: true, uf: true, cidadeCodigo: true, criadoEm: true },
-    })
+  async perfil(usuarioId: string, agora: Date): Promise<PerfilDTO | null> {
+    const [usuario, troca] = await Promise.all([
+      this.db.usuario.findUnique({
+        where: { id: usuarioId },
+        select: { nome: true, cpf: true, email: true, celular: true, uf: true, cidadeCodigo: true, criadoEm: true },
+      }),
+      // RF-154: o e-mail novo esperando o código, enquanto o código vale.
+      this.db.codigoPorEmail.findFirst({
+        where: { usuarioId, finalidade: "TROCA_DE_EMAIL", encerradoEm: null, expiraEm: { gt: agora } },
+        orderBy: { criadoEm: "desc" },
+        select: { email: true },
+      }),
+    ])
+    return usuario ? { ...usuario, emailNovoPendente: troca?.email ?? null } : null
   }
 }
 
@@ -347,17 +356,19 @@ export class PrismaPainelQuery implements PainelQuery {
           perfil: true,
           ativo: true,
           criadoEm: true,
+          emailConfirmadoEm: true,
           _count: { select: { anuncios: true } },
           pagamentos: { where: { situacao: { in: ["CONFIRMADO", "PENDENTE"] } }, select: { situacao: true, valor: true, confirmadoEm: true } },
         },
       }),
       this.db.usuario.count({ where }),
     ])
-    const itens = linhas.map(({ _count, pagamentos, ...usuario }) => {
+    const itens = linhas.map(({ _count, pagamentos, emailConfirmadoEm, ...usuario }) => {
       const confirmados = pagamentos.filter((p) => p.situacao === "CONFIRMADO")
       const datas = confirmados.map((p) => p.confirmadoEm?.getTime() ?? 0).filter(Boolean)
       return {
         ...usuario,
+        emailConfirmado: emailConfirmadoEm !== null,
         totalAnuncios: _count.anuncios,
         pagamentosConfirmados: confirmados.length,
         valorPagoCentavos: confirmados.reduce((soma, p) => soma + (centavos(p.valor) ?? 0), 0),

@@ -109,5 +109,6 @@ Vêm de *Próximos passos sugeridos* e do §4 de `07-insights.md` e do *Depois* 
 - [ ] **8.7** Plano mensal do prestador de serviço, com renovação automática.
 - [ ] **8.8** Rodar o teste de carga com k6 fora de produção (feature 008).
 - [ ] **8.9** Reduzir o tamanho das funções do servidor (aviso do Turbopack sobre o cliente do Prisma em `src/generated/prisma`).
+- [ ] **8.10** Seed em banco novo: a migration `20261109120000_precos_por_periodo` grava preços sem os planos, e o seed falha ao criar os planos (chave repetida). Achado em 2026-11-15, ao testar a feature 016 num MariaDB local; não afeta a produção. Correção: o seed criar os preços com `skipDuplicates`.
 
 **Limite do que foi recuperado.** No backup existe uma única resposta com ideias, a de 2026-11-10 às 19:02. A conversa seguiu depois disso sem registro. Se o Álvaro lembrar de uma ideia que não está aqui, ela entra na prioridade certa.

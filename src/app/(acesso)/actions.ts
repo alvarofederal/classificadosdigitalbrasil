@@ -1,6 +1,6 @@
 "use server"
 
-// APRESENTAÇÃO — entrar, criar conta, sair e trocar senha: formato (Zod) → caso de uso → cookie/redirect.
+// APRESENTAÇÃO — entrar, criar conta, sair, trocar senha e código por e-mail: formato (Zod) → caso de uso → cookie/redirect.
 
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
@@ -56,7 +56,61 @@ export async function cadastrarAction(formData: FormData): Promise<EstadoFormula
   const resultado = await container().cadastrarAnunciante.executar(dados)
   if (!resultado.ok) return deResultado(resultado)
   await gravarCookieDeSessao(resultado.valor.token, resultado.valor.expiraEm)
-  redirect(destinoSeguro(voltar, "/minha-conta/anuncios/novo"))
+  // RF-150: a conta nova vai para a tela do código; depois dele, segue para onde ia.
+  const destino = encodeURIComponent(destinoSeguro(voltar, "/minha-conta/anuncios/novo"))
+  redirect(`/confirmar-email?voltar=${destino}${resultado.valor.codigoEnviado ? "" : "&envio=falhou"}`)
+}
+
+// ── Código por e-mail (feature 016) ──
+
+const schemaCodigo = z.object({ codigo: texto, voltar: z.string().optional() })
+
+export async function confirmarEmailAction(formData: FormData): Promise<EstadoFormulario> {
+  const usuario = await usuarioAtual()
+  if (!usuario) redirect("/entrar")
+  const lido = lerFormulario(schemaCodigo, formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().confirmarEmail.executar(usuario.id, lido.dados.codigo)
+  if (!resultado.ok) return deResultado(resultado)
+  const area = areaDoPerfil(usuario.perfil)
+  redirect(usuario.perfil === "ADMIN" ? area : destinoSeguro(lido.dados.voltar, area))
+}
+
+export async function reenviarCodigoAction(): Promise<EstadoFormulario> {
+  const usuario = await usuarioAtual()
+  if (!usuario) redirect("/entrar")
+  const resultado = await container().reenviarCodigoDoCadastro.executar(usuario.id)
+  if (!resultado.ok) return deResultado(resultado)
+  return { ok: true, mensagem: `Mandamos outro código para ${resultado.valor.enviadoPara}.` }
+}
+
+export async function corrigirEmailAction(formData: FormData): Promise<EstadoFormulario> {
+  const usuario = await usuarioAtual()
+  if (!usuario) redirect("/entrar")
+  const lido = lerFormulario(z.object({ email: texto }), formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().corrigirEmailDoCadastro.executar(usuario.id, lido.dados.email)
+  if (!resultado.ok) return deResultado(resultado)
+  return { ok: true, mensagem: `E-mail corrigido. Mandamos um código para ${resultado.valor.enviadoPara}.` }
+}
+
+export async function pedirNovaSenhaAction(formData: FormData): Promise<EstadoFormulario> {
+  const lido = lerFormulario(z.object({ email: texto }), formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().pedirNovaSenha.executar(lido.dados.email)
+  if (!resultado.ok) return deResultado(resultado)
+  return { ok: true, mensagem: resultado.valor }
+}
+
+const schemaNovaSenha = z.object({ email: texto, codigo: texto, novaSenha: texto, confirmacaoSenha: texto })
+
+export async function criarNovaSenhaAction(formData: FormData): Promise<EstadoFormulario> {
+  const lido = lerFormulario(schemaNovaSenha, formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().criarNovaSenha.executar(lido.dados)
+  if (!resultado.ok) return deResultado(resultado)
+  await gravarCookieDeSessao(resultado.valor.token, resultado.valor.expiraEm)
+  redirect(areaDoPerfil(resultado.valor.perfil))
 }
 
 export async function sairAction(): Promise<void> {

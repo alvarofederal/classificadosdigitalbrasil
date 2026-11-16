@@ -6,6 +6,7 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 |---|---|---|
 | `usuarios` | Anunciantes e administradores | nome, cpf (único), email (único), celular, uf, cidadeCodigo (IBGE), senhaHash, perfil, ativo, deveTrocarSenha, aceitouTermosEm |
 | `sessoes` | Login | tokenHash (SHA-256, único), expiraEm |
+| `codigos_por_email` | Código de 6 números (feature 016, ADR-20) | usuarioId, finalidade (CADASTRO, TROCA_DE_EMAIL, NOVA_SENHA), email (destino), codigoHash (SHA-256), tentativas, expiraEm, encerradoEm, criadoEm |
 | `tentativas_login` | Freio contra força bruta | email, ip, sucesso, criadoEm |
 | `categorias` | Seções do caderno | nome, slug (único), ordem, ativa |
 | `anuncios` | O quadrado | codigo (6, único), categoriaId, uf, cidadeCodigo, titulo (40), texto, preco, moldura, estiloTitulo, alinhamento, estrelas, situacao, publicadoEm, expiraEm |
@@ -18,6 +19,8 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `visitas_anuncio` | Visitas do anúncio (feature 013, ADR-18) | anuncioId + dia (DATE, Brasília) + chave (HMAC, sem IP) como chave primária, vezes (até 20), cidade, uf, pais |
 | `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
 
+`usuarios` ganhou na migração `20261115220000_codigo_por_email` (feature 016): `emailConfirmadoEm` (nulo = aguardando o código; as contas antigas vieram preenchidas com `criadoEm`) e `emailCanonico` (RN-155, com índice, sem `UNIQUE`).
+
 `anuncios` ganhou na migração `20261109000000_planos_chamados_gateway`: `planoCodigo`, `prioridade` (0 a 3, RN-50) e `visualizacoes` (RF-75). `configuracoes` perdeu `valorAnuncio` e `diasDePublicacao` (viraram a tabela `planos`).
 
 ## Índices que importam
@@ -27,6 +30,8 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 - `pagamentos (anuncioId, situacao)`: cobrança pendente do anúncio.
 - `anuncios (planoCodigo, situacao, expiraEm)`: vitrine da capa.
 - `pagamentos (gatewayId)`: aviso do gateway.
+- `usuarios (emailCanonico)`: "um e-mail por conta" com o e-mail escrito de outro jeito (RN-155).
+- `codigos_por_email (usuarioId, finalidade, criadoEm)`: o código em aberto e os limites por hora (RN-152).
 - `visitas_anuncio (anuncioId, dia, chave)`: a chave primária serve à soma do dia, à série por dia e às pessoas por anúncio.
 
 ## Situação do anúncio

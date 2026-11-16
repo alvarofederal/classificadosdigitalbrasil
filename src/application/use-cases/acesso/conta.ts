@@ -1,4 +1,4 @@
-// APLICAÇÃO — cadastro do anunciante, perfil e troca de senha (RF-01, RF-20, RF-21, RN-01 a RN-04).
+// APLICAÇÃO — cadastro do anunciante, perfil e troca de senha (RF-01, RF-20, RF-21, RN-01 a RN-04; RF-150 da feature 016).
 
 import { type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
 import { somenteDigitos } from "@/domain/shared/texto"
@@ -16,6 +16,7 @@ import type { GeradorDeToken, HashDeSenha, SessaoRepository, UsuarioRepository }
 import type { Localidades } from "../../ports/localidades"
 import type { Relogio } from "../../ports/sistema"
 import { abrirSessao } from "./autenticar-usuario"
+import { type DepsDoCodigo, emitirCodigo } from "./codigo-por-email"
 
 /** RN-04: a cidade escolhida precisa existir no catálogo do IBGE e pertencer à UF. */
 export function conferirCidade(localidades: Localidades, uf: string, cidadeCodigo: number, erros: ErrosDeCampo): void {
@@ -32,9 +33,14 @@ export class CadastrarAnuncianteUseCase {
     private readonly tokens: GeradorDeToken,
     private readonly localidades: Localidades,
     private readonly relogio: Relogio,
+    private readonly codigo: DepsDoCodigo,
   ) {}
 
-  async executar(entrada: DadosDeCadastro): Promise<Result<{ token: string; expiraEm: Date }>> {
+  /**
+   * RF-150: a conta nasce aguardando a confirmação do e-mail, já com a sessão aberta para a tela do código.
+   * `codigoEnviado` falso = o envio falhou; a tela oferece mandar de novo (RN-158).
+   */
+  async executar(entrada: DadosDeCadastro): Promise<Result<{ token: string; expiraEm: Date; codigoEnviado: boolean }>> {
     const dados = { ...normalizarDadosPessoais(entrada), cpf: somenteDigitos(entrada.cpf) }
     const erros = validarCadastro(dados)
     conferirCidade(this.localidades, dados.uf, dados.cidadeCodigo, erros)
@@ -54,8 +60,11 @@ export class CadastrarAnuncianteUseCase {
       ativo: true,
       deveTrocarSenha: false,
       aceitouTermosEm: this.relogio.agora(),
+      emailConfirmadoEm: null,
     })
-    return ok(await abrirSessao({ sessoes: this.sessoes, tokens: this.tokens, relogio: this.relogio }, usuarioId))
+    const envio = await emitirCodigo(this.codigo, { id: usuarioId, nome: dados.nome }, "CADASTRO", dados.email)
+    const sessao = await abrirSessao({ sessoes: this.sessoes, tokens: this.tokens, relogio: this.relogio }, usuarioId)
+    return ok({ ...sessao, codigoEnviado: envio.ok })
   }
 }
 
@@ -65,13 +74,13 @@ export class AtualizarPerfilUseCase {
     private readonly localidades: Localidades,
   ) {}
 
-  async executar(usuarioId: string, entrada: DadosPessoais): Promise<Result<true>> {
+  /** RF-20. O e-mail não muda aqui: a troca passa pelo código (RF-154, `PedirTrocaDeEmailUseCase`). */
+  async executar(usuarioId: string, entrada: Omit<DadosPessoais, "email">): Promise<Result<true>> {
     const usuario = await this.usuarios.buscarPorId(usuarioId)
     if (!usuario) return falha("NAO_ENCONTRADO", "Conta não encontrada.")
-    const dados = normalizarDadosPessoais(entrada)
+    const dados = normalizarDadosPessoais({ ...entrada, email: usuario.email })
     const erros = validarDadosPessoais(dados)
     conferirCidade(this.localidades, dados.uf, dados.cidadeCodigo, erros)
-    if (!erros.email && (await this.usuarios.existeEmail(dados.email, usuarioId))) erros.email = "Este e-mail já é usado por outra conta."
     if (Object.keys(erros).length > 0) return falhaDeValidacao(erros)
 
     await this.usuarios.atualizar({ ...usuario, ...dados })

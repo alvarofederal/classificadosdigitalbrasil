@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs"
 import { config } from "dotenv"
 import { PrismaClient } from "../src/generated/prisma"
 import { ALFABETO_DO_CODIGO } from "../src/domain/anuncio/anuncio"
+import { emailCanonico } from "../src/domain/usuario/codigo-por-email"
 import { CATEGORIAS_INICIAIS, slugDaCategoria } from "../src/domain/categoria/categoria"
 import { PLANOS_INICIAIS } from "../src/domain/plano/plano"
 import { centavosParaDecimal } from "../src/domain/shared/dinheiro"
@@ -69,6 +70,8 @@ async function base() {
       senhaHash: await bcrypt.hash(senha, 10),
       perfil: "ADMIN",
       deveTrocarSenha: true,
+      emailConfirmadoEm: new Date(), // RN-154: o admin do seed já vem confirmado
+      emailCanonico: emailCanonico(email),
     },
   })
   console.log(`✔ Admin inicial criado: ${email} (troca de senha obrigatória no 1º acesso)`)
@@ -119,6 +122,7 @@ async function demo() {
       uf: "DF",
       cidadeCodigo: 5300108,
       aceitouTermosEm: new Date(),
+      emailConfirmadoEm: new Date(), // feature 016: conta de exemplo, sem código
     },
   })
   const agora = Date.now()

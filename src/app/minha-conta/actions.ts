@@ -171,7 +171,8 @@ export async function removerFotoAction(anuncioId: string, fotoId: string): Prom
 
 // ── Perfil ──
 
-const schemaPerfil = z.object({ nome: texto, email: texto, celular: texto, uf: texto, cidadeCodigo: codigoIbge })
+// O e-mail não vem aqui: a troca passa pelo código (feature 016, RF-154).
+const schemaPerfil = z.object({ nome: texto, celular: texto, uf: texto, cidadeCodigo: codigoIbge })
 
 export async function atualizarPerfilAction(formData: FormData): Promise<EstadoFormulario> {
   const usuario = await autorizar("ANUNCIANTE")
@@ -181,4 +182,36 @@ export async function atualizarPerfilAction(formData: FormData): Promise<EstadoF
   const resultado = await container().atualizarPerfil.executar(usuario.id, lido.dados)
   if (resultado.ok) revalidatePath("/minha-conta/perfil")
   return deResultado(resultado, "Dados atualizados.")
+}
+
+// ── Troca de e-mail com código (feature 016: RF-154, RF-155) ──
+
+export async function pedirTrocaDeEmailAction(formData: FormData): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  const lido = lerFormulario(z.object({ emailNovo: texto }), formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().pedirTrocaDeEmail.executar(usuario.id, lido.dados.emailNovo)
+  if (!resultado.ok) return deResultado(resultado)
+  revalidatePath("/minha-conta/perfil")
+  return { ok: true, mensagem: `Mandamos um código para ${resultado.valor.enviadoPara}.` }
+}
+
+export async function confirmarTrocaDeEmailAction(formData: FormData): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  const lido = lerFormulario(z.object({ codigo: texto }), formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().confirmarTrocaDeEmail.executar(usuario.id, lido.dados.codigo)
+  if (!resultado.ok) return deResultado(resultado)
+  revalidatePath("/minha-conta/perfil")
+  return { ok: true, mensagem: `E-mail trocado para ${resultado.valor.email}.` }
+}
+
+export async function cancelarTrocaDeEmailAction(): Promise<EstadoFormulario> {
+  const usuario = await autorizar("ANUNCIANTE")
+  if (!usuario) return NAO_AUTORIZADO
+  await container().cancelarTrocaDeEmail.executar(usuario.id)
+  revalidatePath("/minha-conta/perfil")
+  return { ok: true, mensagem: "Troca de e-mail cancelada." }
 }

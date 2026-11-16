@@ -16,7 +16,7 @@ type Busca = { uf?: string; cidade?: string; categoria?: string; plano?: string 
 export default async function NovoAnuncio({ searchParams }: { searchParams: Promise<Busca> }) {
   const usuario = await exigirPerfil("ANUNCIANTE")
   const c = container()
-  const [perfil, categorias, planos] = await Promise.all([c.minhaConta.perfil(usuario.id), c.classificados.categoriasAtivas(), c.classificados.planosAVenda()])
+  const [perfil, categorias, planos] = await Promise.all([c.minhaConta.perfil(usuario.id, c.relogio.agora()), c.classificados.categoriasAtivas(), c.classificados.planosAVenda()])
   const busca = await searchParams
 
   // Do link "Anunciar aqui" vem a cidade da seção; sem ele, a cidade do cadastro.

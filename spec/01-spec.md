@@ -84,6 +84,18 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-140 | Na tela do anúncio e na lista de Minha conta, o anúncio no ar tem o botão Desativar anúncio, e o desativado tem o botão Ativar anúncio, que o põe de volta no caderno. |
 | RF-141 | A situação Desativado aparece no selo, em Minha conta e no Painel; o Painel filtra por ela e tem os mesmos botões na tela do anúncio. |
 
+### Código por e-mail (feature 016)
+
+| ID | Requisito |
+|---|---|
+| RF-150 | Ao criar a conta, o site manda ao e-mail um código de 6 números; a conta só é liberada depois que a pessoa digita o código. |
+| RF-151 | Sem o e-mail confirmado, quem entra cai na tela do código: não vê Minha conta, não cria nem paga anúncio. |
+| RF-152 | Na tela do código, a pessoa pede outro código e corrige o e-mail digitado errado. |
+| RF-153 | "Esqueci a senha": código no e-mail e senha nova; a conta entra logada e as outras sessões caem. |
+| RF-154 | Em Meus dados, o e-mail novo só vale depois do código mandado para ele; a troca pode ser cancelada. |
+| RF-155 | O e-mail antigo recebe um aviso quando a troca acontece. |
+| RF-156 | O Painel marca, na lista de usuários, quem não confirmou o e-mail. |
+
 ## Regras de negócio
 
 | ID | Regra |
@@ -142,6 +154,16 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-143 | Pagar a renovação (ou a cortesia) de um desativado o põe no ar; os dias somam ao fim atual se ele ainda não passou (RN-12). |
 | RN-144 | Desativado não recebe o e-mail "seu anúncio sai do caderno amanhã". |
 | RN-145 | Dono e administrador desativam e ativam; removido e aguardando o primeiro pagamento, não. |
+| RN-150 | O código tem 6 números aleatórios, vale 15 minutos e fica no banco só como hash. |
+| RN-151 | No máximo 5 tentativas erradas por código; depois, só pedindo outro. |
+| RN-152 | Outro código só 60 segundos depois do anterior, e no máximo 5 por hora por conta e finalidade; o novo invalida o anterior. |
+| RN-153 | Cada código serve a uma finalidade (cadastro, troca de e-mail, senha nova) e a um uso. |
+| RN-154 | As contas anteriores à feature 016 e o administrador do seed contam como confirmados. |
+| RN-155 | Para "um e-mail por conta", o que vem depois do `+` não conta, e no Gmail os pontos também não. |
+| RN-156 | "Esqueci a senha" responde igual exista ou não a conta; o código só sai para conta ativa, depois da resposta. |
+| RN-157 | Criar a senha nova pelo código também confirma o e-mail. |
+| RN-158 | Sem servidor de e-mail o código não sai e a tela avisa; fora da produção, a carta vai para o terminal. |
+| RN-159 | A carta do código leva só o primeiro nome, diz para que serve e lembra que o site nunca pede o código por telefone ou mensagem. |
 
 ## Requisitos não funcionais
 

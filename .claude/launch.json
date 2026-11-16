@@ -6,6 +6,13 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["next", "dev"],
       "port": 3000
+    },
+    {
+      "name": "dev-banco-local",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "-p", "3016"],
+      "env": { "DATABASE_URL": "mysql://root@localhost:3306/cdb_local_016" },
+      "port": 3016
     }
   ]
 }

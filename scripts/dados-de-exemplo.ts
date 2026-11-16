@@ -87,6 +87,7 @@ async function exemplos(adminId: string) {
       uf: "DF",
       cidadeCodigo: BRASILIA,
       aceitouTermosEm: new Date(),
+      emailConfirmadoEm: new Date(), // feature 016: conta de exemplo, sem código
     },
   })
   const categorias = new Map((await prisma.categoria.findMany({ select: { id: true, slug: true } })).map((cat) => [cat.slug, cat.id]))

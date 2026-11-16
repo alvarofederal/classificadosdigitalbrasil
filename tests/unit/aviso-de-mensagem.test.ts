@@ -47,6 +47,7 @@ function montar() {
     ativo: true,
     deveTrocarSenha: false,
     aceitouTermosEm: null,
+    emailConfirmadoEm: new Date("2026-11-01T12:00:00Z"),
   })
   const avisar = new AvisarMensagemNovaUseCase(c.usuarios, c.mensagens, c.correio, c.relogio, enderecosDeTeste)
   return {

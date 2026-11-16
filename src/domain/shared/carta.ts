@@ -26,6 +26,8 @@ export interface Carta {
   saudacao: string
   /** Parágrafos antes da citação. */
   paragrafos: string[]
+  /** Texto curto em letra grande, como o código de confirmação (feature 016). */
+  destaque?: string | null
   /** Texto escrito por outra pessoa, mostrado em caixa e sempre como texto (RN-103). */
   citacao: { autor: string; texto: string } | null
   /** Linhas "rótulo: valor", como o contato para responder. */

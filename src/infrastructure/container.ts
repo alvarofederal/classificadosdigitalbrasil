@@ -2,6 +2,16 @@
 
 import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import { AutenticarUsuarioUseCase } from "@/application/use-cases/acesso/autenticar-usuario"
+import {
+  CancelarTrocaDeEmailUseCase,
+  ConfirmarEmailUseCase,
+  ConfirmarTrocaDeEmailUseCase,
+  CorrigirEmailDoCadastroUseCase,
+  CriarNovaSenhaUseCase,
+  PedirNovaSenhaUseCase,
+  PedirTrocaDeEmailUseCase,
+  ReenviarCodigoDoCadastroUseCase,
+} from "@/application/use-cases/acesso/codigo-por-email"
 import { AlterarSenhaUseCase, AtualizarPerfilUseCase, CadastrarAnuncianteUseCase } from "@/application/use-cases/acesso/conta"
 import { EncerrarSessaoUseCase, ObterSessaoUseCase } from "@/application/use-cases/acesso/sessao"
 import {
@@ -38,7 +48,7 @@ import {
   VerificarPagamentoUseCase,
 } from "@/application/use-cases/pagamentos/pagamentos"
 import { AbrirChamadoUseCase, LocalizarCidadeUseCase } from "@/application/use-cases/publico/publico"
-import { CorreioDesligado, CorreioSmtp, lerConfiguracaoDoCorreio } from "./email/correio-smtp"
+import { CorreioDesligado, CorreioNoTerminal, CorreioSmtp, lerConfiguracaoDoCorreio } from "./email/correio-smtp"
 import { CatalogoIbge } from "./localidades/catalogo-ibge"
 import { MercadoPagoGateway, contaDoMercadoPago } from "./pagamentos/mercado-pago"
 import { prisma } from "./prisma/cliente"
@@ -47,6 +57,7 @@ import {
   PrismaAnuncioRepository,
   PrismaAvisosDeVencimentoRepository,
   PrismaCategoriaRepository,
+  PrismaCodigoPorEmailRepository,
   PrismaFotoRepository,
   PrismaMensagemRepository,
   PrismaSessaoRepository,
@@ -87,7 +98,12 @@ function montar() {
   // Feature 010 (ADR-15 e ADR-16): SMTP informado ou a chave do Resend (RN-106). Sem nenhum dos dois, o aviso por e-mail
   // fica desligado e nada mais muda (RF-104).
   const smtp = lerConfiguracaoDoCorreio(process.env)
-  const correio: Correio = smtp.ok ? new CorreioSmtp(smtp.cfg, NOME_DO_REMETENTE) : new CorreioDesligado()
+  // RN-158: no computador (next dev), sem servidor de e-mail, as cartas vão para o terminal; em produção, nunca.
+  const correio: Correio = smtp.ok
+    ? new CorreioSmtp(smtp.cfg, NOME_DO_REMETENTE)
+    : process.env.NODE_ENV === "development"
+      ? new CorreioNoTerminal()
+      : new CorreioDesligado()
   const enderecoDoSite = site ?? "http://localhost:3000"
 
   const usuarios = new PrismaUsuarioRepository(prisma)
@@ -110,7 +126,11 @@ function montar() {
     mensagensDoAnuncio: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}#titulo-mensagens`,
     anuncioEmMinhaConta: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}`,
     paginaDoAnuncio: (codigo) => `${enderecoDoSite}/anuncio/${codigo}`,
+    contato: () => `${enderecoDoSite}/como-funciona#contato`,
   }
+  // Feature 016 (ADR-20): código por e-mail.
+  const segundoPlano = new DepoisDaResposta()
+  const depsDoCodigo = { codigosPorEmail: new PrismaCodigoPorEmailRepository(prisma), correio, codigos, tokens, relogio }
   const avisarMensagemNova = new AvisarMensagemNovaUseCase(usuarios, mensagens, correio, relogio, enderecos)
   const confirmarPagamento = new ConfirmarPagamentoUseCase(anuncios, pagamentos, relogio)
   const processarPagamentoDoGateway = new ProcessarPagamentoDoGatewayUseCase(pagamentos, gateway, confirmarPagamento)
@@ -138,9 +158,17 @@ function montar() {
     autenticar: new AutenticarUsuarioUseCase(usuarios, sessoes, tentativas, hash, tokens, relogio),
     obterSessao: new ObterSessaoUseCase(sessoes, tokens, relogio),
     encerrarSessao: new EncerrarSessaoUseCase(sessoes, tokens),
-    cadastrarAnunciante: new CadastrarAnuncianteUseCase(usuarios, sessoes, hash, tokens, localidades, relogio),
+    cadastrarAnunciante: new CadastrarAnuncianteUseCase(usuarios, sessoes, hash, tokens, localidades, relogio, depsDoCodigo),
     atualizarPerfil: new AtualizarPerfilUseCase(usuarios, localidades),
     alterarSenha: new AlterarSenhaUseCase(usuarios, sessoes, hash, tokens),
+    confirmarEmail: new ConfirmarEmailUseCase(usuarios, depsDoCodigo),
+    reenviarCodigoDoCadastro: new ReenviarCodigoDoCadastroUseCase(usuarios, depsDoCodigo),
+    corrigirEmailDoCadastro: new CorrigirEmailDoCadastroUseCase(usuarios, depsDoCodigo),
+    pedirNovaSenha: new PedirNovaSenhaUseCase(usuarios, depsDoCodigo, segundoPlano),
+    criarNovaSenha: new CriarNovaSenhaUseCase(usuarios, sessoes, hash, depsDoCodigo),
+    pedirTrocaDeEmail: new PedirTrocaDeEmailUseCase(usuarios, depsDoCodigo),
+    confirmarTrocaDeEmail: new ConfirmarTrocaDeEmailUseCase(usuarios, depsDoCodigo, segundoPlano, enderecos),
+    cancelarTrocaDeEmail: new CancelarTrocaDeEmailUseCase(depsDoCodigo),
 
     criarAnuncio: new CriarAnuncioUseCase(anuncios, categorias, localidades, codigos, depsDePagamento),
     editarAnuncio: new EditarAnuncioUseCase(anuncios, categorias, localidades),
@@ -155,7 +183,7 @@ function montar() {
     reordenarFotos: new ReordenarFotosUseCase(anuncios, fotos),
     removerFoto: new RemoverFotoUseCase(anuncios, fotos, storage),
 
-    enviarMensagem: new EnviarMensagemUseCase(anuncios, mensagens, relogio, avisarMensagemNova, new DepoisDaResposta()),
+    enviarMensagem: new EnviarMensagemUseCase(anuncios, mensagens, relogio, avisarMensagemNova, segundoPlano),
     marcarMensagensLidas: new MarcarMensagensLidasUseCase(anuncios, mensagens),
 
     solicitarRenovacao: new SolicitarRenovacaoUseCase(anuncios, depsDePagamento),

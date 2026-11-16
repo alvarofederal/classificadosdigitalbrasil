@@ -20,4 +20,6 @@ export interface EnderecosDoSite {
   anuncioEmMinhaConta(anuncioId: string): string
   /** Página pública do anúncio. */
   paginaDoAnuncio(codigo: string): string
+  /** Formulário de contato com o administrador (feature 016, aviso de troca de e-mail). */
+  contato(): string
 }

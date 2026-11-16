@@ -92,6 +92,8 @@ export default async function Usuarios({ searchParams }: { searchParams: Promise
                   </td>
                   <td>
                     {u.email}
+                    {/* RF-156 */}
+                    {!u.emailConfirmado && <span className="ml-1 text-xs text-perigo">(e-mail não confirmado)</span>}
                     <br />
                     <span className="text-tinta-suave">{u.celular ? formatarCelular(u.celular) : "—"}</span>
                   </td>

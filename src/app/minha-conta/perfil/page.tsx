@@ -1,4 +1,4 @@
-// APRESENTAÇÃO — perfil do anunciante (RF-20, RF-21).
+// APRESENTAÇÃO — perfil do anunciante (RF-20, RF-21) e troca de e-mail com código (feature 016, RF-154).
 
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
@@ -8,13 +8,14 @@ import { container } from "@/infrastructure/container"
 import { formatarCelular, formatarDia } from "@/lib/formatadores"
 import { exigirPerfil } from "@/lib/sessao"
 import { FormularioTrocarSenha } from "../../(acesso)/formularios-acesso"
-import { FormularioPerfil } from "./formulario-perfil"
+import { FormularioPerfil, TrocaDeEmail } from "./formulario-perfil"
 
 export const metadata: Metadata = { title: "Meus dados", robots: { index: false } }
 
 export default async function Perfil() {
   const usuario = await exigirPerfil("ANUNCIANTE")
-  const perfil = await container().minhaConta.perfil(usuario.id)
+  const c = container()
+  const perfil = await c.minhaConta.perfil(usuario.id, c.relogio.agora())
   if (!perfil) notFound()
 
   return (
@@ -24,12 +25,18 @@ export default async function Perfil() {
         <p className="text-sm">
           CPF {perfil.cpf ? mascararCpf(perfil.cpf) : "—"} · conta criada em {formatarDia(perfil.criadoEm)}. O CPF não pode ser alterado.
         </p>
-        <FormularioPerfil iniciais={{ nome: perfil.nome, email: perfil.email, celular: formatarCelular(perfil.celular), uf: perfil.uf, cidadeCodigo: perfil.cidadeCodigo }} />
+        <FormularioPerfil iniciais={{ nome: perfil.nome, celular: formatarCelular(perfil.celular), uf: perfil.uf, cidadeCodigo: perfil.cidadeCodigo }} />
       </section>
-      <section className="flex flex-col gap-4">
-        <Faixa como="h2">Trocar senha</Faixa>
-        <FormularioTrocarSenha />
-      </section>
+      <div className="flex flex-col gap-8">
+        <section className="flex flex-col gap-4">
+          <Faixa como="h2">E-mail</Faixa>
+          <TrocaDeEmail email={perfil.email} emailNovoPendente={perfil.emailNovoPendente} />
+        </section>
+        <section className="flex flex-col gap-4">
+          <Faixa como="h2">Trocar senha</Faixa>
+          <FormularioTrocarSenha />
+        </section>
+      </div>
     </div>
   )
 }

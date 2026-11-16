@@ -41,6 +41,8 @@ export function areaDoPerfil(perfil: Perfil): string {
 export async function exigirPerfil(perfil: Perfil, voltar?: string): Promise<UsuarioDaSessao> {
   const usuario = await usuarioAtual()
   if (!usuario) redirect(voltar ? `/entrar?voltar=${encodeURIComponent(voltar)}` : "/entrar")
+  // RF-151: sem o e-mail confirmado, a conta só vê a tela do código.
+  if (!usuario.emailConfirmado) redirect(voltar ? `/confirmar-email?voltar=${encodeURIComponent(voltar)}` : "/confirmar-email")
   if (usuario.deveTrocarSenha) redirect("/trocar-senha")
   if (usuario.perfil !== perfil) redirect(areaDoPerfil(usuario.perfil))
   return usuario
@@ -49,7 +51,7 @@ export async function exigirPerfil(perfil: Perfil, voltar?: string): Promise<Usu
 /** Para Server Actions: devolve o usuário autorizado ou null — nunca confia no que a tela escondeu. */
 export async function autorizar(perfil: Perfil): Promise<UsuarioDaSessao | null> {
   const usuario = await usuarioAtual()
-  if (!usuario || usuario.deveTrocarSenha || usuario.perfil !== perfil) return null
+  if (!usuario || !usuario.emailConfirmado || usuario.deveTrocarSenha || usuario.perfil !== perfil) return null
   return usuario
 }
 

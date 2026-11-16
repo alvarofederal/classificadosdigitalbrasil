@@ -18,6 +18,11 @@ export default async function Entrar({ searchParams }: { searchParams: Promise<{
       <Faixa como="h1">Entrar</Faixa>
       <FormularioEntrar voltar={voltar} />
       <p className="text-sm">
+        <Link href="/esqueci-a-senha" className="link">
+          Esqueci a senha
+        </Link>
+      </p>
+      <p className="text-sm">
         Ainda não tem conta?{" "}
         <Link href={voltar ? `/cadastro?voltar=${encodeURIComponent(voltar)}` : "/cadastro"} className="link">
           Crie a sua para anunciar

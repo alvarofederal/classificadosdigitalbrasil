@@ -40,6 +40,12 @@ function paragrafo(html: string, estilo = ""): string {
 export function cartaEmHtml(carta: Carta): string {
   const partes: string[] = [paragrafo(escaparHtml(carta.saudacao)), ...carta.paragrafos.map((p) => paragrafo(escaparHtml(p)))]
 
+  if (carta.destaque) {
+    partes.push(
+      `<p style="margin:6px 0 20px;"><span style="display:inline-block;border:2px solid ${TINTA};padding:10px 18px;font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:bold;letter-spacing:6px;color:${TINTA};">${escaparHtml(carta.destaque)}</span></p>`,
+    )
+  }
+
   if (carta.citacao) {
     partes.push(
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px;"><tr><td style="border:1px solid ${TINTA};padding:12px 14px;">` +
@@ -102,6 +108,7 @@ export function cartaEmHtml(carta: Carta): string {
 /** A mesma carta para quem lê e-mail sem HTML. */
 export function cartaEmTexto(carta: Carta): string {
   const blocos: string[] = ["CLASSIFICADOS DIGITAIS DO BRASIL", carta.saudacao, ...carta.paragrafos]
+  if (carta.destaque) blocos.push(carta.destaque)
 
   if (carta.citacao) {
     const citado = carta.citacao.texto

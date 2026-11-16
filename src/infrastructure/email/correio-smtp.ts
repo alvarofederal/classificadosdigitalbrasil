@@ -207,3 +207,22 @@ export class CorreioDesligado implements Correio {
     return falha("SEM_CORREIO", "O servidor de e-mail não está cadastrado.")
   }
 }
+
+/**
+ * RN-158: fora da produção, sem servidor de e-mail, a carta vai para o terminal do servidor. Serve para testar no
+ * computador o cadastro com código (feature 016) sem mandar e-mail de verdade. Nunca é escolhido em produção.
+ */
+export class CorreioNoTerminal implements Correio {
+  readonly ligado = true
+  private enviadas = 0
+
+  async enviar(para: Destinatario, carta: Carta): Promise<Result<{ id: string }>> {
+    this.enviadas++
+    console.info(`\n[correio no terminal] para ${para.email} · ${emUmaLinha(carta.assunto)}\n${cartaEmTexto(carta)}\n`)
+    return ok({ id: `terminal-${this.enviadas}` })
+  }
+
+  async conferir(): Promise<Result<true>> {
+    return ok(true)
+  }
+}

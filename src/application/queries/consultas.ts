@@ -114,12 +114,14 @@ export interface PerfilDTO {
   uf: string
   cidadeCodigo: number
   criadoEm: Date
+  /** RF-154: e-mail novo esperando o código; null = nenhuma troca em andamento. */
+  emailNovoPendente: string | null
 }
 
 export interface MinhaContaQuery {
   meusAnuncios(usuarioId: string): Promise<MeuAnuncioDTO[]>
   meuAnuncio(usuarioId: string, anuncioId: string): Promise<MeuAnuncioDetalheDTO | null>
-  perfil(usuarioId: string): Promise<PerfilDTO | null>
+  perfil(usuarioId: string, agora: Date): Promise<PerfilDTO | null>
 }
 
 // ── Painel do administrador ──
@@ -145,6 +147,8 @@ export interface UsuarioAdminDTO {
   perfil: Perfil
   ativo: boolean
   criadoEm: Date
+  /** RF-156 */
+  emailConfirmado: boolean
   totalAnuncios: number
   pagamentosConfirmados: number
   valorPagoCentavos: number

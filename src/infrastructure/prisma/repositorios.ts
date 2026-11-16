@@ -1,6 +1,8 @@
 // INFRAESTRUTURA — repositórios Prisma (MySQL). Implementam as portas da aplicação.
 
 import type {
+  CodigoPorEmailRegistro,
+  CodigoPorEmailRepository,
   NovoUsuario,
   SessaoRepository,
   SessaoValida,
@@ -19,6 +21,7 @@ import type {
   NovaFoto,
 } from "@/application/ports/caderno"
 import type { Categoria } from "@/domain/categoria/categoria"
+import { type FinalidadeDoCodigo, emailCanonico } from "@/domain/usuario/codigo-por-email"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
 import type { PrismaClient, Usuario } from "@/generated/prisma"
 import { dadosDoAnuncio, paraAnuncio } from "./mapeadores"
@@ -39,6 +42,7 @@ function paraUsuario(linha: Usuario): UsuarioRegistro {
     ativo: linha.ativo,
     deveTrocarSenha: linha.deveTrocarSenha,
     aceitouTermosEm: linha.aceitouTermosEm,
+    emailConfirmadoEm: linha.emailConfirmadoEm,
   }
 }
 
@@ -55,8 +59,10 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
     return linha ? paraUsuario(linha) : null
   }
 
+  /** RN-01 com RN-155: o e-mail exato ou a mesma caixa escrita de outro jeito. */
   async existeEmail(email: string, excetoUsuarioId?: string) {
-    return (await this.db.usuario.count({ where: { email, ...(excetoUsuarioId ? { id: { not: excetoUsuarioId } } : {}) } })) > 0
+    const outra = excetoUsuarioId ? { id: { not: excetoUsuarioId } } : {}
+    return (await this.db.usuario.count({ where: { OR: [{ email }, { emailCanonico: emailCanonico(email) }], ...outra } })) > 0
   }
 
   async existeCpf(cpf: string) {
@@ -64,13 +70,13 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
   }
 
   async inserir(usuario: NovoUsuario) {
-    const { id } = await this.db.usuario.create({ data: usuario, select: { id: true } })
+    const { id } = await this.db.usuario.create({ data: { ...usuario, emailCanonico: emailCanonico(usuario.email) }, select: { id: true } })
     return id
   }
 
   async atualizar(usuario: UsuarioRegistro) {
     const { id, ...dados } = usuario
-    await this.db.usuario.update({ where: { id }, data: dados })
+    await this.db.usuario.update({ where: { id }, data: { ...dados, emailCanonico: emailCanonico(dados.email) } })
   }
 
   async registrarAcesso(usuarioId: string, quando: Date) {
@@ -88,10 +94,11 @@ export class PrismaSessaoRepository implements SessaoRepository {
   async buscarValida(tokenHash: string, agora: Date): Promise<SessaoValida | null> {
     const sessao = await this.db.sessao.findUnique({
       where: { tokenHash },
-      include: { usuario: { select: { id: true, nome: true, email: true, perfil: true, ativo: true, deveTrocarSenha: true } } },
+      include: { usuario: { select: { id: true, nome: true, email: true, perfil: true, ativo: true, deveTrocarSenha: true, emailConfirmadoEm: true } } },
     })
     if (!sessao || sessao.expiraEm <= agora) return null
-    return { sessaoId: sessao.id, expiraEm: sessao.expiraEm, usuario: sessao.usuario }
+    const { emailConfirmadoEm, ...usuario } = sessao.usuario
+    return { sessaoId: sessao.id, expiraEm: sessao.expiraEm, usuario: { ...usuario, emailConfirmado: emailConfirmadoEm !== null } }
   }
 
   async renovar(sessaoId: string, expiraEm: Date) {
@@ -116,6 +123,41 @@ export class PrismaTentativaLoginRepository implements TentativaLoginRepository 
 
   async contarFalhasDesde(ip: string, desde: Date) {
     return this.db.tentativaLogin.count({ where: { ip, sucesso: false, criadoEm: { gte: desde } } })
+  }
+}
+
+// ── Código por e-mail (feature 016, ADR-20) ──
+
+export class PrismaCodigoPorEmailRepository implements CodigoPorEmailRepository {
+  constructor(private readonly db: PrismaClient) {}
+
+  async inserir(codigo: Omit<CodigoPorEmailRegistro, "id">) {
+    const { id } = await this.db.codigoPorEmail.create({ data: codigo, select: { id: true } })
+    return id
+  }
+
+  async emAberto(usuarioId: string, finalidade: FinalidadeDoCodigo) {
+    return this.db.codigoPorEmail.findFirst({ where: { usuarioId, finalidade, encerradoEm: null }, orderBy: { criadoEm: "desc" } })
+  }
+
+  async criadosDesde(usuarioId: string, finalidade: FinalidadeDoCodigo, desde: Date) {
+    const linhas = await this.db.codigoPorEmail.findMany({ where: { usuarioId, finalidade, criadoEm: { gte: desde } }, select: { criadoEm: true } })
+    return linhas.map((l) => l.criadoEm)
+  }
+
+  async encerrarEmAberto(usuarioId: string, finalidade: FinalidadeDoCodigo, quando: Date) {
+    await this.db.codigoPorEmail.updateMany({ where: { usuarioId, finalidade, encerradoEm: null }, data: { encerradoEm: quando } })
+  }
+
+  async somarTentativa(id: string) {
+    const { tentativas } = await this.db.codigoPorEmail.update({ where: { id }, data: { tentativas: { increment: 1 } }, select: { tentativas: true } })
+    return tentativas
+  }
+
+  /** RN-153: atualização condicionada; só um pedido consegue encerrar o mesmo código. */
+  async encerrar(id: string, quando: Date) {
+    const { count } = await this.db.codigoPorEmail.updateMany({ where: { id, encerradoEm: null }, data: { encerradoEm: quando } })
+    return count === 1
   }
 }
 

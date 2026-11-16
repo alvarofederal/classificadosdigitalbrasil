@@ -21,29 +21,59 @@ enum Perfil {
 }
 
 model Usuario {
-  id              String    @id @default(cuid())
-  nome            String    @db.VarChar(120)
-  cpf             String?   @unique @db.Char(11) // obrigatório para anunciante (RN-02); admin inicial pode não ter
-  email           String    @unique @db.VarChar(160)
-  celular         String    @default("") @db.VarChar(11)
-  uf              String    @default("") @db.Char(2)
-  cidadeCodigo    Int       @default(0) // código IBGE do município
-  senhaHash       String    @db.VarChar(100)
-  perfil          Perfil    @default(ANUNCIANTE)
-  ativo           Boolean   @default(true)
-  deveTrocarSenha Boolean   @default(false)
-  aceitouTermosEm DateTime?
-  ultimoAcesso    DateTime?
-  criadoEm        DateTime  @default(now())
-  atualizadoEm    DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  nome              String    @db.VarChar(120)
+  cpf               String?   @unique @db.Char(11) // obrigatório para anunciante (RN-02); admin inicial pode não ter
+  email             String    @unique @db.VarChar(160)
+  celular           String    @default("") @db.VarChar(11)
+  uf                String    @default("") @db.Char(2)
+  cidadeCodigo      Int       @default(0) // código IBGE do município
+  senhaHash         String    @db.VarChar(100)
+  perfil            Perfil    @default(ANUNCIANTE)
+  ativo             Boolean   @default(true)
+  deveTrocarSenha   Boolean   @default(false)
+  aceitouTermosEm   DateTime?
+  ultimoAcesso      DateTime?
+  criadoEm          DateTime  @default(now())
+  atualizadoEm      DateTime  @updatedAt
+  // Feature 016: nulo enquanto o e-mail não foi confirmado pelo código (RF-150); as contas antigas vieram confirmadas (RN-154).
+  emailConfirmadoEm DateTime?
+  // RN-155: e-mail sem "+etiqueta" e, no Gmail, sem pontos. Calculado no repositório; sem UNIQUE para a migration nunca falhar.
+  emailCanonico     String    @default("") @db.VarChar(160)
 
-  sessoes     Sessao[]
-  anuncios    Anuncio[]
-  pagamentos  Pagamento[] @relation("PagamentoDoUsuario")
-  confirmados Pagamento[] @relation("PagamentoConfirmadoPor")
+  sessoes         Sessao[]
+  anuncios        Anuncio[]
+  pagamentos      Pagamento[]      @relation("PagamentoDoUsuario")
+  confirmados     Pagamento[]      @relation("PagamentoConfirmadoPor")
+  codigosPorEmail CodigoPorEmail[]
 
   @@index([criadoEm])
+  @@index([emailCanonico])
   @@map("usuarios")
+}
+
+// Feature 016 (ADR-20): código de 6 números por e-mail. Só o hash fica aqui (RN-150).
+enum FinalidadeDoCodigo {
+  CADASTRO
+  TROCA_DE_EMAIL
+  NOVA_SENHA
+}
+
+model CodigoPorEmail {
+  id          String             @id @default(cuid())
+  usuarioId   String
+  finalidade  FinalidadeDoCodigo
+  email       String             @db.VarChar(160) // para onde foi: o da conta, ou o novo na troca
+  codigoHash  String             @db.Char(64)
+  tentativas  Int                @default(0)
+  expiraEm    DateTime
+  encerradoEm DateTime? // usado, ou invalidado por um código mais novo
+  criadoEm    DateTime           @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, finalidade, criadoEm])
+  @@map("codigos_por_email")
 }
 
 model Sessao {
