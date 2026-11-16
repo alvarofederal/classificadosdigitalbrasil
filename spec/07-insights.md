@@ -250,6 +250,21 @@ O que convence é página cheia: uma seção com 30 anúncios numa cidade vale m
 
 **Ordem sugerida**: 1) Pix real e aviso de mensagem; 2) bairro e linha "Tratar:"; 3) encher Veículos e Serviços em Brasília com cortesia e balcão; 4) edição da semana e indicação. Nada disso virou feature ainda: cada item que for adiante ganha a sua pasta em `spec/features/`.
 
+### 4.3 O que a tabela de preços do caderno impresso de Brasília ensina (2026-11-16)
+
+O Álvaro mandou a tabela de preços de 2026 do caderno de classificados do principal jornal impresso de Brasília (PDF de 17 páginas; a capa diz 2026, o rodapé diz "válida até 31/12/2025"). Ideias tiradas dela, ainda sem decisão:
+
+- **Quem paga caro é empresa.** O anúncio de linha (pessoa física) tem preço "sob consulta"; o dinheiro está nos cercados de empresa, cobrados por coluna × centímetro: R$ 82 em dia útil e R$ 126 no domingo. Um módulo pequeno (2 colunas × 10 cm) sai por R$ 1.640 num dia útil. Na capa do caderno, selo 2 × 5 cm por R$ 3.540 e faixa 8 × 3 cm por R$ 8.496, os dois por 30 dias. Patrocínio de retranca (o nome da empresa no título de uma seção) por R$ 500 por 30 dias. Acréscimos: posição escolhida +40%, exclusividade +50%, cor +30%, mais de uma marca +15%.
+- **Patrocínio de seção** (a "retranca" patrocinada): uma empresa por seção e cidade, com o nome no alto da seção, por mês. Encaixa com o 7.5 (coluna do anunciante).
+- **Selo ou faixa na capa da cidade**: um espaço pago por cidade na página da cidade, por mês.
+- **Retrancas dentro da seção**: o impresso separa os anúncios em subtítulos (bairro, número de quartos, marca) e os ordena por ordem alfabética e numérica do produto. É como o leitor de Brasília procura. Encaixa com o 4.1 (bairro).
+- **As duas primeiras palavras em caixa alta e negrito**, sem abreviação, em todo anúncio: regra do impresso que dá a cara de classificado.
+- **Estilos de anúncio de linha**: normal (mínimo 3 linhas), negrito, ilhado (fio em cima e embaixo), borda (mínimo 4 linhas), titulado (até 3 títulos no mesmo anúncio), logomarca (logo da empresa) e QR Code (leva às fotos ou ao WhatsApp). Ilhado e titulado cabem no catálogo (Art. 2); logomarca pede um plano de empresa.
+- **Seções**: Imóveis separado em compra e venda e aluguel, Veículos, Casa & Serviços, Negócios & Oportunidades e Trabalho & Formação Profissional (no domingo, com oferta de emprego, procura por emprego e ensino e treinamento). Os números das seções aparecem na capa.
+- **"Para anunciar" no cabeçalho**, com o telefone. Para nós, o WhatsApp do balcão (5.3).
+- **Regra**: proibido divulgar sites de concorrentes no anúncio.
+- **Não serve para nós**: publicidade legal (editais de leilão, judiciais, avisos), porque a lei exige jornal.
+
 ## 5. Decisões para amanhã
 
 1. Preço de 30 dias: regra "mês = 3 semanas" ou outra?
