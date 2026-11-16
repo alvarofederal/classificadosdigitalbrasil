@@ -47,4 +47,4 @@
 - [x] T-232 Pergunta na tela do anúncio e oferta de tirar do caderno (RF-210, RF-212)
 - [x] T-233 Linha no e-mail do vencimento (RF-211) e números no Painel (RF-213) *(o teste da carta do vencimento passou a conferir a linha nova)*
 - [x] T-234 Testes, typecheck, build e telas num banco local *(2026-11-16: 303 testes, typecheck e build. No `next dev` com MariaDB local: a pergunta aparece no anúncio no ar; "Sim, pelo Classificados" ficou gravado com a data e trouxe o botão Desativar; o Painel passou a contar 1 negócio pelo Classificados. Sem erro no servidor)*
-- [ ] T-235 Publicar com o OK do Álvaro
+- [x] T-235 Publicar com o OK do Álvaro *(2026-11-16, 10:12: "Pode publicar". Push de `e27abd8` a `4f796f2`; o deploy aplicou a migration `20261116120000_resultado_do_anuncio`. O e-mail de vencimento do Astra, esperado para 17/11 às 9h, já sai com a pergunta)*

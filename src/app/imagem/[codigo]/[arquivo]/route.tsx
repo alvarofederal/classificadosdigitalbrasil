@@ -47,7 +47,8 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
   const primeira = anuncio.fotos[0]?.url
   const foto = primeira ? urlImagem(primeira.startsWith("/") ? `${urlDoSite()}${primeira}` : primeira, { largura: 1000, formato: "jpg" }) : null
   // RN-203: o texto do tamanho que cabe; sem foto, cabe mais.
-  const texto = resumir(anuncio.texto, vertical ? (foto ? 230 : 420) : foto ? 120 : 260)
+  // Medido com o Astra (foto, texto de 267 letras e preço) em 2026-11-16: com 230 letras o conteúdo não cabia na vertical.
+  const texto = resumir(anuncio.texto, vertical ? (foto ? 160 : 420) : foto ? 120 : 260)
 
   const [manchete, corpo] = await Promise.all([
     carregarFonte("Anton", `CLASSIFICADOS${vendeSe ?? ""}: ${titulo}${preco ?? ""}`),
@@ -85,7 +86,7 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
   const rodape = (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", borderTop: `3px solid ${TINTA}`, paddingTop: vertical ? 24 : 14 }}>
       <div style={{ display: "flex", fontSize: vertical ? 34 : 26 }}>Fotos e contato:</div>
-      <div style={{ display: "flex", fontSize: vertical ? 46 : 34, fontWeight: 700 }}>{link}</div>
+      <div style={{ display: "flex", fontSize: vertical ? 38 : 34, fontWeight: 700, textAlign: "center" }}>{link}</div>
     </div>
   )
 
@@ -100,14 +101,15 @@ export async function GET(_requisicao: Request, { params }: { params: Promise<{ 
   const conteudo = vertical ? (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, marginTop: 20, border: `4px solid ${TINTA}`, padding: 6 }}>
       {/* Conteúdo no centro da moldura: sem foto, a sobra fica dividida em cima e embaixo, e não num buraco só. */}
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", gap: foto ? 24 : 40, border: `2px solid ${TINTA}`, padding: "26px 34px" }}>
-        {vendeSe && <div style={{ display: "flex", justifyContent: "center", fontSize: foto ? 150 : 190, fontFamily: ANTON, lineHeight: 1 }}>{vendeSe}</div>}
-        <div style={{ display: "flex", justifyContent: "center", textAlign: "center", background: TINTA, color: "#fff", fontSize: foto ? 66 : 80, fontFamily: ANTON, padding: "8px 16px", lineHeight: 1.15 }}>
+      {/* flexShrink 0: se faltar espaço, nada se espreme por cima do vizinho. */}
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", gap: foto ? 22 : 40, border: `2px solid ${TINTA}`, padding: "24px 34px" }}>
+        {vendeSe && <div style={{ display: "flex", flexShrink: 0, justifyContent: "center", fontSize: foto ? 120 : 190, fontFamily: ANTON, lineHeight: 1 }}>{vendeSe}</div>}
+        <div style={{ display: "flex", flexShrink: 0, justifyContent: "center", textAlign: "center", background: TINTA, color: "#fff", fontSize: foto ? 58 : 80, fontFamily: ANTON, padding: "8px 16px", lineHeight: 1.15 }}>
           {titulo}
         </div>
-        {foto && <div style={{ display: "flex" }}>{imagemDaFoto(872, 620)}</div>}
-        <div style={{ display: "flex", fontSize: foto ? 40 : 56, lineHeight: 1.3, textAlign: "center", justifyContent: "center" }}>{texto}</div>
-        {preco && <div style={{ display: "flex", justifyContent: "center", fontSize: foto ? 120 : 150, fontFamily: ANTON, lineHeight: 1 }}>{preco}</div>}
+        {foto && <div style={{ display: "flex", flexShrink: 0 }}>{imagemDaFoto(872, 520)}</div>}
+        <div style={{ display: "flex", flexShrink: 0, fontSize: foto ? 38 : 56, lineHeight: 1.3, textAlign: "center", justifyContent: "center" }}>{texto}</div>
+        {preco && <div style={{ display: "flex", flexShrink: 0, justifyContent: "center", fontSize: foto ? 104 : 150, fontFamily: ANTON, lineHeight: 1 }}>{preco}</div>}
       </div>
     </div>
   ) : (
