@@ -1,6 +1,6 @@
 # 015 · Convites de cortesia
 
-*Rascunho de 2026-11-14; respostas do Álvaro em 2026-11-15. O Plano e as Tarefas esperam a confirmação do banco de anúncios (fim desta Spec).*
+*Rascunho de 2026-11-14; respostas do Álvaro em 2026-11-15, todas dadas. Próximo passo: Plano e Tarefas, começando pela 016 (código por e-mail).*
 
 ## Spec
 
@@ -35,11 +35,11 @@ As seis perguntas do rascunho de 14/11 foram respondidas, e duas ideias novas mu
 | Ordem | Funcionalidade | Situação |
 |---|---|---|
 | 1 | 016 · Código por e-mail: no cadastro, na troca de e-mail e no "esqueci a senha" (hoje não existe) | Decidido; pode começar |
-| 2 | 017 · Banco de anúncios: saldo, presente de boas-vindas, compra pelo Pix, uso para publicar e renovar | Espera a confirmação do Álvaro (perguntas abaixo) |
+| 2 | 017 · Banco de anúncios: saldo em dias, presente de boas-vindas, compra pelo Pix, uso para publicar e renovar | Decidido em 2026-11-15 (banco em dias, preço proporcional) |
 | 3 | 015 · Convites (esta pasta): 5 por conta, e-mail e WhatsApp, prêmio pelo banco | Depende da 016 e da 017 |
 | 4 | 018 · Expirados por 180 dias e mensagens por 90 (regra da OLX) | Decidido; independe das outras |
 
-O cartaz VENDE-SE (5.4) é uma mudança pequena no cartaz da feature 005 e entra quando o Álvaro responder.
+O cartaz VENDE-SE (5.4) é uma mudança pequena no cartaz da feature 005; aprovado em 2026-11-15, vira a feature 019.
 
 ### Propostas que valem sem pergunta (o Álvaro pode mudar)
 
@@ -50,11 +50,33 @@ O cartaz VENDE-SE (5.4) é uma mudança pequena no cartaz da feature 005 e entra
 - Um anúncio Com foto do banco pode publicar um anúncio sem foto; o contrário não.
 - Os pagamentos nunca são apagados com o anúncio vencido: são registro de dinheiro.
 
-### Perguntas para o Álvaro (2026-11-15)
+### Perguntas para o Álvaro (2026-11-15) e respostas
 
-1. **Banco de anúncios:** fazer como proposto, com o anúncio de 7 dias como unidade e vários anúncios do banco podendo somar dias no mesmo anúncio (5 anúncios = 35 dias)?
-2. **Períodos maiores:** tirar 10, 15, 20 e 30 dias da venda e vender só o anúncio de 7 dias?
-3. **Cartaz:** pôr VENDE-SE grande no alto do cartaz A4 (pergunta refeita com figura)?
+1. **Banco de anúncios:** fazer como proposto, com o anúncio de 7 dias como unidade e vários anúncios do banco podendo somar dias no mesmo anúncio (5 anúncios = 35 dias)? **Resposta:** "A grosso modo o banco vai ficar legal, aí a gente testa."
+2. **Períodos maiores:** tirar 10, 15, 20 e 30 dias da venda e vender só o anúncio de 7 dias? **Resposta:** "Eu pensava que você ia conseguir resolver proporcionalmente." Decisão abaixo.
+3. **Cartaz:** pôr VENDE-SE grande no alto do cartaz A4 (pergunta refeita com figura)? **Resposta:** "Ficou boa a ideia do vende-se, mas se não pegar, voltamos ao classificados no título do anúncio." Vira uma mudança pequena no cartaz (feature 019).
+
+### Decisão: banco em dias, preço proporcional (2026-11-15)
+
+O banco guarda **dias**, separados em sem foto e com foto, em vez de contar anúncios. Assim os períodos maiores continuam à venda sem ficarem mais caros que somar semanas:
+
+- **O dia custa o mesmo em qualquer período**, proporcional ao preço de 7 dias (Simples R$ 1,00, Com foto R$ 10,00), arredondado ao centavo:
+
+  | Dias | Sem foto | Com foto |
+  |---|---|---|
+  | 7 | R$ 1,00 | R$ 10,00 |
+  | 10 | R$ 1,43 | R$ 14,29 |
+  | 15 | R$ 2,14 | R$ 21,43 |
+  | 20 | R$ 2,86 | R$ 28,57 |
+  | 30 | R$ 4,29 | R$ 42,86 |
+
+  Os valores continuam editáveis em Painel → Planos; o Álvaro pode arredondar.
+- **Entram no banco:** presente de boas-vindas (7 dias sem foto e 7 com foto), prêmio do convite (7 dias com foto), compra pelo Pix (qualquer período da tabela, um Pix só) e cortesia do Painel.
+- **Saem do banco:** publicar um anúncio novo, ou renovar um vencido, usa no mínimo 7 dias, e a pessoa escolhe quantos; dias que sobram (menos de 7) só prolongam um anúncio que já está no ar.
+- Dias com foto podem ser usados num anúncio sem foto; o contrário não. Os dias do banco não vencem.
+- Minha conta mostra o saldo no alto, com o que entrou e saiu.
+
+A troca da tabela de preços para a proporcional entra junto com o banco (017), não antes.
 
 ## Plano
 
@@ -65,4 +87,4 @@ A fazer depois das respostas. Deve pedir ADR: banco de anúncios (tabela de sald
 - [x] T-180 Rascunho da Spec com a ideia e as perguntas (este arquivo)
 - [x] T-181 Respostas do Álvaro às perguntas *(2026-11-15; trouxeram o presente de boas-vindas, o banco de anúncios, a regra dos vencidos e o código por e-mail)*
 - [ ] T-182 Spec fechada, Plano com ADR e Tarefas
-- [ ] T-183 Respostas às três perguntas de 2026-11-15
+- [x] T-183 Respostas às três perguntas de 2026-11-15 *(banco aprovado "a gente testa"; banco em dias com preço proporcional; VENDE-SE aprovado)*

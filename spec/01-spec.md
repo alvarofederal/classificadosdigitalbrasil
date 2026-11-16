@@ -152,3 +152,4 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RNF-03 | Funciona no celular com 16 px de margem e sem rolagem horizontal. |
 | RNF-04 | Cabeçalhos de segurança (CSP, X-Frame-Options, nosniff). |
 | RNF-05 | Termos de uso e privacidade publicados em `/termos`. |
+| RNF-06 | As funções do site rodam na mesma região do banco (São Paulo, `gru1`), para cada consulta não atravessar o continente (ADR-19). |
