@@ -252,7 +252,9 @@ O que convence é página cheia: uma seção com 30 anúncios numa cidade vale m
 
 ### 4.3 O que a tabela de preços do caderno impresso de Brasília ensina (2026-11-16)
 
-O Álvaro mandou a tabela de preços de 2026 do caderno de classificados do principal jornal impresso de Brasília (PDF de 17 páginas; a capa diz 2026, o rodapé diz "válida até 31/12/2025"). Ideias tiradas dela, ainda sem decisão:
+**Decisão do Álvaro (2026-11-16): fica para o futuro.** "Por agora vamos trabalhar apenas com pequenos anúncios e tentar ganhar mercado." Patrocínio, faixa, logomarca e plano de empresa só voltam à mesa depois.
+
+O Álvaro mandou a tabela de preços de 2026 do caderno de classificados do principal jornal impresso de Brasília (PDF de 17 páginas; a capa diz 2026, o rodapé diz "válida até 31/12/2025"). Ideias tiradas dela:
 
 - **Quem paga caro é empresa.** O anúncio de linha (pessoa física) tem preço "sob consulta"; o dinheiro está nos cercados de empresa, cobrados por coluna × centímetro: R$ 82 em dia útil e R$ 126 no domingo. Um módulo pequeno (2 colunas × 10 cm) sai por R$ 1.640 num dia útil. Na capa do caderno, selo 2 × 5 cm por R$ 3.540 e faixa 8 × 3 cm por R$ 8.496, os dois por 30 dias. Patrocínio de retranca (o nome da empresa no título de uma seção) por R$ 500 por 30 dias. Acréscimos: posição escolhida +40%, exclusividade +50%, cor +30%, mais de uma marca +15%.
 - **Patrocínio de seção** (a "retranca" patrocinada): uma empresa por seção e cidade, com o nome no alto da seção, por mês. Encaixa com o 7.5 (coluna do anunciante).
@@ -264,6 +266,22 @@ O Álvaro mandou a tabela de preços de 2026 do caderno de classificados do prin
 - **"Para anunciar" no cabeçalho**, com o telefone. Para nós, o WhatsApp do balcão (5.3).
 - **Regra**: proibido divulgar sites de concorrentes no anúncio.
 - **Não serve para nós**: publicidade legal (editais de leilão, judiciais, avisos), porque a lei exige jornal.
+
+### 4.4 Missão e caminho para ganhar mercado (2026-11-16)
+
+**Missão, nas palavras do Álvaro.** "Nós somos uma ferramenta para a pessoa poder gerar grana, não só chegar aqui e anunciar; nossa missão é levar os produtos das pessoas onde ninguém pode levar." Foco atual: só pequenos anúncios, ganhar mercado, profissionalizar. Diferente do Achei JBT (um bairro), o modelo serve a qualquer cidade do país.
+
+**Leitura do Claude, para discutir (nada decidido):**
+
+1. **Somos distribuição, não vitrine.** A OLX é um lugar aonde o comprador precisa ir; nós levamos o anúncio até onde o comprador já está: Google, WhatsApp (grupos, status, canais), o mural da padaria, o vidro do carro. Toda novidade deve responder: quantas pessoas a mais veem este anúncio, e quantas mandam mensagem?
+2. **Resolver o "site vazio".** Comprador não volta a um caderno com poucos anúncios. Por isso cada anúncio precisa trazer o próprio público, mesmo com o caderno vazio: um kit de divulgação forte (imagem para o status do WhatsApp, imagem para grupo, cartaz, texto pronto, link curto).
+3. **Quem atacar primeiro, em Brasília:** quem vende uma coisa de valor médio (carro, moto, móvel, eletrônico) e não quer expor o telefone; e o prestador de serviço local (diarista, eletricista, manicure, frete, aulas), que precisa aparecer o mês inteiro e renova sempre. O segundo é a receita que se repete.
+4. **Onde achar anunciantes sem gastar:** quem já anuncia nos grupos de "desapega" e no Marketplace (convite pessoal, com o presente e os convites da 015; nunca copiar anúncio de outro site); atendimento pelo WhatsApp (5.3); cartaz "Anuncie por R$ 1" com QR Code em padaria, mercado, igreja, condomínio, lava-jato, autoescola, faculdade e feira; e quem está no caminho de quem vende: despachante e vistoria de veículos (quem vende carro passa por eles), oficina, loja de material de construção (prestadores), administradora de condomínio (aluguel).
+5. **Onde achar compradores:** Google (cada anúncio e cada seção já são páginas; depois, filtros por preço e bairro); um canal de WhatsApp por cidade com os anúncios novos do dia; a edição da semana (6.1) em grupos e impressa; aviso para quem procura ("me avise quando aparecer um Gol até R$ 25 mil em Brasília"); e segurança visível (conta com e-mail e CPF conferidos, dicas contra golpe, botão de denúncia).
+6. **Provar que dá dinheiro.** No e-mail do vencimento, perguntar "Vendeu?" (pelo Classificados, por outro lugar, ainda não). Vira o número que importa ("tantos carros vendidos em Brasília") e depoimentos, com autorização.
+7. **Profissionalizar:** domínio próprio `.com.br` e e-mail do próprio domínio (hoje o site é `vercel.app` e o código chega de `karollynemorais.com.br`, o que tira confiança e pode cair no spam); WhatsApp Business com respostas prontas; números da semana (anúncios no ar por seção, mensagens por anúncio, renovações, receita, custo por anunciante novo); CNPJ e contador antes de crescer o Pix; conferir se os planos gratuitos aguentam uso comercial e volume (Vercel, Resend com 100 e-mails por dia, Cloudinary).
+8. **Ganhar com pequenos anúncios, sem plano de empresa:** manter a entrada barata; vender dias em pacote (017, etapa 2); renovação automática para o prestador (8.7); pequenos extras por anúncio (subir para o topo, carimbo URGENTE), de R$ 1 a R$ 5.
+9. **Escala:** fechar Brasília primeiro e escrever o "manual de abertura de cidade" (100 anúncios, 3 seções, parceiros, canal de WhatsApp, páginas de bairro). Depois o entorno do DF e as cidades médias sem jornal, onde o classificado de papel acabou e só sobrou grupo de Facebook: é ali que "ninguém leva". Para crescer sem contratar, um representante por cidade que traz anunciantes e ganha uma parte do que eles pagam (usando os convites).
 
 ## 5. Decisões para amanhã
 

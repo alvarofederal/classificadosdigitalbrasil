@@ -59,6 +59,8 @@ Possíveis causas do defeito, a confirmar com o erro do item 2.1: pagador com o 
 
 # Melhorias (acrescentadas em 2026-11-11)
 
+**Foco desde 2026-11-16 (decisão do Álvaro):** "por agora vamos trabalhar apenas com pequenos anúncios e tentar ganhar mercado". Itens para empresas (patrocínio de seção, faixa na capa, logomarca, plano de empresa; `07-insights.md` §4.3) ficam para o futuro. A missão e os caminhos para ganhar mercado estão em `07-insights.md` §4.4.
+
 As ideias abaixo são as da resposta de 2026-11-10 sobre novidades e usuários de graça (detalhes em `07-insights.md` §4.1 e §4.2), na ordem sugerida ali. Cada item de site que for adiante ganha a sua pasta em `spec/features/` antes do código. Quem faz os itens de site é o Claude, com as decisões do Álvaro.
 
 ## Prioridade 4 · Primeiras novidades do site (pequenas)
