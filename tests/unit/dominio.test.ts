@@ -201,17 +201,17 @@ describe("Pix copia e cola (ADR-07)", () => {
 })
 
 describe("Planos e tabela de preços (features 003 e 009)", () => {
-  it("tabela decidida em 2026-11-09: Simples R$ 1 / 7 dias e R$ 25 / 30 dias, sem 1 dia (RN-56)", () => {
+  it("tabela proporcional de 2026-11-15: o dia custa o mesmo em 7, 15 e 30 dias (RN-56, RN-180)", () => {
     const simples = PLANOS_INICIAIS.find((p) => p.codigo === "SIMPLES")!
     const foto = PLANOS_INICIAIS.find((p) => p.codigo === "FOTOS")!
-    expect(simples.precos).toEqual({ 7: 100, 10: 400, 15: 950, 20: 1450, 30: 2500 })
-    expect(foto.precos).toEqual({ 7: 1000, 10: 4000, 15: 9500, 20: 14500, 30: 25000 })
+    expect(simples.precos).toEqual({ 7: 100, 15: 214, 30: 429 })
+    expect(foto.precos).toEqual({ 7: 1000, 15: 2143, 30: 4286 })
     expect(simples.maxFotos).toBe(0)
     expect(foto.maxFotos).toBe(6)
     expect(PLANOS_INICIAIS.filter((p) => p.ativo).map((p) => p.codigo)).toEqual(["SIMPLES", "FOTOS"])
   })
   it("períodos, valor do período e menor preço", () => {
-    expect(PERIODOS).toEqual([7, 10, 15, 20, 30])
+    expect(PERIODOS).toEqual([7, 15, 30])
     expect(ehPeriodo(1)).toBe(false)
     const destaque = PLANOS_INICIAIS.find((p) => p.codigo === "DESTAQUE")!
     expect(periodosDoPlano(destaque)).toEqual([7, 30])

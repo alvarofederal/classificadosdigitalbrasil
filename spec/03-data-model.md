@@ -6,13 +6,14 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 |---|---|---|
 | `usuarios` | Anunciantes e administradores | nome, cpf (único), email (único), celular, uf, cidadeCodigo (IBGE), senhaHash, perfil, ativo, deveTrocarSenha, aceitouTermosEm |
 | `sessoes` | Login | tokenHash (SHA-256, único), expiraEm |
+| `movimentos_do_banco` | Extrato do banco de dias (feature 017, ADR-21) | usuarioId, planoCodigo (SIMPLES ou FOTOS), dias (positivo entra, negativo sai), motivo (BOAS_VINDAS, USO, DEVOLUCAO, CONVITE, COMPRA, CORTESIA), anuncioId, pagamentoId, criadoEm |
 | `codigos_por_email` | Código de 6 números (feature 016, ADR-20) | usuarioId, finalidade (CADASTRO, TROCA_DE_EMAIL, NOVA_SENHA), email (destino), codigoHash (SHA-256), tentativas, expiraEm, encerradoEm, criadoEm |
 | `tentativas_login` | Freio contra força bruta | email, ip, sucesso, criadoEm |
 | `categorias` | Seções do caderno | nome, slug (único), ordem, ativa |
 | `anuncios` | O quadrado | codigo (6, único), categoriaId, uf, cidadeCodigo, titulo (40), texto, preco, moldura, estiloTitulo, alinhamento, estrelas, situacao, publicadoEm, expiraEm |
 | `fotos_anuncio` | Álbum (até 6) | url, publicId (Cloudinary), ordem |
 | `mensagens` | Contato do visitante | nome, contato, texto, lida |
-| `pagamentos` | Cobrança do espaço | codigo (10, único, vai no Pix), planoCodigo, valor, dias, situacao (PENDENTE, CONFIRMADO, CANCELADO), gateway (MERCADO_PAGO, CORTESIA ou nulo = Pix estático), gatewayId, copiaECola, vencimentoEm, confirmadoEm, confirmadoPorId (nulo quando confirmado pelo gateway) |
+| `pagamentos` | Cobrança do espaço | codigo (10, único, vai no Pix), planoCodigo, valor, dias, situacao (PENDENTE, CONFIRMADO, CANCELADO), gateway (MERCADO_PAGO, CORTESIA, BANCO ou nulo = Pix estático), gatewayId, copiaECola, vencimentoEm, confirmadoEm, confirmadoPorId (nulo quando confirmado pelo gateway) |
 | `planos` | Planos (feature 003) | codigo (SIMPLES, FOTOS, DESTAQUE, VITRINE), nome, descricao, maxFotos, ativo |
 | `precos` | Preço por plano e período (feature 009) | planoCodigo + dias (7, 10, 15, 20, 30) como chave, valor |
 | `chamados` | Contato com o admin (feature 004) | protocolo (8, único), nome, email, telefone, assunto, mensagem, anuncioCodigo, situacao (ABERTO, RESOLVIDO), notaInterna, resolvidoEm |
@@ -20,6 +21,8 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
 
 `usuarios` ganhou na migração `20261115220000_codigo_por_email` (feature 016): `emailConfirmadoEm` (nulo = aguardando o código; as contas antigas vieram preenchidas com `criadoEm`) e `emailCanonico` (RN-155, com índice, sem `UNIQUE`).
+
+Na migração `20261116000000_banco_de_dias` (feature 017): `usuarios` ganhou `bancoDiasSimples` e `bancoDiasFotos` (saldo), `presenteEm` (RN-174) e `ipDoCadastro` (RN-176, com índice junto de `criadoEm`); `configuracoes` ganhou `presenteLigado`; `pagamentos.gateway` passou a aceitar `BANCO`; os preços de 10 e 20 dias saíram e os de 15 e 30 ficaram proporcionais (RN-180).
 
 `anuncios` ganhou na migração `20261109000000_planos_chamados_gateway`: `planoCodigo`, `prioridade` (0 a 3, RN-50) e `visualizacoes` (RF-75). `configuracoes` perdeu `valorAnuncio` e `diasDePublicacao` (viraram a tabela `planos`).
 

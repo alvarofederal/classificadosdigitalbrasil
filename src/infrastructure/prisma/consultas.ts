@@ -12,6 +12,7 @@ import type {
   MeuAnuncioDTO,
   MeuAnuncioDetalheDTO,
   MinhaContaQuery,
+  MovimentoDoBancoDTO,
   Pagina,
   PainelQuery,
   PagamentoResumoDTO,
@@ -19,6 +20,7 @@ import type {
   ResumoDoPainelDTO,
   UsuarioAdminDTO,
 } from "@/application/queries/consultas"
+import { type SaldoDoBanco, ehTipoDeDia } from "@/domain/banco/banco-de-dias"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
 import type { Plano } from "@/domain/plano/plano"
@@ -284,6 +286,26 @@ export class PrismaMinhaContaQuery implements MinhaContaQuery {
     ])
     return usuario ? { ...usuario, emailNovoPendente: troca?.email ?? null } : null
   }
+
+  async saldoDoBanco(usuarioId: string): Promise<SaldoDoBanco> {
+    const linha = await this.db.usuario.findUnique({ where: { id: usuarioId }, select: { bancoDiasSimples: true, bancoDiasFotos: true } })
+    return { SIMPLES: linha?.bancoDiasSimples ?? 0, FOTOS: linha?.bancoDiasFotos ?? 0 }
+  }
+
+  async extratoDoBanco(usuarioId: string, limite: number): Promise<MovimentoDoBancoDTO[]> {
+    const linhas = await this.db.movimentoDoBanco.findMany({ where: { usuarioId }, orderBy: [{ criadoEm: "desc" }, { id: "desc" }], take: limite })
+    const ids = [...new Set(linhas.map((l) => l.anuncioId).filter((id): id is string => id !== null))]
+    const anuncios = ids.length > 0 ? await this.db.anuncio.findMany({ where: { id: { in: ids }, usuarioId }, select: { id: true, codigo: true, titulo: true } }) : []
+    const porId = new Map(anuncios.map((a) => [a.id, a]))
+    return linhas.map((l) => ({
+      id: l.id,
+      tipo: ehTipoDeDia(l.planoCodigo) ? l.planoCodigo : "SIMPLES",
+      dias: l.dias,
+      motivo: l.motivo,
+      criadoEm: l.criadoEm,
+      anuncio: (l.anuncioId && porId.get(l.anuncioId)) || null,
+    }))
+  }
 }
 
 export class PrismaPainelQuery implements PainelQuery {
@@ -357,18 +379,21 @@ export class PrismaPainelQuery implements PainelQuery {
           ativo: true,
           criadoEm: true,
           emailConfirmadoEm: true,
+          bancoDiasSimples: true,
+          bancoDiasFotos: true,
           _count: { select: { anuncios: true } },
           pagamentos: { where: { situacao: { in: ["CONFIRMADO", "PENDENTE"] } }, select: { situacao: true, valor: true, confirmadoEm: true } },
         },
       }),
       this.db.usuario.count({ where }),
     ])
-    const itens = linhas.map(({ _count, pagamentos, emailConfirmadoEm, ...usuario }) => {
+    const itens = linhas.map(({ _count, pagamentos, emailConfirmadoEm, bancoDiasSimples, bancoDiasFotos, ...usuario }) => {
       const confirmados = pagamentos.filter((p) => p.situacao === "CONFIRMADO")
       const datas = confirmados.map((p) => p.confirmadoEm?.getTime() ?? 0).filter(Boolean)
       return {
         ...usuario,
         emailConfirmado: emailConfirmadoEm !== null,
+        banco: { SIMPLES: bancoDiasSimples, FOTOS: bancoDiasFotos },
         totalAnuncios: _count.anuncios,
         pagamentosConfirmados: confirmados.length,
         valorPagoCentavos: confirmados.reduce((soma, p) => soma + (centavos(p.valor) ?? 0), 0),

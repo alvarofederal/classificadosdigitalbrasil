@@ -12,6 +12,10 @@ export const PERFIS = {
 
 export type Perfil = keyof typeof PERFIS
 
+/** RN-176 (feature 017): contas novas pela mesma conexão numa janela de 24 horas. */
+export const CADASTROS_POR_CONEXAO = 5
+export const JANELA_DOS_CADASTROS_MS = 24 * 3_600_000
+
 export const SENHA_MINIMA = 8
 export const SENHA_MAXIMA = 72 // limite do bcrypt
 

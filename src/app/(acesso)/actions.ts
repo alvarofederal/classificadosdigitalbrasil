@@ -9,6 +9,12 @@ import { container } from "@/infrastructure/container"
 import { type EstadoFormulario, checkbox, codigoIbge, deResultado, lerFormulario, texto } from "@/lib/formularios"
 import { apagarCookieDeSessao, areaDoPerfil, gravarCookieDeSessao, lerToken, usuarioAtual } from "@/lib/sessao"
 
+/** Conexão de quem pede: a Vercel informa no primeiro endereço de `x-forwarded-for`. */
+async function ipDaRequisicao(): Promise<string> {
+  const cabecalhos = await headers()
+  return cabecalhos.get("x-forwarded-for")?.split(",")[0]?.trim() || cabecalhos.get("x-real-ip") || "local"
+}
+
 /** Só caminhos internos — evita redirecionamento aberto. */
 function destinoSeguro(voltar: string | undefined | null, padrao: string): string {
   return voltar && voltar.startsWith("/") && !voltar.startsWith("//") && !voltar.startsWith("/\\") ? voltar : padrao
@@ -24,9 +30,7 @@ export async function entrarAction(formData: FormData): Promise<EstadoFormulario
   const lido = lerFormulario(schemaEntrar, formData)
   if (!lido.ok) return lido.estado
 
-  const cabecalhos = await headers()
-  const ip = cabecalhos.get("x-forwarded-for")?.split(",")[0]?.trim() || cabecalhos.get("x-real-ip") || "local"
-  const resultado = await container().autenticar.executar({ email: lido.dados.email, senha: lido.dados.senha, ip })
+  const resultado = await container().autenticar.executar({ email: lido.dados.email, senha: lido.dados.senha, ip: await ipDaRequisicao() })
   if (!resultado.ok) return { ok: false, mensagem: resultado.mensagem, codigo: resultado.codigo }
 
   await gravarCookieDeSessao(resultado.valor.token, resultado.valor.expiraEm)
@@ -53,7 +57,8 @@ export async function cadastrarAction(formData: FormData): Promise<EstadoFormula
   const lido = lerFormulario(schemaCadastro, formData)
   if (!lido.ok) return lido.estado
   const { voltar, ...dados } = lido.dados
-  const resultado = await container().cadastrarAnunciante.executar(dados)
+  // RN-176 (feature 017): a conexão de onde a conta é criada, para o limite de contas por dia.
+  const resultado = await container().cadastrarAnunciante.executar({ ...dados, ip: await ipDaRequisicao() })
   if (!resultado.ok) return deResultado(resultado)
   await gravarCookieDeSessao(resultado.valor.token, resultado.valor.expiraEm)
   // RF-150: a conta nova vai para a tela do código; depois dele, segue para onde ia.

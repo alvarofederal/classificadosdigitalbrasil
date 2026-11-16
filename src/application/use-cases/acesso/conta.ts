@@ -4,8 +4,10 @@ import { type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result
 import { somenteDigitos } from "@/domain/shared/texto"
 import { ufDe } from "@/domain/localidade/uf"
 import {
+  CADASTROS_POR_CONEXAO,
   type DadosDeCadastro,
   type DadosPessoais,
+  JANELA_DOS_CADASTROS_MS,
   normalizarDadosPessoais,
   validarCadastro,
   validarDadosPessoais,
@@ -40,13 +42,18 @@ export class CadastrarAnuncianteUseCase {
    * RF-150: a conta nasce aguardando a confirmação do e-mail, já com a sessão aberta para a tela do código.
    * `codigoEnviado` falso = o envio falhou; a tela oferece mandar de novo (RN-158).
    */
-  async executar(entrada: DadosDeCadastro): Promise<Result<{ token: string; expiraEm: Date; codigoEnviado: boolean }>> {
-    const dados = { ...normalizarDadosPessoais(entrada), cpf: somenteDigitos(entrada.cpf) }
+  async executar(entrada: DadosDeCadastro & { ip?: string | null }): Promise<Result<{ token: string; expiraEm: Date; codigoEnviado: boolean }>> {
+    const { ip = null, ...cadastro } = entrada
+    const dados = { ...normalizarDadosPessoais(cadastro), cpf: somenteDigitos(cadastro.cpf) }
     const erros = validarCadastro(dados)
     conferirCidade(this.localidades, dados.uf, dados.cidadeCodigo, erros)
     if (!erros.email && (await this.usuarios.existeEmail(dados.email))) erros.email = "Já existe uma conta com este e-mail. Entre com ela."
     if (!erros.cpf && (await this.usuarios.existeCpf(dados.cpf))) erros.cpf = "Já existe uma conta com este CPF."
     if (Object.keys(erros).length > 0) return falhaDeValidacao(erros)
+    // RN-176 (feature 017): com dois anúncios de presente por conta, a mesma conexão cria no máximo 5 contas por dia.
+    if (ip && (await this.usuarios.contarCadastrosDesde(ip, new Date(this.relogio.agora().getTime() - JANELA_DOS_CADASTROS_MS))) >= CADASTROS_POR_CONEXAO) {
+      return falha("MUITOS_CADASTROS", "Muitas contas foram criadas desta conexão hoje. Tente de novo amanhã ou fale com a gente pelo contato.")
+    }
 
     const usuarioId = await this.usuarios.inserir({
       nome: dados.nome,
@@ -61,7 +68,7 @@ export class CadastrarAnuncianteUseCase {
       deveTrocarSenha: false,
       aceitouTermosEm: this.relogio.agora(),
       emailConfirmadoEm: null,
-    })
+    }, ip)
     const envio = await emitirCodigo(this.codigo, { id: usuarioId, nome: dados.nome }, "CADASTRO", dados.email)
     const sessao = await abrirSessao({ sessoes: this.sessoes, tokens: this.tokens, relogio: this.relogio }, usuarioId)
     return ok({ ...sessao, codigoEnviado: envio.ok })

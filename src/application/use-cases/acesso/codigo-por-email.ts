@@ -25,6 +25,7 @@ import type {
   UsuarioRegistro,
   UsuarioRepository,
 } from "../../ports/acesso"
+import type { PresenteDeBoasVindas } from "../../ports/banco"
 import type { Correio, EnderecosDoSite } from "../../ports/correio"
 import type { GeradorDeCodigo, Relogio, SegundoPlano } from "../../ports/sistema"
 import { abrirSessao } from "./autenticar-usuario"
@@ -108,6 +109,8 @@ export class ConfirmarEmailUseCase {
   constructor(
     private readonly usuarios: UsuarioRepository,
     private readonly deps: DepsDoCodigo,
+    /** Feature 017 (RN-174): o presente de boas-vindas sai na confirmação. */
+    private readonly presente?: PresenteDeBoasVindas,
   ) {}
 
   async executar(usuarioId: string, digitado: string): Promise<Result<true>> {
@@ -119,6 +122,7 @@ export class ConfirmarEmailUseCase {
     // O código precisa ter ido para o e-mail atual da conta (o e-mail pode ter sido corrigido depois).
     if (conferido.valor.email !== usuario.email) return falhaDeValidacao({ codigo: "Este código foi para outro e-mail. Peça outro." })
     await this.usuarios.atualizar({ ...usuario, emailConfirmadoEm: this.deps.relogio.agora() })
+    await this.presente?.dar(usuario.id)
     return ok(true)
   }
 }
@@ -191,6 +195,7 @@ export class CriarNovaSenhaUseCase {
     private readonly sessoes: SessaoRepository,
     private readonly hash: HashDeSenha,
     private readonly deps: DepsDoCodigo,
+    private readonly presente?: PresenteDeBoasVindas,
   ) {}
 
   async executar(entrada: { email: string; codigo: string; novaSenha: string; confirmacaoSenha: string }): Promise<
@@ -212,6 +217,8 @@ export class CriarNovaSenhaUseCase {
       // RN-157: quem leu o código nesta caixa provou que o e-mail é dele.
       emailConfirmadoEm: usuario.emailConfirmadoEm ?? agora,
     })
+    // Feature 017 (RN-174): o e-mail confirmado por aqui também leva o presente de boas-vindas.
+    if (!usuario.emailConfirmadoEm) await this.presente?.dar(usuario.id)
     // Quem tinha a senha antiga perde o acesso: todas as sessões caem.
     await this.sessoes.removerTodasDoUsuario(usuario.id)
     const sessao = await abrirSessao({ sessoes: this.sessoes, tokens: this.deps.tokens, relogio: this.deps.relogio }, usuario.id)

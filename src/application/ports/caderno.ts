@@ -225,4 +225,7 @@ export interface Configuracao {
 export interface ConfiguracaoRepository {
   obter(): Promise<Configuracao>
   salvar(configuracao: Configuracao): Promise<void>
+  /** Feature 017 (RF-174): o presente de boas-vindas está ligado? */
+  presenteLigado(): Promise<boolean>
+  ligarPresente(ligado: boolean): Promise<void>
 }

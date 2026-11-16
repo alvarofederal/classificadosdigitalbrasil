@@ -7,7 +7,7 @@ import { Faixa } from "@/components/jornal/pecas"
 import { container } from "@/infrastructure/container"
 import { exigirPerfil } from "@/lib/sessao"
 import { BotaoAcao } from "../_componentes/botao-acao"
-import { enviarEmailDeTesteAction } from "../actions"
+import { enviarEmailDeTesteAction, ligarPresenteAction } from "../actions"
 import { FormularioConfiguracao } from "./formulario-configuracao"
 
 export const metadata: Metadata = { title: "Configurações", robots: { index: false } }
@@ -40,10 +40,11 @@ export default async function Configuracoes() {
   const mp = c.mercadoPago
   const correio = c.correio
   // As três conferências saem juntas: servidor de e-mail lento não soma ao tempo do Mercado Pago.
-  const [cfg, { conta, erro: erroDaConta }, conexao] = await Promise.all([
+  const [cfg, { conta, erro: erroDaConta }, conexao, presenteLigado] = await Promise.all([
     c.configuracao.obter(),
     conferirMercadoPago(mp.conta),
     correio.ligado ? correio.conferir() : Promise.resolve(null),
+    c.configuracao.presenteLigado(),
   ])
   const ligado = Boolean(conta?.producao)
   const emailLigado = Boolean(conexao?.ok)
@@ -133,6 +134,24 @@ export default async function Configuracoes() {
             </span>
           </div>
         )}
+      </section>
+
+      {/* Feature 017 (RF-174): presente de boas-vindas. */}
+      <section className={presenteLigado ? "border-2 border-sucesso p-4" : "border-2 border-tinta p-4"}>
+        <p className="font-titulo text-lg font-bold uppercase">Presente de boas-vindas</p>
+        <p className="mt-2 text-sm">
+          {presenteLigado
+            ? "Ligado: cada conta nova, ao confirmar o e-mail, ganha 7 dias sem foto e 7 dias com foto no banco de dias."
+            : "Desligado: as contas confirmadas agora não ganham dias. Ligando de novo, quem confirmou neste período continua sem o presente."}
+        </p>
+        <div className="mt-3">
+          <BotaoAcao
+            acao={ligarPresenteAction.bind(null, !presenteLigado)}
+            rotulo={presenteLigado ? "Desligar o presente" : "Ligar o presente"}
+            vazado={presenteLigado}
+            confirmacao={presenteLigado ? "Desligar o presente de boas-vindas? Contas confirmadas a partir de agora não ganham os dias." : undefined}
+          />
+        </div>
       </section>
 
       <FormularioConfiguracao iniciais={{ pixChave: cfg.pixChave, pixNome: cfg.pixNome, pixCidade: cfg.pixCidade }} />

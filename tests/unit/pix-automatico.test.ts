@@ -65,10 +65,10 @@ async function anuncioNoPlano(t: ReturnType<typeof montar>, planoCodigo: string,
 }
 
 describe("Plano e período na cobrança (RN-53)", () => {
-  it("Com foto 30 dias custa R$ 250,00 e o Pix vem do gateway", async () => {
+  it("Com foto 30 dias custa R$ 42,86 e o Pix vem do gateway (RN-180)", async () => {
     const t = montar()
     const { pendente } = await anuncioNoPlano(t, "FOTOS", 30)
-    expect(pendente).toMatchObject({ planoCodigo: "FOTOS", dias: 30, valorCentavos: 25000, gateway: "MERCADO_PAGO" })
+    expect(pendente).toMatchObject({ planoCodigo: "FOTOS", dias: 30, valorCentavos: 4286, gateway: "MERCADO_PAGO" })
     expect(pendente.copiaECola).toContain(pendente.codigo)
     expect(t.gateway!.cobrancas).toHaveLength(1)
     expect((await t.cobranca.executar(pendente)).automatico).toBe(true)
@@ -95,8 +95,8 @@ describe("Plano e período na cobrança (RN-53)", () => {
   it("trocar o plano na renovação cancela a cobrança anterior e cobra o novo valor", async () => {
     const t = montar()
     const { anuncioId, pendente } = await anuncioNoPlano(t, "SIMPLES", 7)
-    const r = await t.renovar.executar({ usuarioId: USUARIO.id, email: USUARIO.email, anuncioId, planoCodigo: "FOTOS", dias: 10 })
-    expect(r.ok && r.valor.valorCentavos).toBe(4000)
+    const r = await t.renovar.executar({ usuarioId: USUARIO.id, email: USUARIO.email, anuncioId, planoCodigo: "FOTOS", dias: 15 })
+    expect(r.ok && r.valor.valorCentavos).toBe(2143)
     expect((await t.pagamentos.buscarPorId(pendente.id))!.situacao).toBe("CANCELADO")
   })
 })

@@ -16,7 +16,13 @@ type Busca = { uf?: string; cidade?: string; categoria?: string; plano?: string 
 export default async function NovoAnuncio({ searchParams }: { searchParams: Promise<Busca> }) {
   const usuario = await exigirPerfil("ANUNCIANTE")
   const c = container()
-  const [perfil, categorias, planos] = await Promise.all([c.minhaConta.perfil(usuario.id, c.relogio.agora()), c.classificados.categoriasAtivas(), c.classificados.planosAVenda()])
+  const [perfil, categorias, planos, banco] = await Promise.all([
+    c.minhaConta.perfil(usuario.id, c.relogio.agora()),
+    c.classificados.categoriasAtivas(),
+    c.classificados.planosAVenda(),
+    // Feature 017 (RF-172): quem tem saldo pode pôr o anúncio no ar com os dias do banco.
+    c.minhaConta.saldoDoBanco(usuario.id),
+  ])
   const busca = await searchParams
 
   // Do link "Anunciar aqui" vem a cidade da seção; sem ele, a cidade do cadastro.
@@ -43,6 +49,9 @@ export default async function NovoAnuncio({ searchParams }: { searchParams: Prom
           estilo: ESTILO_PADRAO,
         }}
         textoDoBotao="Salvar e gerar o Pix"
+        banco={banco}
+        textoDoBotaoComBanco="Salvar e pôr no caderno"
+        avisoComBanco="Ao salvar, o anúncio entra no caderno na hora, com os dias do banco, sem Pix. Depois você pode subir as fotos do álbum."
         aviso={
           c.pixAutomatico
             ? "Ao salvar, geramos o Pix. Assim que ele for pago, o anúncio entra no caderno sozinho. Depois você pode subir as fotos do álbum."

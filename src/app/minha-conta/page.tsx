@@ -1,4 +1,4 @@
-// APRESENTAÇÃO — lista de anúncios do anunciante (RF-11), com as visitas de cada um (feature 013: RF-131).
+// APRESENTAÇÃO — lista de anúncios do anunciante (RF-11), com as visitas de cada um (feature 013: RF-131) e o saldo do banco de dias (feature 017: RF-170).
 
 import type { Metadata } from "next"
 import { Images, MessageSquare } from "lucide-react"
@@ -13,6 +13,7 @@ import { diasRestantes, formatarDia, formatarReais, plural } from "@/lib/formata
 import { NOMES_DOS_PLANOS } from "@/lib/planos"
 import { exigirPerfil } from "@/lib/sessao"
 import { BotaoAtivarDesativar } from "./_componentes/botoes-anuncio"
+import { CaixaDoBanco } from "./_componentes/caixa-do-banco"
 import { SeloSituacao } from "./_componentes/selo-situacao"
 
 export const metadata: Metadata = { title: "Meus anúncios", robots: { index: false } }
@@ -21,7 +22,7 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
   const usuario = await exigirPerfil("ANUNCIANTE")
   const c = container()
   const agora = c.relogio.agora()
-  const anuncios = await c.minhaConta.meusAnuncios(usuario.id)
+  const [anuncios, saldo] = await Promise.all([c.minhaConta.meusAnuncios(usuario.id), c.minhaConta.saldoDoBanco(usuario.id)])
   const visitas = await c.resumirVisitas.daLista(anuncios.filter((a) => a.publicadoEm !== null))
   const removido = (await searchParams).removido === "1"
 
@@ -36,6 +37,8 @@ export default async function MeusAnuncios({ searchParams }: { searchParams: Pro
         </Link>
       </div>
       {removido && <p className="border border-tinta bg-papel-escuro px-3 py-2 text-sm">Anúncio removido do caderno.</p>}
+      {/* Feature 017 (RF-170): o saldo do banco, logo que o anunciante entra. */}
+      <CaixaDoBanco saldo={saldo} />
 
       {anuncios.length === 0 ? (
         <div className="cartao flex flex-col items-start gap-3 p-5">

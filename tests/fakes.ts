@@ -34,10 +34,12 @@ import type {
   PagamentoRepository,
   PlanoRepository,
 } from "@/application/ports/caderno"
+import type { BancoDeDiasRepository, ReferenciasDoMovimento } from "@/application/ports/banco"
 import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import type { GeradorDeCodigo, Relogio, SegundoPlano } from "@/application/ports/sistema"
 import type { AnonimizadorDeVisitante, RegistroDaVisita, VisitaDaPessoa, VisitasQuery, VisitasRepository } from "@/application/ports/visitas"
 import type { Dia, LocalDaVisita, VisitasDoDia } from "@/domain/anuncio/visitas"
+import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
 import { PLANOS_INICIAIS, type Plano } from "@/domain/plano/plano"
@@ -214,6 +216,44 @@ export class ConfiguracaoEmMemoria implements ConfiguracaoRepository {
   async salvar(cfg: Configuracao) {
     this.cfg = cfg
   }
+  presente = true
+  async presenteLigado() {
+    return this.presente
+  }
+  async ligarPresente(ligado: boolean) {
+    this.presente = ligado
+  }
+}
+
+// ── Banco de dias (feature 017) ──
+
+export class BancoDeDiasEmMemoria implements BancoDeDiasRepository {
+  saldos = new Map<string, SaldoDoBanco>()
+  presenteEm = new Map<string, Date>()
+  extrato: Array<{ usuarioId: string; tipo: TipoDeDia; dias: number; motivo: MotivoDoMovimento; anuncioId: string | null }> = []
+  async saldo(usuarioId: string) {
+    return { ...(this.saldos.get(usuarioId) ?? { SIMPLES: 0, FOTOS: 0 }) }
+  }
+  async creditar(usuarioId: string, tipo: TipoDeDia, dias: number, motivo: MotivoDoMovimento, ref: ReferenciasDoMovimento = {}) {
+    const saldo = await this.saldo(usuarioId)
+    saldo[tipo] += dias
+    this.saldos.set(usuarioId, saldo)
+    this.extrato.push({ usuarioId, tipo, dias, motivo, anuncioId: ref.anuncioId ?? null })
+  }
+  async debitar(usuarioId: string, tipo: TipoDeDia, dias: number, ref: ReferenciasDoMovimento = {}) {
+    const saldo = await this.saldo(usuarioId)
+    if (saldo[tipo] < dias) return false
+    saldo[tipo] -= dias
+    this.saldos.set(usuarioId, saldo)
+    this.extrato.push({ usuarioId, tipo, dias: -dias, motivo: "USO", anuncioId: ref.anuncioId ?? null })
+    return true
+  }
+  async darPresente(usuarioId: string, presente: SaldoDoBanco, quando: Date) {
+    if (this.presenteEm.has(usuarioId)) return false
+    this.presenteEm.set(usuarioId, quando)
+    for (const tipo of ["SIMPLES", "FOTOS"] as const) if (presente[tipo] > 0) await this.creditar(usuarioId, tipo, presente[tipo], "BOAS_VINDAS")
+    return true
+  }
 }
 
 export class MensagensEmMemoria implements MensagemRepository {
@@ -370,10 +410,17 @@ export class UsuariosEmMemoria implements UsuarioRepository {
   async existeCpf(cpf: string) {
     return [...this.itens.values()].some((u) => u.cpf === cpf)
   }
-  async inserir(u: NovoUsuario) {
+  /** RN-176: o teste muda `agora` para simular o passar das horas. */
+  agora = new Date("2026-11-08T12:00:00Z")
+  cadastros: Array<{ ip: string; criadoEm: Date }> = []
+  async inserir(u: NovoUsuario, ip: string | null = null) {
     const id = novoId()
     this.itens.set(id, { id, ...u })
+    if (ip) this.cadastros.push({ ip, criadoEm: this.agora })
     return id
+  }
+  async contarCadastrosDesde(ip: string, desde: Date) {
+    return this.cadastros.filter((c) => c.ip === ip && c.criadoEm >= desde).length
   }
   async atualizar(u: UsuarioRegistro) {
     this.itens.set(u.id, u)

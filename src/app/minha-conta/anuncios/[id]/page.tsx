@@ -6,7 +6,7 @@ import { notFound } from "next/navigation"
 import { Faixa } from "@/components/jornal/pecas"
 import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, avisoDoRecemCriado, situacaoExibida } from "@/domain/anuncio/anuncio"
-import { SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
+import { ORIGENS_DO_PAGAMENTO, SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
 import { diasRestantes, formatarDataHora, formatarDia, formatarReais, plural, reaisParaCampo } from "@/lib/formatadores"
 import { NOMES_DOS_PLANOS } from "@/lib/planos"
@@ -33,13 +33,17 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
   const agora = c.relogio.agora()
   const situacao = situacaoExibida(anuncio.situacao, anuncio.expiraEm, agora)
   const cidade = c.localidades.cidade(anuncio.cidadeCodigo)
-  const [categorias, planos, cobranca, visitas] = await Promise.all([
+  const [categorias, planos, cobranca, visitas, banco] = await Promise.all([
     c.classificados.categoriasAtivas(),
     c.classificados.planosAVenda(),
     anuncio.pagamentoPendente ? c.montarCobrancaPix.executar(anuncio.pagamentoPendente) : Promise.resolve(null),
     // RF-132: só anúncio que já esteve no caderno tem visitas.
     anuncio.publicadoEm ? c.resumirVisitas.doAnuncio(anuncio) : Promise.resolve(null),
+    // Feature 017 (RF-173): renovar ou prolongar com os dias do banco.
+    c.minhaConta.saldoDoBanco(usuario.id),
   ])
+  // RN-171 e RN-172: anúncio ainda em prazo aceita a partir de 1 dia, e Com foto só recebe dias com foto.
+  const prazoAtual = situacao === "NO_AR" || situacao === "DESATIVADO" ? { planoCodigo: anuncio.planoCodigo } : null
   const maximoDeFotos = Math.min(MAXIMO_FOTOS, planos.find((p) => p.codigo === anuncio.planoCodigo)?.maxFotos ?? MAXIMO_FOTOS)
   // A seção atual continua na lista mesmo se o admin a desativou depois.
   const opcoes = categorias.some((cat) => cat.id === anuncio.categoriaId) ? categorias : [{ id: anuncio.categoriaId, nome: anuncio.categoriaNome }, ...categorias]
@@ -108,7 +112,12 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
       )}
       {aviso === "NO_AR" && (
         <p role="status" className="border-2 border-sucesso bg-sucesso/10 px-3 py-2">
-          {ultimoConfirmado?.gateway === "CORTESIA" ? "Anúncio publicado como cortesia." : "Pagamento confirmado."} O anúncio está no caderno até {formatarDia(anuncio.expiraEm)}.
+          {ultimoConfirmado?.gateway === "CORTESIA"
+            ? "Anúncio publicado como cortesia."
+            : ultimoConfirmado?.gateway === "BANCO"
+              ? "Anúncio publicado com dias do banco."
+              : "Pagamento confirmado."}{" "}
+          O anúncio está no caderno até {formatarDia(anuncio.expiraEm)}.
           {faltamFotos && " Falta subir as fotos do álbum, mais abaixo."}
         </p>
       )}
@@ -117,18 +126,29 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
 
       {visitas && <SecaoDeVisitas detalhe={visitas} publicadoEm={anuncio.publicadoEm} deQuem="dono" />}
 
-      <details className="border border-fio p-4" open={!cobranca && situacao === "EXPIRADO"}>
+      <details
+        className="border border-fio p-4"
+        open={(!cobranca && (situacao === "EXPIRADO" || (situacao === "AGUARDANDO_PAGAMENTO" && banco.SIMPLES + banco.FOTOS > 0))) || undefined}
+      >
         <summary className="cursor-pointer font-titulo font-bold uppercase">
-          {cobranca ? "Trocar plano ou período desta cobrança" : situacao === "NO_AR" || situacao === "DESATIVADO" ? "Mais dias ou outro plano" : "Renovar o anúncio"}
+          {cobranca
+            ? banco.SIMPLES + banco.FOTOS > 0
+              ? "Trocar o plano ou usar dias do banco"
+              : "Trocar plano ou período desta cobrança"
+            : situacao === "NO_AR" || situacao === "DESATIVADO"
+              ? "Mais dias ou outro plano"
+              : situacao === "AGUARDANDO_PAGAMENTO"
+                ? "Pôr o anúncio no caderno"
+                : "Renovar o anúncio"}
         </summary>
         <p className="my-3 text-sm">
           {situacao === "NO_AR"
-            ? "Pagar de novo soma os dias ao que ainda resta. Escolhendo outro plano, ele vale a partir da confirmação."
+            ? "Pagar de novo, ou usar dias do banco, soma os dias ao que ainda resta. Escolhendo outro plano no Pix, ele vale a partir da confirmação."
             : situacao === "DESATIVADO"
-              ? "Pagar de novo soma os dias ao que ainda resta e põe o anúncio de volta no caderno."
-              : "Escolha o plano e o período; o anúncio volta ao caderno com o mesmo texto e as mesmas fotos."}
+              ? "Pagar de novo, ou usar dias do banco, soma os dias ao que ainda resta e põe o anúncio de volta no caderno."
+              : "Escolha como pagar; o anúncio entra no caderno com o mesmo texto e as mesmas fotos. Usando os dias do banco, a cobrança em aberto é cancelada."}
         </p>
-        <RenovarComPlano anuncioId={anuncio.id} planos={planos} planoAtual={anuncio.planoCodigo} rotulo="Gerar o Pix" />
+        <RenovarComPlano anuncioId={anuncio.id} planos={planos} planoAtual={anuncio.planoCodigo} rotulo="Gerar o Pix" banco={banco} prazoAtual={prazoAtual} />
       </details>
 
       <section aria-labelledby="titulo-texto" className="flex flex-col gap-3">
@@ -225,7 +245,8 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
                   <tr key={p.id}>
                     <td className="font-mono text-xs">{p.codigo}</td>
                     <td>{NOMES_DOS_PLANOS[p.planoCodigo]}</td>
-                    <td>{p.gateway === "CORTESIA" ? "Cortesia" : formatarReais(p.valorCentavos)}</td>
+                    {/* RN-181: o uso do banco aparece como "Dias do banco". */}
+                    <td>{p.gateway === "CORTESIA" || p.gateway === "BANCO" ? ORIGENS_DO_PAGAMENTO[p.gateway] : formatarReais(p.valorCentavos)}</td>
                     <td>{plural(p.dias, "dia", "dias")}</td>
                     <td>{SITUACOES_DO_PAGAMENTO[p.situacao]}</td>
                     <td>{formatarDataHora(p.criadoEm)}</td>

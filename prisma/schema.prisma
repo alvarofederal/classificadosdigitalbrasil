@@ -40,16 +40,49 @@ model Usuario {
   emailConfirmadoEm DateTime?
   // RN-155: e-mail sem "+etiqueta" e, no Gmail, sem pontos. Calculado no repositório; sem UNIQUE para a migration nunca falhar.
   emailCanonico     String    @default("") @db.VarChar(160)
+  // Feature 017 (ADR-21): saldo do banco de dias; o extrato fica em movimentos_do_banco (RN-178).
+  bancoDiasSimples  Int       @default(0)
+  bancoDiasFotos    Int       @default(0)
+  presenteEm        DateTime? // RN-174: quando recebeu o presente de boas-vindas
+  ipDoCadastro      String?   @db.VarChar(64) // RN-176: conexão de onde a conta foi criada
 
   sessoes         Sessao[]
   anuncios        Anuncio[]
-  pagamentos      Pagamento[]      @relation("PagamentoDoUsuario")
-  confirmados     Pagamento[]      @relation("PagamentoConfirmadoPor")
+  pagamentos      Pagamento[]        @relation("PagamentoDoUsuario")
+  confirmados     Pagamento[]        @relation("PagamentoConfirmadoPor")
   codigosPorEmail CodigoPorEmail[]
+  movimentos      MovimentoDoBanco[]
 
   @@index([criadoEm])
   @@index([emailCanonico])
+  @@index([ipDoCadastro, criadoEm])
   @@map("usuarios")
+}
+
+// Feature 017 (ADR-21): extrato do banco de dias. Positivo entra, negativo sai.
+enum MotivoDoMovimento {
+  BOAS_VINDAS
+  USO
+  DEVOLUCAO
+  CONVITE
+  COMPRA
+  CORTESIA
+}
+
+model MovimentoDoBanco {
+  id          String            @id @default(cuid())
+  usuarioId   String
+  planoCodigo String            @db.VarChar(20) // SIMPLES (sem foto) ou FOTOS (com foto)
+  dias        Int
+  motivo      MotivoDoMovimento
+  anuncioId   String?
+  pagamentoId String?
+  criadoEm    DateTime          @default(now())
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, criadoEm])
+  @@map("movimentos_do_banco")
 }
 
 // Feature 016 (ADR-20): código de 6 números por e-mail. Só o hash fica aqui (RN-150).
@@ -297,11 +330,12 @@ model Pagamento {
 
 // Recebedor do Pix estático (reserva quando o gateway não está configurado).
 model Configuracao {
-  id           String   @id @default("geral")
-  pixChave     String   @default("") @db.VarChar(77)
-  pixNome      String   @default("") @db.VarChar(25)
-  pixCidade    String   @default("") @db.VarChar(15)
-  atualizadoEm DateTime @updatedAt
+  id             String   @id @default("geral")
+  pixChave       String   @default("") @db.VarChar(77)
+  pixNome        String   @default("") @db.VarChar(25)
+  pixCidade      String   @default("") @db.VarChar(15)
+  presenteLigado Boolean  @default(true) // feature 017 (RF-174): presente de boas-vindas
+  atualizadoEm   DateTime @updatedAt
 
   @@map("configuracoes")
 }

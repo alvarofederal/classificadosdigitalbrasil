@@ -3,7 +3,7 @@
 import { fimQueContaNaRenovacao, novaExpiracao } from "@/domain/anuncio/anuncio"
 import { ALFABETO_DO_PAGAMENTO, TAMANHO_DO_CODIGO_DE_PAGAMENTO, VALIDADE_DO_PIX_MS } from "@/domain/pagamento/pagamento"
 import { gerarPixCopiaECola } from "@/domain/pagamento/pix"
-import { ehCodigoDePlano, ehPeriodo, type Periodo, prioridadeDoPlano, valorDoPeriodo } from "@/domain/plano/plano"
+import { type CodigoDoPlano, ehCodigoDePlano, ehPeriodo, type Periodo, prioridadeDoPlano, valorDoPeriodo } from "@/domain/plano/plano"
 import { type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
 import type {
   AnuncioRegistro,
@@ -249,32 +249,61 @@ export class PublicarCortesiaUseCase {
     if (!plano) return falhaDeValidacao({ planoCodigo: "Escolha o plano." })
     if (!Number.isInteger(entrada.dias) || entrada.dias < 1 || entrada.dias > 365) return falhaDeValidacao({ dias: "Entre 1 e 365 dias." })
 
-    // RN-87 e RN-88: o Pix pendente sai do gateway; se o anunciante já pagou, a cortesia espera a confirmação.
-    const pendente = await this.deps.pagamentos.pendenteDoAnuncio(anuncio.id)
-    if (pendente && (await cancelarNoGateway(this.deps.gateway, pendente)) === "JA_PAGA") {
-      return falha("PIX_JA_PAGO", "O anunciante já pagou o Pix deste anúncio. Aguarde a confirmação antes de dar a cortesia.")
-    }
-    await this.deps.pagamentos.cancelarPendentesDoAnuncio(anuncio.id)
-    let codigo = this.deps.codigos.codigo(ALFABETO_DO_PAGAMENTO, TAMANHO_DO_CODIGO_DE_PAGAMENTO)
-    while (await this.deps.pagamentos.existeCodigo(codigo)) codigo = this.deps.codigos.codigo(ALFABETO_DO_PAGAMENTO, TAMANHO_DO_CODIGO_DE_PAGAMENTO)
-    const pagamentoId = await this.deps.pagamentos.inserir({
-      codigo,
-      anuncioId: anuncio.id,
-      usuarioId: anuncio.usuarioId,
+    return publicarSemCobranca(this.deps, this.confirmar, {
+      anuncio,
       planoCodigo: plano.codigo,
-      valorCentavos: 0,
       dias: entrada.dias,
-      situacao: "PENDENTE",
-      gateway: "CORTESIA",
-      gatewayId: null,
-      copiaECola: null,
-      vencimentoEm: null,
-      criadoEm: this.deps.relogio.agora(),
-      confirmadoEm: null,
-      confirmadoPorId: null,
+      origem: "CORTESIA",
+      adminId: entrada.adminId,
+      seOPixJaFoiPago: "O anunciante já pagou o Pix deste anúncio. Aguarde a confirmação antes de dar a cortesia.",
     })
-    return this.confirmar.executar({ pagamentoId, adminId: entrada.adminId })
   }
+}
+
+/**
+ * Publica sem cobrar, pelo mesmo caminho da confirmação do Pix: cortesia do Painel (RF-84) e dias do banco (feature 017).
+ * RN-87 e RN-88 (RN-179): a cobrança em aberto sai do gateway; se o Pix já foi pago, nada muda e volta `PIX_JA_PAGO`.
+ * O pagamento fica registrado com valor zero e a origem (RN-181).
+ */
+export async function publicarSemCobranca(
+  deps: DepsDePagamento,
+  confirmar: ConfirmarPagamentoUseCase,
+  pedido: {
+    anuncio: Pick<AnuncioRegistro, "id" | "usuarioId">
+    planoCodigo: CodigoDoPlano
+    dias: number
+    origem: "CORTESIA" | "BANCO"
+    adminId: string | null
+    seOPixJaFoiPago: string
+  },
+): Promise<Result<{ expiraEm: Date; pagamentoId: string }>> {
+  const pendente = await deps.pagamentos.pendenteDoAnuncio(pedido.anuncio.id)
+  if (pendente && (await cancelarNoGateway(deps.gateway, pendente)) === "JA_PAGA") return falha("PIX_JA_PAGO", pedido.seOPixJaFoiPago)
+  await deps.pagamentos.cancelarPendentesDoAnuncio(pedido.anuncio.id)
+  const codigo = await novoCodigo(deps)
+  const pagamentoId = await deps.pagamentos.inserir({
+    codigo,
+    anuncioId: pedido.anuncio.id,
+    usuarioId: pedido.anuncio.usuarioId,
+    planoCodigo: pedido.planoCodigo,
+    valorCentavos: 0,
+    dias: pedido.dias,
+    situacao: "PENDENTE",
+    gateway: pedido.origem,
+    gatewayId: null,
+    copiaECola: null,
+    vencimentoEm: null,
+    criadoEm: deps.relogio.agora(),
+    confirmadoEm: null,
+    confirmadoPorId: null,
+  })
+  const confirmado = await confirmar.executar({ pagamentoId, adminId: pedido.adminId })
+  if (!confirmado.ok) {
+    // Nada foi publicado: a cobrança de valor zero não fica pendente esperando um Pix que não existe.
+    await deps.pagamentos.cancelar(pagamentoId)
+    return confirmado
+  }
+  return ok({ ...confirmado.valor, pagamentoId })
 }
 
 export interface CobrancaPix {

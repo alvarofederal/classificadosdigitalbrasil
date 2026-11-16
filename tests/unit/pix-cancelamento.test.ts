@@ -49,7 +49,7 @@ async function anuncioComPix(t: ReturnType<typeof montar>) {
 }
 
 const trocarDePlano = (t: ReturnType<typeof montar>, anuncioId: string) =>
-  t.renovar.executar({ usuarioId: USUARIO.id, email: USUARIO.email, anuncioId, planoCodigo: "FOTOS", dias: 10 })
+  t.renovar.executar({ usuarioId: USUARIO.id, email: USUARIO.email, anuncioId, planoCodigo: "FOTOS", dias: 15 })
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -59,7 +59,7 @@ describe("Cobrança cancelada aqui sai do gateway (RN-87)", () => {
     const { anuncioId, pendente } = await anuncioComPix(t)
 
     const nova = await trocarDePlano(t, anuncioId)
-    expect(nova.ok && nova.valor.valorCentavos).toBe(4000)
+    expect(nova.ok && nova.valor.valorCentavos).toBe(2143)
     expect(t.gateway!.canceladas).toEqual([pendente.gatewayId])
     expect((await t.pagamentos.buscarPorId(pendente.id))!.situacao).toBe("CANCELADO")
     // O Pix antigo já não pode ser pago.

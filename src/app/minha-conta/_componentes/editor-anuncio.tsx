@@ -14,11 +14,12 @@ import {
   LIMITES_DO_ANUNCIO,
   MOLDURAS,
 } from "@/domain/anuncio/anuncio"
+import type { SaldoDoBanco } from "@/domain/banco/banco-de-dias"
 import { type Periodo, type Plano, planoTemDestaque } from "@/domain/plano/plano"
 import { centavosDeTextoEmReais } from "@/domain/shared/dinheiro"
 import type { EstadoFormulario } from "@/lib/formularios"
 import { cn } from "@/lib/utils"
-import { EscolhaDePlano } from "./escolha-de-plano"
+import { EscolhaDePlano, type FormaDePagamento } from "./escolha-de-plano"
 
 export interface ValoresDoEditor {
   categoriaId: string
@@ -40,6 +41,9 @@ export function EditorAnuncio({
   codigo,
   planos,
   planoAtual = "SIMPLES",
+  banco,
+  textoDoBotaoComBanco,
+  avisoComBanco,
 }: {
   acao: (formData: FormData) => Promise<EstadoFormulario>
   categorias: Array<{ id: string; nome: string }>
@@ -51,6 +55,11 @@ export function EditorAnuncio({
   /** Só no anúncio novo: escolha de plano e período (feature 003). */
   planos?: Plano[]
   planoAtual?: string
+  /** Só no anúncio novo: saldo do banco de dias (feature 017, RF-172). */
+  banco?: SaldoDoBanco
+  /** Texto do botão quando o anúncio vai ao ar com os dias do banco. */
+  textoDoBotaoComBanco?: string
+  avisoComBanco?: string
 }) {
   const [titulo, setTitulo] = useState(iniciais.titulo)
   const [texto, setTexto] = useState(iniciais.texto)
@@ -59,6 +68,7 @@ export function EditorAnuncio({
   const [categoriaId, setCategoriaId] = useState(iniciais.categoriaId)
   const [plano, setPlano] = useState(planoAtual)
   const [dias, setDias] = useState<Periodo>(7)
+  const [forma, setForma] = useState<FormaDePagamento>("PIX")
   const categoriaNome = categorias.find((c) => c.id === categoriaId)?.nome
   const { estado, pendente, onSubmit, formRef, erro } = useFormularioAcao(acao)
 
@@ -134,12 +144,24 @@ export function EditorAnuncio({
         </fieldset>
 
         {planos && planos.length > 0 && (
-          <EscolhaDePlano planos={planos} plano={plano} dias={dias} aoMudarPlano={setPlano} aoMudarDias={setDias} erroPlano={erro("planoCodigo")} erroDias={erro("dias")} />
+          <EscolhaDePlano
+            planos={planos}
+            plano={plano}
+            dias={dias}
+            aoMudarPlano={setPlano}
+            aoMudarDias={setDias}
+            erroPlano={erro("planoCodigo")}
+            erroDias={erro("dias")}
+            banco={banco}
+            aoMudarForma={setForma}
+          />
         )}
 
-        {aviso && <p className="border border-tinta bg-papel-escuro px-3 py-2 text-sm">{aviso}</p>}
+        {(forma === "BANCO" && avisoComBanco ? avisoComBanco : aviso) && (
+          <p className="border border-tinta bg-papel-escuro px-3 py-2 text-sm">{forma === "BANCO" && avisoComBanco ? avisoComBanco : aviso}</p>
+        )}
         <BotaoEnviar pendente={pendente} className="self-start">
-          {textoDoBotao}
+          {forma === "BANCO" && textoDoBotaoComBanco ? textoDoBotaoComBanco : textoDoBotao}
         </BotaoEnviar>
       </div>
 

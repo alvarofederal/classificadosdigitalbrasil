@@ -7,8 +7,8 @@ import { validarTamanho } from "../shared/texto"
 export const CODIGOS_DE_PLANO = ["SIMPLES", "FOTOS", "DESTAQUE", "VITRINE"] as const
 export type CodigoDoPlano = (typeof CODIGOS_DE_PLANO)[number]
 
-/** RN-56: períodos à venda, a partir de 7 dias. */
-export const PERIODOS = [7, 10, 15, 20, 30] as const
+/** RN-56: períodos à venda, a partir de 7 dias. RN-180 (feature 017): 10 e 20 dias saíram da venda em 2026-11-15. */
+export const PERIODOS = [7, 15, 30] as const
 export type Periodo = (typeof PERIODOS)[number]
 
 /** O que cada código garante, independentemente do que o admin editar (RN-50, RN-52). */
@@ -31,14 +31,17 @@ export interface Plano {
   ativo: boolean
 }
 
-/** Tabela decidida pelo Álvaro em 2026-11-09 (spec 009). O admin muda tudo menos o código. */
+/**
+ * Tabela decidida pelo Álvaro em 2026-11-09 (spec 009) e refeita em 2026-11-15 (feature 017, RN-180): o dia custa o mesmo
+ * em todo período, proporcional ao de 7 dias. O admin muda tudo menos o código.
+ */
 export const PLANOS_INICIAIS: Plano[] = [
   {
     codigo: "SIMPLES",
     nome: "Simples",
     descricao: "Texto com formatação, página própria e chat com os interessados.",
     maxFotos: 0,
-    precos: { 7: 100, 10: 400, 15: 950, 20: 1450, 30: 2500 },
+    precos: { 7: 100, 15: 214, 30: 429 },
     ativo: true,
   },
   {
@@ -46,7 +49,7 @@ export const PLANOS_INICIAIS: Plano[] = [
     nome: "Com foto",
     descricao: "Tudo do Simples, com álbum de até 6 fotos.",
     maxFotos: 6,
-    precos: { 7: 1000, 10: 4000, 15: 9500, 20: 14500, 30: 25000 },
+    precos: { 7: 1000, 15: 2143, 30: 4286 },
     ativo: true,
   },
   {

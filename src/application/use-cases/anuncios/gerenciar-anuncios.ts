@@ -9,9 +9,12 @@ import {
   podeDesativar,
   validarConteudo,
 } from "@/domain/anuncio/anuncio"
+import { conferirUsoDoBanco, ehTipoDeDia } from "@/domain/banco/banco-de-dias"
 import { type ErrosDeCampo, type Result, falha, falhaDeValidacao, ok } from "@/domain/shared/result"
 import type { Perfil } from "@/domain/usuario/usuario"
+import type { BancoDeDiasRepository } from "../../ports/banco"
 import type { AnuncioRegistro, AnuncioRepository, CategoriaRepository, GatewayPix, PagamentoRepository } from "../../ports/caderno"
+import type { UsarDiasDoBancoUseCase } from "../banco/banco-de-dias"
 import type { Localidades } from "../../ports/localidades"
 import type { GeradorDeCodigo, Relogio } from "../../ports/sistema"
 import { conferirCidade } from "../acesso/conta"
@@ -50,16 +53,22 @@ export class CriarAnuncioUseCase {
     private readonly localidades: Localidades,
     private readonly codigos: GeradorDeCodigo,
     private readonly pagamento: DepsDePagamento,
+    /** Feature 017 (RF-172): pagar com dias do banco em vez do Pix. */
+    private readonly banco?: { repositorio: BancoDeDiasRepository; usar: UsarDiasDoBancoUseCase },
   ) {}
 
-  /** RN-10: nasce aguardando pagamento, já com a cobrança do plano e período escolhidos (RF-52). */
+  /**
+   * RN-10: nasce aguardando pagamento, já com a cobrança do plano e período escolhidos (RF-52).
+   * Com `forma: "BANCO"`, nasce sem cobrança e vai ao ar na hora com os dias do banco (RF-172).
+   */
   async executar(
     usuario: { id: string; email: string },
-    entrada: ConteudoDoAnuncio & { planoCodigo: string; dias: number },
+    entrada: ConteudoDoAnuncio & { planoCodigo: string; dias: number; forma?: "PIX" | "BANCO" },
   ): Promise<Result<{ anuncioId: string; codigo: string }>> {
-    const { planoCodigo, dias, ...resto } = entrada
+    const { planoCodigo, dias, forma = "PIX", ...resto } = entrada
     const conteudo = normalizarConteudo(resto)
     const erros = await validarComCatalogos(conteudo, this.categorias, this.localidades)
+    if (forma === "BANCO") return this.criarComDiasDoBanco(usuario, conteudo, planoCodigo, dias, erros)
     const { plano, erros: errosDoPlano } = await conferirPlano(this.pagamento.planos, planoCodigo, dias)
     Object.assign(erros, errosDoPlano)
     if (!plano || Object.keys(erros).length > 0) return falhaDeValidacao(erros)
@@ -80,6 +89,43 @@ export class CriarAnuncioUseCase {
     const cobranca = await abrirCobranca(this.pagamento, { anuncio: { id: anuncioId, usuarioId: usuario.id }, planoCodigo: plano.codigo, dias, emailDoPagador: usuario.email })
     if (!cobranca.ok) return cobranca
     return ok({ anuncioId, codigo })
+  }
+
+  /** RF-172 e RN-171 a RN-173: confere o banco antes de gravar, para não deixar anúncio sem Pix e sem dias. */
+  private async criarComDiasDoBanco(
+    usuario: { id: string },
+    conteudo: ConteudoDoAnuncio,
+    tipo: string,
+    dias: number,
+    erros: ErrosDeCampo,
+  ): Promise<Result<{ anuncioId: string; codigo: string }>> {
+    if (!this.banco) return falha("SEM_BANCO", "O banco de dias não está disponível.")
+    const saldo = await this.banco.repositorio.saldo(usuario.id)
+    const novo = { situacao: "AGUARDANDO_PAGAMENTO" as const, planoCodigo: tipo, expiraEm: null }
+    Object.assign(erros, conferirUsoDoBanco({ tipo, dias }, novo, saldo, this.pagamento.relogio.agora()))
+    if (Object.keys(erros).length > 0 || !ehTipoDeDia(tipo)) return falhaDeValidacao(erros)
+
+    const codigo = await this.novoCodigo()
+    const anuncioId = await this.anuncios.inserir({
+      ...conteudo,
+      codigo,
+      usuarioId: usuario.id,
+      situacao: "AGUARDANDO_PAGAMENTO",
+      planoCodigo: tipo,
+      prioridade: 0,
+      publicadoEm: null,
+      expiraEm: null,
+    })
+    // Se o saldo mudou no meio do caminho, o anúncio fica salvo aguardando, e a tela dele oferece Pix ou banco de novo.
+    const usado = await this.banco.usar.executar({ usuarioId: usuario.id, anuncioId, tipo, dias })
+    if (!usado.ok) console.warn("[banco de dias] anúncio criado sem usar os dias", codigo, usado.codigo)
+    return ok({ anuncioId, codigo })
+  }
+
+  private async novoCodigo(): Promise<string> {
+    let codigo = this.codigos.codigo(ALFABETO_DO_CODIGO, TAMANHO_DO_CODIGO)
+    while (await this.anuncios.existeCodigo(codigo)) codigo = this.codigos.codigo(ALFABETO_DO_CODIGO, TAMANHO_DO_CODIGO)
+    return codigo
   }
 }
 

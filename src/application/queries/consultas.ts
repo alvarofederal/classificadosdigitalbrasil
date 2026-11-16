@@ -2,6 +2,7 @@
 // A infraestrutura implementa com Prisma; a apresentação só conhece estes contratos.
 
 import type { EstiloDoAnuncio, Situacao, SituacaoExibida } from "@/domain/anuncio/anuncio"
+import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type { Categoria } from "@/domain/categoria/categoria"
 import type { Assunto, SituacaoDoChamado } from "@/domain/chamado/chamado"
 import type { OrigemDoPagamento, SituacaoDoPagamento } from "@/domain/pagamento/pagamento"
@@ -118,10 +119,25 @@ export interface PerfilDTO {
   emailNovoPendente: string | null
 }
 
+/** Feature 017 (RF-171): uma linha do extrato do banco. */
+export interface MovimentoDoBancoDTO {
+  id: string
+  tipo: TipoDeDia
+  /** Positivo entrou, negativo saiu. */
+  dias: number
+  motivo: MotivoDoMovimento
+  criadoEm: Date
+  anuncio: { id: string; codigo: string; titulo: string } | null
+}
+
 export interface MinhaContaQuery {
   meusAnuncios(usuarioId: string): Promise<MeuAnuncioDTO[]>
   meuAnuncio(usuarioId: string, anuncioId: string): Promise<MeuAnuncioDetalheDTO | null>
   perfil(usuarioId: string, agora: Date): Promise<PerfilDTO | null>
+  /** RF-170 */
+  saldoDoBanco(usuarioId: string): Promise<SaldoDoBanco>
+  /** RF-171: os movimentos mais recentes primeiro. */
+  extratoDoBanco(usuarioId: string, limite: number): Promise<MovimentoDoBancoDTO[]>
 }
 
 // ── Painel do administrador ──
@@ -149,6 +165,8 @@ export interface UsuarioAdminDTO {
   criadoEm: Date
   /** RF-156 */
   emailConfirmado: boolean
+  /** RF-175 */
+  banco: SaldoDoBanco
   totalAnuncios: number
   pagamentosConfirmados: number
   valorPagoCentavos: number

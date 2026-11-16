@@ -47,6 +47,7 @@ import {
   SolicitarRenovacaoUseCase,
   VerificarPagamentoUseCase,
 } from "@/application/use-cases/pagamentos/pagamentos"
+import { DarPresenteDeBoasVindasUseCase, UsarDiasDoBancoUseCase } from "@/application/use-cases/banco/banco-de-dias"
 import { AbrirChamadoUseCase, LocalizarCidadeUseCase } from "@/application/use-cases/publico/publico"
 import { CorreioDesligado, CorreioNoTerminal, CorreioSmtp, lerConfiguracaoDoCorreio } from "./email/correio-smtp"
 import { CatalogoIbge } from "./localidades/catalogo-ibge"
@@ -64,7 +65,13 @@ import {
   PrismaTentativaLoginRepository,
   PrismaUsuarioRepository,
 } from "./prisma/repositorios"
-import { PrismaChamadoRepository, PrismaConfiguracaoRepository, PrismaPagamentoRepository, PrismaPlanoRepository } from "./prisma/repositorios-pagamento"
+import {
+  PrismaBancoDeDiasRepository,
+  PrismaChamadoRepository,
+  PrismaConfiguracaoRepository,
+  PrismaPagamentoRepository,
+  PrismaPlanoRepository,
+} from "./prisma/repositorios-pagamento"
 import { DepoisDaResposta } from "./segundo-plano"
 import { HmacAnonimizadorDeVisitante, PrismaVisitasQuery, PrismaVisitasRepository } from "./visitas"
 import { BcryptHashDeSenha, CloudinaryFotoStorage, GeradorDeCodigoAleatorio, RelogioDoSistema, TokenDeSessaoAleatorio } from "./servicos"
@@ -133,6 +140,10 @@ function montar() {
   const depsDoCodigo = { codigosPorEmail: new PrismaCodigoPorEmailRepository(prisma), correio, codigos, tokens, relogio }
   const avisarMensagemNova = new AvisarMensagemNovaUseCase(usuarios, mensagens, correio, relogio, enderecos)
   const confirmarPagamento = new ConfirmarPagamentoUseCase(anuncios, pagamentos, relogio)
+  // Feature 017 (ADR-21): banco de dias e presente de boas-vindas.
+  const banco = new PrismaBancoDeDiasRepository(prisma)
+  const presente = new DarPresenteDeBoasVindasUseCase(usuarios, banco, configuracao, relogio)
+  const usarDiasDoBanco = new UsarDiasDoBancoUseCase(anuncios, banco, depsDePagamento, confirmarPagamento)
   const processarPagamentoDoGateway = new ProcessarPagamentoDoGatewayUseCase(pagamentos, gateway, confirmarPagamento)
 
   return {
@@ -161,16 +172,17 @@ function montar() {
     cadastrarAnunciante: new CadastrarAnuncianteUseCase(usuarios, sessoes, hash, tokens, localidades, relogio, depsDoCodigo),
     atualizarPerfil: new AtualizarPerfilUseCase(usuarios, localidades),
     alterarSenha: new AlterarSenhaUseCase(usuarios, sessoes, hash, tokens),
-    confirmarEmail: new ConfirmarEmailUseCase(usuarios, depsDoCodigo),
+    confirmarEmail: new ConfirmarEmailUseCase(usuarios, depsDoCodigo, presente),
     reenviarCodigoDoCadastro: new ReenviarCodigoDoCadastroUseCase(usuarios, depsDoCodigo),
     corrigirEmailDoCadastro: new CorrigirEmailDoCadastroUseCase(usuarios, depsDoCodigo),
     pedirNovaSenha: new PedirNovaSenhaUseCase(usuarios, depsDoCodigo, segundoPlano),
-    criarNovaSenha: new CriarNovaSenhaUseCase(usuarios, sessoes, hash, depsDoCodigo),
+    criarNovaSenha: new CriarNovaSenhaUseCase(usuarios, sessoes, hash, depsDoCodigo, presente),
     pedirTrocaDeEmail: new PedirTrocaDeEmailUseCase(usuarios, depsDoCodigo),
     confirmarTrocaDeEmail: new ConfirmarTrocaDeEmailUseCase(usuarios, depsDoCodigo, segundoPlano, enderecos),
     cancelarTrocaDeEmail: new CancelarTrocaDeEmailUseCase(depsDoCodigo),
 
-    criarAnuncio: new CriarAnuncioUseCase(anuncios, categorias, localidades, codigos, depsDePagamento),
+    criarAnuncio: new CriarAnuncioUseCase(anuncios, categorias, localidades, codigos, depsDePagamento, { repositorio: banco, usar: usarDiasDoBanco }),
+    usarDiasDoBanco,
     editarAnuncio: new EditarAnuncioUseCase(anuncios, categorias, localidades),
     removerAnuncio: new RemoverAnuncioUseCase(anuncios, pagamentos, gateway),
     restaurarAnuncio: new RestaurarAnuncioUseCase(anuncios),

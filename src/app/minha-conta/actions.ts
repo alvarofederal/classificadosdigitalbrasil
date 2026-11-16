@@ -8,6 +8,7 @@ import { z } from "zod"
 import type { NovaFoto } from "@/application/ports/caderno"
 import { ALINHAMENTOS, type ConteudoDoAnuncio, ESTILOS_DE_TITULO, MOLDURAS } from "@/domain/anuncio/anuncio"
 import { container } from "@/infrastructure/container"
+import { formatarDia } from "@/lib/formatadores"
 import { type EstadoFormulario, checkbox, codigoIbge, deResultado, lerFormulario, reaisOpcional, texto, umDe } from "@/lib/formularios"
 import { NAO_AUTORIZADO, autorizar } from "@/lib/sessao"
 
@@ -46,6 +47,11 @@ const schemaPlano = z.object({
     .string()
     .optional()
     .transform((v) => Number(v ?? 0)),
+  // Feature 017 (RF-172, RF-173): Pix ou dias do banco; sem o campo, Pix, como antes.
+  forma: z
+    .string()
+    .optional()
+    .transform((v): "PIX" | "BANCO" => (v === "BANCO" ? "BANCO" : "PIX")),
 })
 
 export async function criarAnuncioAction(formData: FormData): Promise<EstadoFormulario> {
@@ -55,7 +61,7 @@ export async function criarAnuncioAction(formData: FormData): Promise<EstadoForm
   if (!lido.ok) return lido.estado
   const resultado = await container().criarAnuncio.executar(
     { id: usuario.id, email: usuario.email },
-    { ...conteudoDe(lido.dados), planoCodigo: lido.dados.planoCodigo, dias: lido.dados.dias },
+    { ...conteudoDe(lido.dados), planoCodigo: lido.dados.planoCodigo, dias: lido.dados.dias, forma: lido.dados.forma },
   )
   if (!resultado.ok) return deResultado(resultado)
   revalidatePath("/minha-conta")
@@ -109,7 +115,17 @@ export async function renovarAnuncioAction(anuncioId: string, formData: FormData
   if (!usuario) return NAO_AUTORIZADO
   const lido = lerFormulario(schemaPlano, formData)
   if (!lido.ok) return lido.estado
-  const resultado = await container().solicitarRenovacao.executar({ usuarioId: usuario.id, email: usuario.email, anuncioId, ...lido.dados })
+  const { forma, planoCodigo, dias } = lido.dados
+  if (forma === "BANCO") {
+    // RF-173: renovar ou prolongar com os dias do banco, sem Pix.
+    const usado = await container().usarDiasDoBanco.executar({ usuarioId: usuario.id, anuncioId, tipo: planoCodigo, dias })
+    if (usado.ok) {
+      revalidatePath("/minha-conta")
+      revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
+    }
+    return deResultado(usado, usado.ok ? `Dias do banco usados. O anúncio fica no caderno até ${formatarDia(usado.valor.expiraEm)}.` : undefined)
+  }
+  const resultado = await container().solicitarRenovacao.executar({ usuarioId: usuario.id, email: usuario.email, anuncioId, planoCodigo, dias })
   if (resultado.ok) revalidatePath(`/minha-conta/anuncios/${anuncioId}`)
   return deResultado(resultado, "Cobrança gerada. Pague o Pix abaixo.")
 }

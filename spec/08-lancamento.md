@@ -100,7 +100,7 @@ As peças 7.6 a 7.9 entram como valores de catálogo (Art. 2), na mesma tinta, e
 
 Vêm de *Próximos passos sugeridos* e do §4 de `07-insights.md` e do *Depois* da spec 010.
 
-- [ ] **8.1** Créditos (carteira) para renovar com um clique. *2026-11-15: o Álvaro propôs o "banco de anúncios e dias"; vira a feature 017, à espera da confirmação dele (`features/015-convites-de-cortesia/spec.md`).*
+- [ ] **8.1** Créditos (carteira) para renovar com um clique. *2026-11-15: o Álvaro propôs o "banco de anúncios e dias"; vira a feature 017 (`features/017-banco-de-dias`). Etapa 1 feita em 2026-11-16: saldo, presente, usar dias e tabela proporcional; comprar dias pelo Pix fica para a etapa 2.*
 - [x] **8.2** E-mail "seu anúncio vence amanhã, renove". Precisa de agendador diário. *2026-11-12: feito na feature 012 (`features/012-aviso-de-vencimento`, ADR-17), a pedido do Álvaro. O primeiro aviso de verdade deve ser o do Astra, em 17/11.*
 - [ ] **8.3** E-mail "seu anúncio está no ar", com os links para divulgar.
 - [ ] **8.4** Aviso de chamado novo para o administrador.

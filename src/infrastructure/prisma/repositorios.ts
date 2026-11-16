@@ -69,9 +69,16 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
     return (await this.db.usuario.count({ where: { cpf } })) > 0
   }
 
-  async inserir(usuario: NovoUsuario) {
-    const { id } = await this.db.usuario.create({ data: { ...usuario, emailCanonico: emailCanonico(usuario.email) }, select: { id: true } })
+  async inserir(usuario: NovoUsuario, ipDoCadastro: string | null = null) {
+    const { id } = await this.db.usuario.create({
+      data: { ...usuario, emailCanonico: emailCanonico(usuario.email), ipDoCadastro: ipDoCadastro?.slice(0, 64) ?? null },
+      select: { id: true },
+    })
     return id
+  }
+
+  async contarCadastrosDesde(ip: string, desde: Date) {
+    return this.db.usuario.count({ where: { ipDoCadastro: ip.slice(0, 64), criadoEm: { gte: desde } } })
   }
 
   async atualizar(usuario: UsuarioRegistro) {

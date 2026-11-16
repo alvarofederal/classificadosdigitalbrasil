@@ -1,5 +1,7 @@
-// INFRAESTRUTURA — repositórios Prisma de planos, pagamentos, configuração do Pix e chamados.
+// INFRAESTRUTURA — repositórios Prisma de planos, pagamentos, configuração do Pix, banco de dias e chamados.
 
+import type { BancoDeDiasRepository, ReferenciasDoMovimento } from "@/application/ports/banco"
+import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type {
   AnuncioRegistro,
   ChamadoRegistro,
@@ -70,7 +72,7 @@ export class PrismaPlanoRepository implements PlanoRepository {
 // ── Pagamentos ──
 
 function origem(valor: string | null): OrigemDoPagamento {
-  return valor === "MERCADO_PAGO" || valor === "CORTESIA" ? valor : null
+  return valor === "MERCADO_PAGO" || valor === "CORTESIA" || valor === "BANCO" ? valor : null
 }
 
 export function paraPagamento(linha: Pagamento): PagamentoRegistro {
@@ -156,6 +158,66 @@ export class PrismaConfiguracaoRepository implements ConfiguracaoRepository {
 
   async salvar(cfg: Configuracao) {
     await this.db.configuracao.upsert({ where: { id: "geral" }, update: cfg, create: { id: "geral", ...cfg } })
+  }
+
+  /** Feature 017 (RF-174). Sem a linha de configuração, vale o padrão: ligado. */
+  async presenteLigado() {
+    const linha = await this.db.configuracao.findUnique({ where: { id: "geral" }, select: { presenteLigado: true } })
+    return linha?.presenteLigado ?? true
+  }
+
+  async ligarPresente(ligado: boolean) {
+    await this.db.configuracao.upsert({ where: { id: "geral" }, update: { presenteLigado: ligado }, create: { id: "geral", presenteLigado: ligado } })
+  }
+}
+
+// ── Banco de dias (feature 017, ADR-21) ──
+
+const COLUNA_DO_TIPO = { SIMPLES: "bancoDiasSimples", FOTOS: "bancoDiasFotos" } as const
+
+export class PrismaBancoDeDiasRepository implements BancoDeDiasRepository {
+  constructor(private readonly db: PrismaClient) {}
+
+  async saldo(usuarioId: string): Promise<SaldoDoBanco> {
+    const linha = await this.db.usuario.findUnique({ where: { id: usuarioId }, select: { bancoDiasSimples: true, bancoDiasFotos: true } })
+    return { SIMPLES: linha?.bancoDiasSimples ?? 0, FOTOS: linha?.bancoDiasFotos ?? 0 }
+  }
+
+  async creditar(usuarioId: string, tipo: TipoDeDia, dias: number, motivo: MotivoDoMovimento, referencias: ReferenciasDoMovimento = {}) {
+    await this.db.$transaction([
+      this.db.usuario.update({ where: { id: usuarioId }, data: { [COLUNA_DO_TIPO[tipo]]: { increment: dias } } }),
+      this.db.movimentoDoBanco.create({ data: { usuarioId, planoCodigo: tipo, dias, motivo, anuncioId: referencias.anuncioId ?? null, pagamentoId: referencias.pagamentoId ?? null } }),
+    ])
+  }
+
+  /** RN-173: o UPDATE só acontece com saldo suficiente; o extrato entra na mesma transação. */
+  async debitar(usuarioId: string, tipo: TipoDeDia, dias: number, referencias: ReferenciasDoMovimento = {}) {
+    const coluna = COLUNA_DO_TIPO[tipo]
+    return this.db.$transaction(async (tx) => {
+      const { count } = await tx.usuario.updateMany({ where: { id: usuarioId, [coluna]: { gte: dias } }, data: { [coluna]: { decrement: dias } } })
+      if (count !== 1) return false
+      await tx.movimentoDoBanco.create({
+        data: { usuarioId, planoCodigo: tipo, dias: -dias, motivo: "USO", anuncioId: referencias.anuncioId ?? null, pagamentoId: referencias.pagamentoId ?? null },
+      })
+      return true
+    })
+  }
+
+  /** RN-174: só quem ainda não recebeu (presenteEm nulo); duas confirmações ao mesmo tempo não dão dois presentes. */
+  async darPresente(usuarioId: string, presente: SaldoDoBanco, quando: Date) {
+    return this.db.$transaction(async (tx) => {
+      const { count } = await tx.usuario.updateMany({
+        where: { id: usuarioId, presenteEm: null },
+        data: { presenteEm: quando, bancoDiasSimples: { increment: presente.SIMPLES }, bancoDiasFotos: { increment: presente.FOTOS } },
+      })
+      if (count !== 1) return false
+      await tx.movimentoDoBanco.createMany({
+        data: (["SIMPLES", "FOTOS"] as const)
+          .filter((tipo) => presente[tipo] > 0)
+          .map((tipo) => ({ usuarioId, planoCodigo: tipo, dias: presente[tipo], motivo: "BOAS_VINDAS" as const, criadoEm: quando })),
+      })
+      return true
+    })
   }
 }
 

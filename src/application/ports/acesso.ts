@@ -28,7 +28,10 @@ export interface UsuarioRepository {
   /** RN-01 com RN-155: compara pelo e-mail canônico, então "fulano+x@gmail.com" acha "fulano@gmail.com". */
   existeEmail(email: string, excetoUsuarioId?: string): Promise<boolean>
   existeCpf(cpf: string): Promise<boolean>
-  inserir(usuario: NovoUsuario): Promise<string>
+  /** RN-176: a conexão de onde a conta foi criada fica guardada. */
+  inserir(usuario: NovoUsuario, ipDoCadastro?: string | null): Promise<string>
+  /** RN-176: quantas contas foram criadas por esta conexão desde o instante dado. */
+  contarCadastrosDesde(ip: string, desde: Date): Promise<number>
   atualizar(usuario: UsuarioRegistro): Promise<void>
   registrarAcesso(usuarioId: string, quando: Date): Promise<void>
 }

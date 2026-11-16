@@ -108,11 +108,9 @@ const schemaPlano = z.object({
   nome: texto,
   descricao: texto,
   maxFotos: inteiro("Entre 0 e 6 fotos."),
-  // Feature 009: um campo por período; em branco = período fora de venda.
+  // Feature 009: um campo por período; em branco = período fora de venda. 10 e 20 dias saíram em 2026-11-15 (RN-180).
   preco7: reaisOpcional(VALOR_INVALIDO),
-  preco10: reaisOpcional(VALOR_INVALIDO),
   preco15: reaisOpcional(VALOR_INVALIDO),
-  preco20: reaisOpcional(VALOR_INVALIDO),
   preco30: reaisOpcional(VALOR_INVALIDO),
   ativo: checkbox,
 })
@@ -122,9 +120,9 @@ export async function salvarPlanoAction(codigo: string, formData: FormData): Pro
   if (!admin) return NAO_AUTORIZADO
   const lido = lerFormulario(schemaPlano, formData)
   if (!lido.ok) return lido.estado
-  const { preco7, preco10, preco15, preco20, preco30, ...resto } = lido.dados
+  const { preco7, preco15, preco30, ...resto } = lido.dados
   const precos: Precos = {}
-  for (const [dias, valor] of [[7, preco7], [10, preco10], [15, preco15], [20, preco20], [30, preco30]] as const) {
+  for (const [dias, valor] of [[7, preco7], [15, preco15], [30, preco30]] as const) {
     if (valor !== null) precos[dias] = valor
   }
   const resultado = await container().atualizarPlano.executar(codigo, { ...resto, precos })
@@ -237,4 +235,14 @@ export async function enviarEmailDeTesteAction(): Promise<EstadoFormulario> {
   if (!admin) return NAO_AUTORIZADO
   const resultado = await container().enviarEmailDeTeste.executar({ nome: admin.nome, email: admin.email })
   return deResultado(resultado, `E-mail de teste enviado para ${admin.email}. Confira a caixa de entrada e o spam.`)
+}
+
+// ── Presente de boas-vindas (feature 017: RF-174) ──
+
+export async function ligarPresenteAction(ligado: boolean): Promise<EstadoFormulario> {
+  const admin = await autorizar("ADMIN")
+  if (!admin) return NAO_AUTORIZADO
+  await container().configuracao.ligarPresente(ligado)
+  revalidatePath("/painel/configuracoes")
+  return { ok: true, mensagem: ligado ? "Presente de boas-vindas ligado." : "Presente de boas-vindas desligado. Contas confirmadas a partir de agora não ganham os dias." }
 }

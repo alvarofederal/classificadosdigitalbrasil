@@ -96,6 +96,17 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-155 | O e-mail antigo recebe um aviso quando a troca acontece. |
 | RF-156 | O Painel marca, na lista de usuários, quem não confirmou o e-mail. |
 
+### Banco de dias (feature 017)
+
+| ID | Requisito |
+|---|---|
+| RF-170 | Minha conta mostra no alto o saldo do banco: dias sem foto e dias com foto. |
+| RF-171 | A página Banco de dias lista o saldo e cada entrada e saída, com data, tipo, quantidade, motivo e anúncio. |
+| RF-172 | Ao criar o anúncio, quem tem saldo escolhe entre Pix e dias do banco, e quantos dias usar. |
+| RF-173 | No anúncio vencido, no ar ou desativado, a mesma escolha vale para renovar ou prolongar. |
+| RF-174 | Painel → Configurações liga e desliga o presente de boas-vindas. |
+| RF-175 | Painel → Usuários mostra o saldo do banco de cada conta. |
+
 ### Cartaz com VENDE-SE (feature 019)
 
 | ID | Requisito |
@@ -171,6 +182,18 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-157 | Criar a senha nova pelo código também confirma o e-mail. |
 | RN-158 | Sem servidor de e-mail o código não sai e a tela avisa; fora da produção, a carta vai para o terminal. |
 | RN-159 | A carta do código leva só o primeiro nome, diz para que serve e lembra que o site nunca pede o código por telefone ou mensagem. |
+| RN-170 | O banco guarda dias de dois tipos: sem foto (plano Simples) e com foto (plano Com foto). |
+| RN-171 | Usar dias do banco publica ou prolonga no plano do tipo de dia usado; anúncio Com foto em prazo só recebe dias com foto. |
+| RN-172 | Anúncio novo ou vencido usa no mínimo 7 dias do banco; anúncio em prazo (no ar ou desativado) aceita a partir de 1. |
+| RN-173 | Nunca se usa mais do que o saldo; o desconto é condicionado ao saldo, e se a publicação falhar os dias voltam, com registro. |
+| RN-174 | Presente de boas-vindas: 7 dias sem foto e 7 com foto, uma vez, ao confirmar o e-mail; não ganham administrador, conta desativada e e-mail de teste; desligado no Painel, ninguém ganha. |
+| RN-175 | As contas de anunciante existentes em 2026-11-15, ativas e sem e-mail de teste, receberam o presente na migration. |
+| RN-176 | No máximo 5 contas novas pela mesma conexão em 24 horas; a conexão do cadastro fica guardada. |
+| RN-177 | Os dias do banco não vencem. |
+| RN-178 | Toda entrada e saída do banco fica no extrato. |
+| RN-179 | Usar dias do banco cancela a cobrança Pix em aberto do anúncio; se o Pix já foi pago, o uso é recusado e os dias voltam. |
+| RN-180 | Tabela proporcional: o dia custa o mesmo em 7, 15 e 30 dias (sem foto R$ 1,00, R$ 2,14, R$ 4,29; com foto R$ 10,00, R$ 21,43, R$ 42,86); 10 e 20 dias saíram da venda. |
+| RN-181 | O uso do banco aparece nos pagamentos do anúncio como "Dias do banco", com valor zero. |
 | RN-190 | O cartaz já vem com VENDE-SE, menos em Empregos, Serviços, Festas e Eventos, Turismo e Lazer e Música, Arte e Cultura, que vêm com CLASSIFICADOS. |
 | RN-191 | A palavra escolhida vai no endereço (`?titulo=`) e não fica gravada no anúncio; valor desconhecido vale como o padrão da seção. |
 | RN-192 | Voltar ao cartaz antigo em todas as seções é trocar o padrão no domínio (`tituloPadraoDoCartaz`). |

@@ -75,6 +75,7 @@ export default async function Usuarios({ searchParams }: { searchParams: Promise
               <th>Cidade</th>
               <th>Cadastro</th>
               <th>Anúncios</th>
+              <th title="Banco de dias: sem foto · com foto">Banco</th>
               <th>Pagamento</th>
               <th>Pago</th>
             </tr>
@@ -100,6 +101,10 @@ export default async function Usuarios({ searchParams }: { searchParams: Promise
                   <td>{cidade ? `${cidade.nome}/${cidade.uf}` : "—"}</td>
                   <td>{formatarDia(u.criadoEm)}</td>
                   <td>{u.totalAnuncios}</td>
+                  {/* Feature 017 (RF-175): dias sem foto · com foto. */}
+                  <td className="whitespace-nowrap">
+                    {u.banco.SIMPLES} · {u.banco.FOTOS}
+                  </td>
                   <td>
                     <span
                       className={cn(
@@ -127,7 +132,7 @@ export default async function Usuarios({ searchParams }: { searchParams: Promise
             })}
             {lista.itens.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-tinta-suave">
+                <td colSpan={8} className="py-6 text-center text-tinta-suave">
                   Nenhum usuário encontrado.
                 </td>
               </tr>

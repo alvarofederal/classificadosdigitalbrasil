@@ -8,12 +8,13 @@ export const SITUACOES_DO_PAGAMENTO = {
 
 export type SituacaoDoPagamento = keyof typeof SITUACOES_DO_PAGAMENTO
 
-/** De onde veio o pagamento: Pix estático (null), gateway automático ou cortesia do admin (RF-84). */
-export type OrigemDoPagamento = "MERCADO_PAGO" | "CORTESIA" | null
+/** De onde veio o pagamento: Pix estático (null), gateway automático, cortesia do admin (RF-84) ou dias do banco (RN-181). */
+export type OrigemDoPagamento = "MERCADO_PAGO" | "CORTESIA" | "BANCO" | null
 
 export const ORIGENS_DO_PAGAMENTO: Record<string, string> = {
   MERCADO_PAGO: "Pix automático",
   CORTESIA: "Cortesia",
+  BANCO: "Dias do banco",
 }
 
 /** Código da cobrança: vai no Pix como referência e aparece no extrato do recebedor. */
