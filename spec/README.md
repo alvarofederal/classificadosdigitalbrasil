@@ -47,7 +47,7 @@ A memória do projeto é esta pasta, não a conversa (Art. 7 da constituição).
 | `features/012-aviso-de-vencimento` | E-mail "seu anúncio sai do caderno amanhã", pelo agendador diário | Feito em 2026-11-12; primeiro aviso esperado em 17/11 |
 | `features/013-visitas-do-anuncio` | Visitas por pessoa, dia e cidade, sem guardar IP, na lista e na tela do anúncio | Feito em 2026-11-12 |
 | `features/011-google` | Anúncios no sitemap e dados estruturados para o Google | Entregue (2026-11-12); site no Search Console com o sitemap enviado |
-| `features/015-convites-de-cortesia` | Convites: 5 por conta, por e-mail ou WhatsApp; quem convida ganha 7 dias com foto quando o amigo publica | Feito em 2026-11-16; espera o OK para publicar |
+| `features/015-convites-de-cortesia` | Convites: 5 por conta, por e-mail ou WhatsApp; quem convida ganha 7 dias com foto quando o amigo publica | No ar desde 2026-11-16 |
 | `features/016-codigo-por-email` | Código de 6 números por e-mail no cadastro, na troca de e-mail e no "esqueci a senha" | No ar desde 2026-11-15 |
 | `features/017-banco-de-dias` | Banco de dias: saldo e extrato, presente de boas-vindas, usar dias para publicar e renovar, tabela proporcional | Etapa 1 no ar desde 2026-11-16; etapa 2 (compra pelo Pix) a fazer |
 | `features/022-qr-code-do-anuncio` | QR Code do sistema na página do anúncio, nas imagens de divulgação, no cartaz e para baixar | No ar desde 2026-11-16 |
