@@ -155,6 +155,13 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-190 | O alto do cartaz A4 traz uma palavra grande: VENDE-SE, ALUGA-SE ou CLASSIFICADOS; com as duas primeiras, o jornal, a cidade e a seção vão numa linha menor logo abaixo. |
 | RF-191 | Acima do cartaz, fora da impressão, quem vai imprimir escolhe a palavra. |
 
+### Cabeçalho de ponta a ponta (feature 023)
+
+| ID | Requisito |
+|---|---|
+| RF-230 | Abaixo da manchete CLASSIFICADOS vem DIGITAIS DO BRASIL numa linha da mesma largura, do C ao S, em qualquer largura de tela, na capa e no cabeçalho menor. |
+| RF-231 | A linha fina abaixo do nome mostra o lugar da página: cidade e UF (BRASÍLIA · DF) na cidade, na seção e no anúncio; TODO O BRASIL nas outras. O preço continua à direita. |
+
 ## Regras de negócio
 
 | ID | Regra |
@@ -258,6 +265,9 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-190 | O cartaz já vem com VENDE-SE, menos em Empregos, Serviços, Festas e Eventos, Turismo e Lazer e Música, Arte e Cultura, que vêm com CLASSIFICADOS. |
 | RN-191 | A palavra escolhida vai no endereço (`?titulo=`) e não fica gravada no anúncio; valor desconhecido vale como o padrão da seção. |
 | RN-192 | Voltar ao cartaz antigo em todas as seções é trocar o padrão no domínio (`tituloPadraoDoCartaz`). |
+| RN-230 | A cidade do cabeçalho vem do endereço ou, no anúncio, da cidade do anúncio; cidade que não existe e anúncio fora do ar mostram TODO O BRASIL. |
+| RN-231 | O texto do lugar sai de uma função só (`lugarDoCabecalho`): "Cidade · UF", ou "Todo o Brasil" sem cidade. |
+| RN-232 | DIGITAIS DO BRASIL acompanha o tamanho da manchete e divide o espaço entre as letras por igual; entre as palavras o espaço é maior. |
 
 ## Requisitos não funcionais
 

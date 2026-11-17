@@ -10,27 +10,18 @@ import { Divulgar } from "@/components/jornal/divulgar"
 import { QrCodeDoAnuncio } from "@/components/jornal/qr-code"
 import { Galeria } from "@/components/jornal/galeria"
 import { AvisoDeVisita } from "@/components/visitas/aviso-de-visita"
-import { codigoValido } from "@/domain/anuncio/anuncio"
 import { planoTemDestaque } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
 import { dadosEstruturadosDoAnuncio, jsonLdSeguro } from "@/lib/dados-estruturados"
 import { formatarDia, formatarReais } from "@/lib/formatadores"
 import { precoInicial } from "@/lib/planos"
 import { caminhoDaSecao, urlDoSite } from "@/lib/site"
+import { buscarAnuncio } from "./buscar"
 
 type Props = { params: Promise<{ codigo: string }> }
 
-async function buscar(codigoParam: string) {
-  const codigo = codigoParam.toUpperCase()
-  if (!codigoValido(codigo)) return null
-  const c = container()
-  const anuncio = await c.classificados.anuncioNoAr(codigo, c.relogio.agora())
-  const cidade = anuncio ? c.localidades.cidade(anuncio.cidadeCodigo) : null
-  return anuncio && cidade ? { anuncio, cidade } : null
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const achado = await buscar((await params).codigo)
+  const achado = await buscarAnuncio((await params).codigo)
   if (!achado) return { title: "Anúncio fora do ar", robots: { index: false } }
   const { anuncio, cidade } = achado
   const preco = anuncio.precoCentavos !== null ? ` · ${formatarReais(anuncio.precoCentavos)}` : ""
@@ -46,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PaginaDoAnuncio({ params }: Props) {
   const c = container()
-  const achado = await buscar((await params).codigo)
+  const achado = await buscarAnuncio((await params).codigo)
   const planos = await c.classificados.planosAVenda()
 
   // RN-70: fora do ar não é erro; é convite para anunciar.

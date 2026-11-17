@@ -28,12 +28,13 @@ As variáveis das fontes do `next/font` ficam em `<html>` (não no `<body>`): é
 | Papel | Fonte |
 |---|---|
 | Manchete "CLASSIFICADOS" | Anton |
+| "DIGITAIS DO BRASIL" abaixo da manchete | Oswald seminegrito, 0,2 do tamanho da manchete |
 | Títulos, tarjas, rótulos, botões | Oswald (caixa alta) |
 | Texto dos anúncios e páginas | PT Serif |
 
 ## Peças
 
-- **Cabeçalho**: fio grosso, manchete, fio duplo, linha com data por extenso, "Digitais do Brasil" e o preço do anúncio.
+- **Cabeçalho** (`components/jornal/cabecalho.tsx`): linha de cima com a data por extenso (some no celular) e os links; a manchete CLASSIFICADOS com DIGITAIS DO BRASIL logo abaixo, de ponta a ponta, do C ao S, com as letras espalhadas por igual e o tamanho acompanhando o da manchete (feature 023); linha fina entre dois fios com o lugar da página à esquerda (BRASÍLIA · DF, ou TODO O BRASIL) e o preço do anúncio à direita. O mesmo cabeçalho, menor, nas páginas de acesso, como funciona e Minha conta.
 - **Faixa** (`.faixa`): tarja preta das seções.
 - **Colunas** (`.colunas-jornal`): os quadrados descem em colunas com fio entre elas (1 no celular, até 4 no computador).
 - **Caixa do anúncio** (`components/jornal/caixa-anuncio.tsx`): moldura, título, texto, preço, estrelas e o rodapé com ícone de conversa, código e ícone de álbum. É a mesma peça no caderno, na prévia do editor e na página do anúncio.
