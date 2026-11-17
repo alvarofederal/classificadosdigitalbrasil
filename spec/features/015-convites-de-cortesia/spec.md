@@ -37,7 +37,7 @@ As seis perguntas do rascunho de 14/11 foram respondidas, e duas ideias novas mu
 | 1 | 016 · Código por e-mail: no cadastro, na troca de e-mail e no "esqueci a senha" (hoje não existe) | Decidido; pode começar |
 | 2 | 017 · Banco de anúncios: saldo em dias, presente de boas-vindas, compra pelo Pix, uso para publicar e renovar | Decidido em 2026-11-15 (banco em dias, preço proporcional) |
 | 3 | 015 · Convites (esta pasta): 5 por conta, e-mail e WhatsApp, prêmio pelo banco | Depende da 016 e da 017 |
-| 4 | 018 · Expirados por 180 dias e mensagens por 90 (regra da OLX) | Decidido; independe das outras |
+| 4 | 018 · Expirados por 180 dias e mensagens por 90 (regra da OLX) | Feito em 2026-11-17 (`features/018-vencidos-e-mensagens`) |
 
 O cartaz VENDE-SE (5.4) é uma mudança pequena no cartaz da feature 005; aprovado em 2026-11-15, vira a feature 019.
 

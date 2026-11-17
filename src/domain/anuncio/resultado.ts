@@ -18,7 +18,7 @@ export function fechouNegocio(resultado: ResultadoDoAnuncio | null): boolean {
   return resultado === "PELO_CLASSIFICADOS" || resultado === "POR_OUTRO_LUGAR"
 }
 
-/** RN-210: só anúncio que já esteve no caderno e não foi removido. */
+/** RN-210: só anúncio que já esteve no caderno e não foi removido (nem apagado, feature 018: RN-189). */
 export function podePerguntarResultado(anuncio: { publicadoEm: Date | null; situacao: string }): boolean {
-  return anuncio.publicadoEm !== null && anuncio.situacao !== "REMOVIDO"
+  return anuncio.publicadoEm !== null && anuncio.situacao !== "REMOVIDO" && anuncio.situacao !== "APAGADO"
 }

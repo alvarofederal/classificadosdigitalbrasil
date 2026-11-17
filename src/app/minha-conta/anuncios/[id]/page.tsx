@@ -1,4 +1,5 @@
-// APRESENTAÇÃO — um anúncio do anunciante: pagamento, visitas (feature 013), texto e formatação, álbum, mensagens e histórico.
+// APRESENTAÇÃO — um anúncio do anunciante: pagamento, visitas (feature 013), texto e formatação, álbum, mensagens e histórico,
+// e até quando o vencido fica guardado (feature 018: RF-181).
 
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -7,6 +8,7 @@ import { Faixa } from "@/components/jornal/pecas"
 import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, avisoDoRecemCriado, situacaoExibida } from "@/domain/anuncio/anuncio"
 import { textoParaDivulgar } from "@/domain/anuncio/divulgacao"
+import { DIAS_DAS_MENSAGENS, DIAS_DO_NUNCA_PUBLICADO, guardadoAte, mensagensAte, mensagensVencidas } from "@/domain/anuncio/guarda"
 import { podePerguntarResultado } from "@/domain/anuncio/resultado"
 import { ORIGENS_DO_PAGAMENTO, SITUACOES_DO_PAGAMENTO } from "@/domain/pagamento/pagamento"
 import { container } from "@/infrastructure/container"
@@ -97,6 +99,19 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
           )}
         </div>
       </div>
+
+      {/* Feature 018 (RF-181, RN-182, RN-184): até quando o anúncio fica guardado. */}
+      {situacao === "EXPIRADO" && (
+        <p className="border-2 border-tinta px-3 py-2 text-sm">
+          Guardado em Expirados até <strong>{formatarDia(guardadoAte(anuncio))}</strong>. Renovando antes, ele volta ao caderno com o mesmo texto e as mesmas fotos.
+          Depois dessa data, é apagado de vez, com o texto, as fotos e as mensagens.
+        </p>
+      )}
+      {situacao === "AGUARDANDO_PAGAMENTO" && (
+        <p className="text-sm text-tinta-suave">
+          Anúncio que não vai ao caderno fica guardado por {DIAS_DO_NUNCA_PUBLICADO} dias depois de criado: este, até {formatarDia(guardadoAte(anuncio))}.
+        </p>
+      )}
 
       {(situacao === "NO_AR" || situacao === "DESATIVADO") && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border border-fio px-3 py-2 text-sm">
@@ -226,9 +241,18 @@ export default async function MeuAnuncio({ params, searchParams }: Props) {
         <h2 id="titulo-mensagens" className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">
           Mensagens recebidas ({anuncio.mensagens.length})
         </h2>
-        {c.correio.ligado && (
+        {c.correio.ligado && situacao !== "EXPIRADO" && (
           <p className="text-sm">
             Quando chega mensagem, avisamos em <strong>{usuario.email}</strong>.
+          </p>
+        )}
+        {/* Feature 018 (RF-181, RN-183): as mensagens do vencido ficam 90 dias. */}
+        {situacao === "EXPIRADO" && (
+          <p className="text-sm">
+            {mensagensVencidas(anuncio, agora)
+              ? `As mensagens deste anúncio foram apagadas ${DIAS_DAS_MENSAGENS} dias depois do vencimento.`
+              : `As mensagens ficam para leitura até ${formatarDia(mensagensAte(anuncio))}, ${DIAS_DAS_MENSAGENS} dias depois do vencimento.`}{" "}
+            Renovando, o anúncio volta a receber mensagens.
           </p>
         )}
         {anuncio.mensagens.length === 0 ? (

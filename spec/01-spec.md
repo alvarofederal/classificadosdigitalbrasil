@@ -107,6 +107,17 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-174 | Painel → Configurações liga e desliga o presente de boas-vindas. |
 | RF-175 | Painel → Usuários mostra o saldo do banco de cada conta. |
 
+### Vencidos e mensagens (feature 018)
+
+| ID | Requisito |
+|---|---|
+| RF-180 | Minha conta mostra os vencidos à parte, em *Expirados*, com o dia em que venceu, até quando fica guardado e até quando as mensagens podem ser lidas. |
+| RF-181 | A tela do anúncio vencido diz até quando ele fica guardado e até quando as mensagens ficam; a do anúncio que nunca foi ao ar diz em que dia ele é apagado se não for publicado. |
+| RF-182 | Uma vez por dia, pelo agendador, o site apaga as mensagens dos vencidos há mais de 90 dias, os anúncios vencidos há mais de 180 dias e os nunca publicados criados há mais de 180 dias. |
+| RF-183 | Sete dias antes de apagar um vencido, o dono recebe um e-mail com o dia em que ele será apagado e o botão para renovar. |
+| RF-184 | O Painel mostra a situação Apagado, filtra por ela e mostra o que ficou do anúncio apagado; sem filtro, a lista não mostra os apagados. |
+| RF-185 | O e-mail do vencimento, os termos e as perguntas frequentes dizem que o vencido fica guardado por 180 dias e as mensagens por 90. |
+
 ### Kit de divulgação (feature 020)
 
 | ID | Requisito |
@@ -246,6 +257,14 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-179 | Usar dias do banco cancela a cobrança Pix em aberto do anúncio; se o Pix já foi pago, o uso é recusado e os dias voltam. |
 | RN-180 | Tabela proporcional: o dia custa o mesmo em 7, 15 e 30 dias (sem foto R$ 1,00, R$ 2,14, R$ 4,29; com foto R$ 10,00, R$ 21,43, R$ 42,86); 10 e 20 dias saíram da venda. |
 | RN-181 | O uso do banco aparece nos pagamentos do anúncio como "Dias do banco", com valor zero. |
+| RN-182 | O vencido (publicado ou desativado com o prazo passado) fica guardado por 180 dias contados do fim do prazo, podendo ser editado e renovado como está; renovar muda o fim, e a contagem recomeça. |
+| RN-183 | As mensagens do vencido ficam para leitura por 90 dias contados do fim do prazo e depois são apagadas; renovando, o anúncio volta a receber mensagens e as que existiam continuam. |
+| RN-184 | O anúncio que nunca foi ao ar é apagado 180 dias depois de criado, sem e-mail. |
+| RN-185 | Apagar tira o anúncio de Minha conta e apaga título, texto, preço, fotos (também no Cloudinary), mensagens e visitas por pessoa; ficam código (nunca reaproveitado), cidade, seção, plano, datas, total de visitas, a resposta do "Fechou negócio?" e os pagamentos. |
+| RN-186 | Antes de apagar, a cobrança Pix em aberto é cancelada, também no Mercado Pago; se o Pix já foi pago, o anúncio não é apagado nessa rodada. |
+| RN-187 | Um e-mail antes de apagar por fim de prazo; rodar duas vezes não manda dois. Não recebem conta desativada e e-mail de teste (RN-122); sem servidor de e-mail nada é enviado nem marcado; a falha desfaz a marca. |
+| RN-188 | Anúncio removido não entra na limpeza. |
+| RN-189 | Apagado não volta: não se edita, não se renova, não recebe fotos, mensagens nem pagamento. Por rodada, no máximo 100 anúncios apagados e 200 e-mails. |
 | RN-200 | As imagens do kit só existem para anúncio no ar; fora do ar, "não encontrado". |
 | RN-201 | Imagens e texto pronto mostram só o que a página pública mostra; nunca dados do dono. |
 | RN-202 | A foto entra só se o anúncio tiver foto; sem foto, o texto sai maior. |

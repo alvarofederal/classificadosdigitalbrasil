@@ -139,7 +139,8 @@ export class EditarAnuncioUseCase {
   /** RN-11: o texto e a formatação mudam a qualquer momento; o tempo no ar não muda. */
   async executar(ator: Ator, anuncioId: string, entrada: ConteudoDoAnuncio): Promise<Result<true>> {
     const anuncio = await this.anuncios.buscarPorId(anuncioId)
-    if (!anuncio || !podeMexer(ator, anuncio)) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
+    // Feature 018 (RN-189): do apagado só fica o registro mínimo; não há o que editar.
+    if (!anuncio || !podeMexer(ator, anuncio) || anuncio.situacao === "APAGADO") return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
     if (anuncio.situacao === "REMOVIDO") return falha("ANUNCIO_REMOVIDO", "Anúncio removido não pode ser editado.")
 
     const conteudo = normalizarConteudo(entrada)
@@ -163,7 +164,8 @@ export class RemoverAnuncioUseCase {
   async executar(ator: Ator, anuncioId: string): Promise<Result<true>> {
     const anuncio = await this.anuncios.buscarPorId(anuncioId)
     if (!anuncio || !podeMexer(ator, anuncio)) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
-    if (anuncio.situacao === "REMOVIDO") return ok(true)
+    // Feature 018 (RN-189): o apagado continua apagado.
+    if (anuncio.situacao === "REMOVIDO" || anuncio.situacao === "APAGADO") return ok(true)
     await this.anuncios.atualizar({ ...anuncio, situacao: "REMOVIDO" })
     // RN-87: o Pix pendente deixa de ser pagável no gateway. A remoção não depende disso.
     const pendente = await this.pagamentos.pendenteDoAnuncio(anuncio.id)

@@ -164,6 +164,10 @@ export default async function ComoFunciona({ searchParams }: { searchParams: Pro
           <Pergunta pergunta="Quanto tempo o anúncio fica no ar?">
             Pelo período escolhido no plano. Para continuar, renove: os dias novos entram depois dos que ainda restam.
           </Pergunta>
+          <Pergunta pergunta="O que acontece com o anúncio vencido?">
+            Fica guardado em Minha conta, em Expirados, por 180 dias, e pode ser renovado sem reescrever. Depois disso é apagado. As mensagens
+            ficam para leitura por 90 dias depois do vencimento.
+          </Pergunta>
           <Pergunta pergunta="Quando o anúncio entra no caderno?">Logo depois que o Pix é confirmado. A tela de pagamento avisa quando cai.</Pergunta>
           <Pergunta pergunta="Posso mudar o texto depois de publicado?">Sim. Texto, preço e formatação mudam a qualquer momento, sem pagar de novo.</Pergunta>
           <Pergunta pergunta="Quantas fotos posso colocar?">Depende do plano. Veja a tabela de valores.</Pergunta>

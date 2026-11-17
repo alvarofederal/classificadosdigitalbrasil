@@ -1,8 +1,10 @@
 // APRESENTAÇÃO — o anúncio pelo admin: editar, fotos, publicar como cortesia, confirmar Pix, visitas, mensagens (feature 007: RF-84, RF-93; feature 013: RF-133).
+// O anúncio apagado pela rodada dos vencidos tem tela própria, só com o que ficou (feature 018: RF-184).
 
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import type { AnuncioDoPainelDTO } from "@/application/queries/consultas"
 import { Faixa } from "@/components/jornal/pecas"
 import { SecaoDeVisitas } from "@/components/visitas/visitas"
 import { MAXIMO_FOTOS, situacaoExibida } from "@/domain/anuncio/anuncio"
@@ -39,6 +41,7 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
   const agora = c.relogio.agora()
   const situacao = situacaoExibida(anuncio.situacao, anuncio.expiraEm, agora)
   const cidade = c.localidades.cidade(anuncio.cidadeCodigo)
+  if (anuncio.situacao === "APAGADO") return <AnuncioApagado anuncio={anuncio} lugar={cidade ? `${cidade.nome}/${cidade.uf}` : anuncio.uf} />
   const [categorias, planos, visitas] = await Promise.all([
     c.classificados.categoriasAtivas(),
     c.painel.planos(),
@@ -173,8 +176,50 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
         {anuncio.resultado ? `${RESULTADOS_DO_ANUNCIO[anuncio.resultado]} (respondido em ${formatarDataHora(anuncio.resultadoEm)})` : "Sem resposta do dono."}
       </p>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">Pagamentos</h2>
+      <Pagamentos pagamentos={anuncio.pagamentos} />
+    </div>
+  )
+}
+
+/** Feature 018 (RF-184, RN-185): do anúncio apagado ficam o código, o lugar, o plano, as datas, o dono e os pagamentos. */
+function AnuncioApagado({ anuncio, lugar }: { anuncio: AnuncioDoPainelDTO; lugar: string }) {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <Link href="/painel/anuncios?situacao=APAGADO" className="font-titulo text-xs uppercase tracking-wider hover:underline">
+          ← Anúncios apagados
+        </Link>
+        <Faixa como="h1">Anúncio apagado</Faixa>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <SeloSituacao situacao="APAGADO" />
+          <span className="font-mono">{anuncio.codigo}</span>
+          <span>
+            {anuncio.categoriaNome} · {lugar} · plano {NOMES_DOS_PLANOS[anuncio.planoCodigo]}
+          </span>
+          <span>{plural(anuncio.visualizacoes, "visita", "visitas")}</span>
+        </div>
+        <p className="text-sm">
+          Anunciante: <strong>{anuncio.anunciante.nome}</strong> · {anuncio.anunciante.email}
+        </p>
+      </div>
+      <p className="border border-fio px-3 py-2 text-sm">
+        Criado em {formatarDia(anuncio.criadoEm)}
+        {anuncio.publicadoEm ? `, publicado em ${formatarDia(anuncio.publicadoEm)}, venceu em ${formatarDia(anuncio.expiraEm)}` : ", nunca foi ao ar"} e apagado em{" "}
+        {formatarDia(anuncio.apagadoEm)} pela rodada diária. Texto, fotos, mensagens e visitas por pessoa foram apagados; o código não volta a ser usado.
+        {anuncio.resultado && ` Fechou negócio? ${RESULTADOS_DO_ANUNCIO[anuncio.resultado]}.`}
+      </p>
+      <Pagamentos pagamentos={anuncio.pagamentos} />
+    </div>
+  )
+}
+
+function Pagamentos({ pagamentos }: { pagamentos: AnuncioDoPainelDTO["pagamentos"] }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="border-b-2 border-tinta pb-1 font-titulo text-lg font-bold uppercase">Pagamentos</h2>
+      {pagamentos.length === 0 ? (
+        <p className="text-sm text-tinta-suave">Nenhum pagamento.</p>
+      ) : (
         <div className="overflow-x-auto">
           <table className="tabela">
             <thead>
@@ -190,7 +235,7 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
               </tr>
             </thead>
             <tbody>
-              {anuncio.pagamentos.map((p) => (
+              {pagamentos.map((p) => (
                 <tr key={p.id}>
                   <td className="font-mono text-xs">{p.codigo}</td>
                   <td>{NOMES_DOS_PLANOS[p.planoCodigo]}</td>
@@ -205,7 +250,7 @@ export default async function AnuncioNoPainel({ params }: { params: Promise<{ id
             </tbody>
           </table>
         </div>
-      </section>
-    </div>
+      )}
+    </section>
   )
 }

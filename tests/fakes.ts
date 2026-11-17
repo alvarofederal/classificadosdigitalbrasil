@@ -23,10 +23,12 @@ import type {
   CobrancaNoGateway,
   Configuracao,
   ConfiguracaoRepository,
+  CortesDaLimpeza,
   FotoRegistro,
   FotoRepository,
   FotoStorage,
   GatewayPix,
+  GuardaDosVencidosRepository,
   MensagemRepository,
   NovaFoto,
   PagamentoNoGateway,
@@ -40,6 +42,7 @@ import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import type { GeradorDeCodigo, Relogio, SegundoPlano } from "@/application/ports/sistema"
 import type { AnonimizadorDeVisitante, RegistroDaVisita, VisitaDaPessoa, VisitasQuery, VisitasRepository } from "@/application/ports/visitas"
 import type { Dia, LocalDaVisita, VisitasDoDia } from "@/domain/anuncio/visitas"
+import type { Situacao } from "@/domain/anuncio/anuncio"
 import type { ResultadoDoAnuncio } from "@/domain/anuncio/resultado"
 import type { MotivoDoMovimento, SaldoDoBanco, TipoDeDia } from "@/domain/banco/banco-de-dias"
 import type { Categoria } from "@/domain/categoria/categoria"
@@ -404,6 +407,113 @@ export class AvisosDeVencimentoEmMemoria implements AvisosDeVencimentoRepository
   async desmarcar(anuncioId: string, expiraEm: Date) {
     const anuncio = this.itens.find((a) => a.id === anuncioId)
     if (anuncio?.avisadoPara?.getTime() === expiraEm.getTime()) anuncio.avisadoPara = null
+  }
+}
+
+/** Feature 018: anúncios com fim de prazo, criação, fotos, mensagens e visitas, para a rodada dos vencidos (ADR-24). */
+export interface AnuncioNaGuardaDeTeste {
+  id: string
+  codigo: string
+  titulo: string
+  situacao: Situacao
+  expiraEm: Date | null
+  criadoEm: Date
+  apagadoEm: Date | null
+  avisadoPara: Date | null
+  dono: { nome: string; email: string; ativo: boolean }
+}
+
+export class GuardaEmMemoria implements GuardaDosVencidosRepository {
+  anuncios: AnuncioNaGuardaDeTeste[] = []
+  mensagens: Array<{ anuncioId: string }> = []
+  fotos: Array<{ anuncioId: string; publicId: string }> = []
+  visitas: Array<{ anuncioId: string }> = []
+  /** Simula a renovação entre a busca e a gravação: o anúncio ganha um fim novo antes de `apagar`. */
+  renovarAntesDeApagar = new Map<string, Date>()
+  /** Simula outra rodada que marcou o aviso entre a busca e a marca. */
+  outraRodadaMarcou = new Set<string>()
+
+  adicionar(a: Partial<AnuncioNaGuardaDeTeste> & Pick<AnuncioNaGuardaDeTeste, "id">, extra: { mensagens?: number; fotos?: number; visitas?: number } = {}) {
+    const anuncio: AnuncioNaGuardaDeTeste = {
+      codigo: a.id.toUpperCase().padEnd(6, "X").slice(0, 6),
+      titulo: "Vendo Gol 2010",
+      situacao: "PUBLICADO",
+      expiraEm: null,
+      criadoEm: new Date("2026-01-01T12:00:00Z"),
+      apagadoEm: null,
+      avisadoPara: null,
+      dono: { nome: "Álvaro Federal", email: "dono@exemplo.com.br", ativo: true },
+      ...a,
+    }
+    this.anuncios.push(anuncio)
+    for (let i = 0; i < (extra.mensagens ?? 0); i++) this.mensagens.push({ anuncioId: a.id })
+    for (let i = 0; i < (extra.fotos ?? 0); i++) this.fotos.push({ anuncioId: a.id, publicId: `teste/anuncios/${a.id}/foto-${i + 1}` })
+    for (let i = 0; i < (extra.visitas ?? 0); i++) this.visitas.push({ anuncioId: a.id })
+    return anuncio
+  }
+
+  buscar(id: string) {
+    return this.anuncios.find((a) => a.id === id)!
+  }
+
+  private comPrazo(a: AnuncioNaGuardaDeTeste): a is AnuncioNaGuardaDeTeste & { expiraEm: Date } {
+    return (a.situacao === "PUBLICADO" || a.situacao === "DESATIVADO") && a.expiraEm !== null
+  }
+
+  private dentroDosCortes(a: AnuncioNaGuardaDeTeste, cortes: CortesDaLimpeza) {
+    if (this.comPrazo(a)) return a.expiraEm <= cortes.vencidosAte
+    return a.situacao === "AGUARDANDO_PAGAMENTO" && a.criadoEm <= cortes.criadosAte
+  }
+
+  async apagarMensagensDeVencidos(vencidosAte: Date) {
+    const vencidos = new Set(this.anuncios.filter((a) => this.comPrazo(a) && a.expiraEm <= vencidosAte).map((a) => a.id))
+    const antes = this.mensagens.length
+    this.mensagens = this.mensagens.filter((m) => !vencidos.has(m.anuncioId))
+    return antes - this.mensagens.length
+  }
+
+  async aApagar(cortes: CortesDaLimpeza, limite: number) {
+    return this.anuncios
+      .filter((a) => this.dentroDosCortes(a, cortes))
+      .slice(0, limite)
+      .map((a) => ({ id: a.id, codigo: a.codigo }))
+  }
+
+  async apagar(anuncioId: string, cortes: CortesDaLimpeza, quando: Date) {
+    const anuncio = this.buscar(anuncioId)
+    const renovado = this.renovarAntesDeApagar.get(anuncioId)
+    if (renovado) anuncio.expiraEm = renovado
+    if (!this.dentroDosCortes(anuncio, cortes)) return null
+    Object.assign(anuncio, { situacao: "APAGADO", apagadoEm: quando, titulo: "" })
+    const publicIds = this.fotos.filter((f) => f.anuncioId === anuncioId).map((f) => f.publicId)
+    this.fotos = this.fotos.filter((f) => f.anuncioId !== anuncioId)
+    this.mensagens = this.mensagens.filter((m) => m.anuncioId !== anuncioId)
+    this.visitas = this.visitas.filter((v) => v.anuncioId !== anuncioId)
+    return { publicIds }
+  }
+
+  async aAvisar(params: { vencidosAte: Date; avisarAte: Date }, limite: number) {
+    return this.anuncios
+      .filter((a): a is AnuncioNaGuardaDeTeste & { expiraEm: Date } => this.comPrazo(a))
+      .filter((a) => a.expiraEm > params.vencidosAte && a.expiraEm <= params.avisarAte)
+      .filter((a) => a.avisadoPara === null || a.avisadoPara < params.vencidosAte)
+      .sort((a, b) => a.expiraEm.getTime() - b.expiraEm.getTime())
+      .slice(0, limite)
+      .map((a) => ({ id: a.id, codigo: a.codigo, titulo: a.titulo, expiraEm: a.expiraEm, dono: a.dono }))
+  }
+
+  async marcarAvisado(anuncioId: string, expiraEm: Date) {
+    const anuncio = this.buscar(anuncioId)
+    if (!this.comPrazo(anuncio) || anuncio.expiraEm.getTime() !== expiraEm.getTime()) return false
+    if (this.outraRodadaMarcou.has(anuncioId)) anuncio.avisadoPara = expiraEm
+    if (anuncio.avisadoPara?.getTime() === expiraEm.getTime()) return false
+    anuncio.avisadoPara = expiraEm
+    return true
+  }
+
+  async desmarcar(anuncioId: string, expiraEm: Date) {
+    const anuncio = this.buscar(anuncioId)
+    if (anuncio.avisadoPara?.getTime() === expiraEm.getTime()) anuncio.avisadoPara = null
   }
 }
 

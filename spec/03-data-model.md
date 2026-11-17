@@ -21,6 +21,8 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `visitas_anuncio` | Visitas do anúncio (feature 013, ADR-18) | anuncioId + dia (DATE, Brasília) + chave (HMAC, sem IP) como chave primária, vezes (até 20), cidade, uf, pais |
 | `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
 
+`anuncios` ganhou na migração `20261117000000_vencidos_e_mensagens` (feature 018, ADR-24): o valor `APAGADO` em `situacao`, `apagadoEm` e `avisoDeApagarPara` (o fim de prazo que já teve o e-mail de 7 dias, RN-187).
+
 `anuncios` ganhou na migração `20261116120000_resultado_do_anuncio` (feature 021): `resultado` (PELO_CLASSIFICADOS, POR_OUTRO_LUGAR, AINDA_NAO; nulo = sem resposta) e `resultadoEm`.
 
 `usuarios` ganhou na migração `20261115220000_codigo_por_email` (feature 016): `emailConfirmadoEm` (nulo = aguardando o código; as contas antigas vieram preenchidas com `criadoEm`) e `emailCanonico` (RN-155, com índice, sem `UNIQUE`).
@@ -43,3 +45,5 @@ Na migração `20261116000000_banco_de_dias` (feature 017): `usuarios` ganhou `b
 ## Situação do anúncio
 
 `AGUARDANDO_PAGAMENTO` → (Pix confirmado) → `PUBLICADO` → (data passa) expirado, sem mudar a coluna → (Pix confirmado) volta ao ar. `REMOVIDO` a qualquer momento; só o admin restaura.
+
+Feature 018: expirado há 180 dias (ou aguardando pagamento criado há 180 dias) → `APAGADO`, pela rodada diária. Não volta. As mensagens do expirado são apagadas aos 90 dias, sem mudar a situação.

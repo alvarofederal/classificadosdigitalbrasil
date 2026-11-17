@@ -80,6 +80,46 @@ export interface AvisosDeVencimentoRepository {
   desmarcar(anuncioId: string, expiraEm: Date): Promise<void>
 }
 
+// ── Guarda dos vencidos (feature 018, ADR-24) ──
+
+export interface AnuncioAApagar {
+  id: string
+  codigo: string
+}
+
+export interface CortesDaLimpeza {
+  /** RN-182: publicado ou desativado com o fim do prazo até aqui. */
+  vencidosAte: Date
+  /** RN-184: aguardando pagamento e criado até aqui. */
+  criadosAte: Date
+}
+
+export interface AnuncioParaAvisarAntesDeApagar {
+  id: string
+  codigo: string
+  titulo: string
+  expiraEm: Date
+  dono: { nome: string; email: string; ativo: boolean }
+}
+
+export interface GuardaDosVencidosRepository {
+  /** RN-183: apaga as mensagens dos anúncios publicados ou desativados com o fim do prazo até o corte, numa instrução só; devolve quantas. */
+  apagarMensagensDeVencidos(vencidosAte: Date): Promise<number>
+  /** RF-182: vencidos e nunca publicados dentro dos cortes, os mais antigos primeiro. Removidos e apagados não entram (RN-188). */
+  aApagar(cortes: CortesDaLimpeza, limite: number): Promise<AnuncioAApagar[]>
+  /**
+   * RN-185: deixa só o registro mínimo e apaga fotos, mensagens e visitas por pessoa, se o anúncio ainda estiver dentro dos cortes
+   * (renovado no meio do caminho fica de fora). Devolve os `publicId` das fotos apagadas, ou null se não apagou.
+   */
+  apagar(anuncioId: string, cortes: CortesDaLimpeza, quando: Date): Promise<{ publicIds: string[] } | null>
+  /** RF-183: vencidos com o fim do prazo em (vencidosAte, avisarAte] ainda não avisados deste fim; os que vencem antes vêm primeiro. */
+  aAvisar(params: { vencidosAte: Date; avisarAte: Date }, limite: number): Promise<AnuncioParaAvisarAntesDeApagar[]>
+  /** RN-187: marca o aviso deste fim de prazo. Falso se o fim mudou ou outra rodada já marcou. */
+  marcarAvisado(anuncioId: string, expiraEm: Date): Promise<boolean>
+  /** RN-187: desfaz a marca deste fim, para o anúncio voltar na rodada seguinte. */
+  desmarcar(anuncioId: string, expiraEm: Date): Promise<void>
+}
+
 // ── Fotos (ADR-05: upload direto e assinado ao Cloudinary) ──
 
 export interface FotoRegistro {

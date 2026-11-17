@@ -7,7 +7,8 @@ import { type Ator, podeMexer } from "./gerenciar-anuncios"
 
 async function anuncioEditavel(anuncios: AnuncioRepository, ator: Ator, anuncioId: string): Promise<AnuncioRegistro | null> {
   const anuncio = await anuncios.buscarPorId(anuncioId)
-  return anuncio && podeMexer(ator, anuncio) && anuncio.situacao !== "REMOVIDO" ? anuncio : null
+  // Feature 018 (RN-189): o apagado não recebe fotos.
+  return anuncio && podeMexer(ator, anuncio) && anuncio.situacao !== "REMOVIDO" && anuncio.situacao !== "APAGADO" ? anuncio : null
 }
 
 /** RN-51: o limite é o do plano do anúncio; o admin sempre pode até o máximo do sistema. */

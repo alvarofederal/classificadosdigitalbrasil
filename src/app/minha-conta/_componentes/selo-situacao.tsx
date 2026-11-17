@@ -1,4 +1,4 @@
-// APRESENTAÇÃO — selo da situação do anúncio (aguardando pagamento, no ar, desativado, expirado, removido).
+// APRESENTAÇÃO — selo da situação do anúncio (aguardando pagamento, no ar, desativado, expirado, removido, apagado).
 
 import { SITUACOES_EXIBIDAS, type SituacaoExibida } from "@/domain/anuncio/anuncio"
 import { cn } from "@/lib/utils"
@@ -9,6 +9,7 @@ const ESTILO: Record<SituacaoExibida, string> = {
   DESATIVADO: "border-tinta border-dashed text-tinta",
   EXPIRADO: "border-tinta-suave text-tinta-suave",
   REMOVIDO: "border-perigo text-perigo",
+  APAGADO: "border-tinta-suave border-dashed text-tinta-suave",
 }
 
 export function SeloSituacao({ situacao, className }: { situacao: SituacaoExibida; className?: string }) {

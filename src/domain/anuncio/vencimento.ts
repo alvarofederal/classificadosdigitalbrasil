@@ -1,6 +1,7 @@
 // DOMÍNIO — aviso por e-mail de que o anúncio está perto de sair do caderno (feature 012: RF-120, RN-122, RN-125).
 
 import { type Carta, NOME_DO_JORNAL, primeiroNome } from "../shared/carta"
+import { DIAS_DAS_MENSAGENS, DIAS_GUARDADO } from "./guarda"
 
 /**
  * RF-120: entram na rodada os anúncios que saem nas próximas 36 horas. Com uma rodada por dia,
@@ -79,6 +80,8 @@ export function montarAvisoDeVencimento(dados: DadosDoAvisoDeVencimento): Carta 
     botao: { rotulo: "Renovar o anúncio", url: dados.linkParaRenovar },
     observacoes: [
       "Se já vendeu, não precisa fazer nada: o anúncio sai sozinho no fim do prazo.",
+      // RF-185 (feature 018): o vencido fica guardado (RN-182).
+      `Depois do fim do prazo, o anúncio fica guardado em Minha conta por ${DIAS_GUARDADO} dias, para renovar sem reescrever. As mensagens ficam para leitura por ${DIAS_DAS_MENSAGENS} dias.`,
       // RN-125
       "Renovar é sempre pelo site, em Minha conta. O Classificados não pede pagamento por mensagem, e-mail ou telefone.",
     ],

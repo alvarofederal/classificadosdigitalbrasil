@@ -140,6 +140,8 @@ export class SolicitarRenovacaoUseCase {
     const anuncio = await this.anuncios.buscarPorId(entrada.anuncioId)
     if (!anuncio || anuncio.usuarioId !== entrada.usuarioId) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
     if (anuncio.situacao === "REMOVIDO") return falha("ANUNCIO_REMOVIDO", "Este anúncio foi removido e não pode ser renovado.")
+    // Feature 018 (RN-189): o apagado não volta.
+    if (anuncio.situacao === "APAGADO") return falha("ANUNCIO_APAGADO", "Este anúncio foi apagado e não pode ser renovado.")
     return abrirCobranca(this.deps, { anuncio, planoCodigo: entrada.planoCodigo, dias: entrada.dias, emailDoPagador: entrada.email })
   }
 }
@@ -161,6 +163,8 @@ export class ConfirmarPagamentoUseCase {
     const anuncio = await this.anuncios.buscarPorId(pagamento.anuncioId)
     if (!anuncio) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
     if (anuncio.situacao === "REMOVIDO") return falha("ANUNCIO_REMOVIDO", "O anúncio foi removido. Restaure-o antes de confirmar o pagamento.")
+    // Feature 018 (RN-189): a limpeza cancela a cobrança antes de apagar (RN-186); um Pix que ainda chegue aqui não publica nada.
+    if (anuncio.situacao === "APAGADO") return falha("ANUNCIO_APAGADO", "O anúncio foi apagado e não pode voltar ao caderno.")
 
     const agora = this.relogio.agora()
     // RN-143: o desativado também aproveita o fim atual, e o pagamento o põe no ar.
@@ -256,6 +260,7 @@ export class PublicarCortesiaUseCase {
     const anuncio = await this.anuncios.buscarPorId(entrada.anuncioId)
     if (!anuncio) return falha("NAO_ENCONTRADO", "Anúncio não encontrado.")
     if (anuncio.situacao === "REMOVIDO") return falha("ANUNCIO_REMOVIDO", "Restaure o anúncio antes de publicar.")
+    if (anuncio.situacao === "APAGADO") return falha("ANUNCIO_APAGADO", "O anúncio foi apagado e não pode voltar ao caderno.")
     const plano = ehCodigoDePlano(entrada.planoCodigo) ? await this.deps.planos.buscar(entrada.planoCodigo) : null
     if (!plano) return falhaDeValidacao({ planoCodigo: "Escolha o plano." })
     if (!Number.isInteger(entrada.dias) || entrada.dias < 1 || entrada.dias > 365) return falhaDeValidacao({ dias: "Entre 1 e 365 dias." })

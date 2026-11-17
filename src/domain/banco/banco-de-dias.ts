@@ -1,6 +1,7 @@
 // DOMÍNIO — banco de dias do anunciante (feature 017: RN-170 a RN-181).
 // O banco guarda dias, não anúncios: com 14 dias dá para pôr dois anúncios de 7 dias ou um de 14.
 
+import type { Situacao } from "../anuncio/anuncio"
 import type { ErrosDeCampo } from "../shared/result"
 
 /** RN-170: os dois tipos de dia são os planos à venda; o código é o do plano que o dia publica. */
@@ -49,7 +50,7 @@ export function diasPorExtenso(dias: number, tipo: TipoDeDia): string {
 
 /** A situação do anúncio que importa para o banco: ainda em prazo (no ar ou desativado) ou não. */
 export interface AnuncioParaOBanco {
-  situacao: "AGUARDANDO_PAGAMENTO" | "PUBLICADO" | "DESATIVADO" | "REMOVIDO"
+  situacao: Situacao
   planoCodigo: string
   expiraEm: Date | null
 }
@@ -70,6 +71,8 @@ export function minimoDeDias(anuncio: AnuncioParaOBanco, agora: Date): number {
 export function conferirUsoDoBanco(pedido: { tipo: string; dias: number }, anuncio: AnuncioParaOBanco, saldo: SaldoDoBanco, agora: Date): ErrosDeCampo {
   const erros: ErrosDeCampo = {}
   if (anuncio.situacao === "REMOVIDO") return { planoCodigo: "Este anúncio foi removido." }
+  // Feature 018 (RN-189): o apagado não volta.
+  if (anuncio.situacao === "APAGADO") return { planoCodigo: "Este anúncio foi apagado." }
   if (!ehTipoDeDia(pedido.tipo)) return { planoCodigo: "Escolha dias sem foto ou com foto." }
   // RN-171: o anúncio Com foto em prazo não perde as fotos no meio do caminho.
   if (emPrazo(anuncio, agora) && anuncio.planoCodigo === "FOTOS" && pedido.tipo === "SIMPLES") {

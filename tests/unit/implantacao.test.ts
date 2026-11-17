@@ -10,7 +10,10 @@ describe("Implantação na Vercel (ADR-19)", () => {
     expect(config.regions).toEqual(["gru1"])
   })
 
-  it("o agendador do aviso de vencimento continua configurado (ADR-17)", () => {
-    expect(config.crons).toEqual([{ path: "/api/tarefas/vencimentos", schedule: "0 12 * * *" }])
+  it("o agendador roda o aviso de vencimento às 9h (ADR-17) e a rodada dos vencidos às 10h de Brasília (RF-182, ADR-24)", () => {
+    expect(config.crons).toEqual([
+      { path: "/api/tarefas/vencimentos", schedule: "0 12 * * *" },
+      { path: "/api/tarefas/vencidos", schedule: "0 13 * * *" },
+    ])
   })
 })

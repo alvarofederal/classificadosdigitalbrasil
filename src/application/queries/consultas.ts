@@ -132,7 +132,8 @@ export interface MovimentoDoBancoDTO {
   dias: number
   motivo: MotivoDoMovimento
   criadoEm: Date
-  anuncio: { id: string; codigo: string; titulo: string } | null
+  /** Feature 018: `apagado` = só o código ficou (RN-185). */
+  anuncio: { id: string; codigo: string; titulo: string; apagado: boolean } | null
 }
 
 export interface MinhaContaQuery {
@@ -231,6 +232,8 @@ export interface AnuncioAdminDTO {
 
 export interface AnuncioDoPainelDTO extends MeuAnuncioDetalheDTO {
   anunciante: { id: string; nome: string; email: string; celular: string }
+  /** Feature 018 (RF-184): quando a rodada diária apagou o anúncio; null = não apagado. */
+  apagadoEm: Date | null
 }
 
 export interface CategoriaAdminDTO extends Categoria {

@@ -126,7 +126,8 @@ export default async function Anuncios({ searchParams }: { searchParams: Promise
                 <tr key={a.id}>
                   <td>
                     <Link href={`/painel/anuncios/${a.id}`} className="font-titulo font-bold uppercase hover:underline">
-                      {a.titulo}
+                      {/* Feature 018 (RN-185): do apagado não fica o título. */}
+                      {a.situacao === "APAGADO" ? "Anúncio apagado" : a.titulo}
                     </Link>
                     <br />
                     <span className="font-mono text-xs text-tinta-suave">
@@ -167,7 +168,7 @@ export default async function Anuncios({ searchParams }: { searchParams: Promise
                           Ver no site
                         </Link>
                       )}
-                      {a.situacao === "REMOVIDO" ? (
+                      {a.situacao === "APAGADO" ? null : a.situacao === "REMOVIDO" ? (
                         <BotaoAcao acao={restaurarAnuncioAction.bind(null, a.id)} rotulo="Restaurar" vazado />
                       ) : (
                         <BotaoAcao

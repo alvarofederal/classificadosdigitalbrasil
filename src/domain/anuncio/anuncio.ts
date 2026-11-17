@@ -106,6 +106,8 @@ export const SITUACOES = {
   /** Feature 014: o dono tirou do caderno por um tempo; o prazo continua correndo (RN-141). */
   DESATIVADO: "Desativado",
   REMOVIDO: "Removido",
+  /** Feature 018: vencido há 180 dias (ou nunca publicado e criado há 180 dias). Fica só o registro mínimo (RN-185, RN-189). */
+  APAGADO: "Apagado",
 } as const
 
 export type Situacao = keyof typeof SITUACOES
@@ -117,12 +119,14 @@ export const SITUACOES_EXIBIDAS = {
   DESATIVADO: "Desativado",
   EXPIRADO: "Expirado",
   REMOVIDO: "Removido",
+  APAGADO: "Apagado",
 } as const
 
 export type SituacaoExibida = keyof typeof SITUACOES_EXIBIDAS
 
 export function situacaoExibida(situacao: Situacao, expiraEm: Date | null, agora: Date): SituacaoExibida {
   if (situacao === "REMOVIDO") return "REMOVIDO"
+  if (situacao === "APAGADO") return "APAGADO"
   if (situacao === "AGUARDANDO_PAGAMENTO") return "AGUARDANDO_PAGAMENTO"
   const noPrazo = expiraEm !== null && expiraEm.getTime() > agora.getTime()
   if (!noPrazo) return "EXPIRADO"

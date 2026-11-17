@@ -14,6 +14,10 @@ export default function Termos() {
         pessoais, escreve o anúncio e paga pelo espaço. O anúncio fica no ar pelo período pago e sai sozinho ao fim do prazo.
       </p>
       <p>
+        Depois do fim do prazo, o anúncio fica guardado na área do anunciante por 180 dias, para ser renovado sem reescrever. Passado esse tempo,
+        é apagado com o texto e as fotos. O anúncio que nunca foi ao ar é apagado 180 dias depois de criado.
+      </p>
+      <p>
         O site não intermedeia a negociação. Preço, entrega e pagamento do que é anunciado são combinados diretamente entre as partes.
         Desconfie de pedidos de pagamento antecipado e confira o produto antes de pagar.
       </p>
@@ -38,7 +42,8 @@ export default function Termos() {
       </p>
       <p>
         Quem manda mensagem a um anunciante informa nome e um contato. Esses dados vão apenas para o anunciante daquele anúncio: ficam na
-        área dele no site e seguem por e-mail para o endereço da conta dele.
+        área dele no site e seguem por e-mail para o endereço da conta dele. No site, as mensagens são apagadas 90 dias depois do fim do prazo
+        do anúncio.
       </p>
       <p>
         Quando alguém abre a página de um anúncio, contamos a visita para o anunciante saber quantas pessoas viram e de que cidades.

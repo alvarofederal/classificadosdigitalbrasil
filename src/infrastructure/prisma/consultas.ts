@@ -264,7 +264,8 @@ export class PrismaMinhaContaQuery implements MinhaContaQuery {
 
   async meusAnuncios(usuarioId: string) {
     const linhas = await this.db.anuncio.findMany({
-      where: { usuarioId, situacao: { not: "REMOVIDO" } },
+      // Feature 018 (RN-185): o apagado sai de Minha conta, como o removido.
+      where: { usuarioId, situacao: { notIn: ["REMOVIDO", "APAGADO"] } },
       orderBy: { criadoEm: "desc" },
       select: SELECAO_MEU_ANUNCIO,
     })
@@ -272,7 +273,7 @@ export class PrismaMinhaContaQuery implements MinhaContaQuery {
   }
 
   async meuAnuncio(usuarioId: string, anuncioId: string): Promise<MeuAnuncioDetalheDTO | null> {
-    return detalheDoAnuncio(this.db, { id: anuncioId, usuarioId, situacao: { not: "REMOVIDO" } })
+    return detalheDoAnuncio(this.db, { id: anuncioId, usuarioId, situacao: { notIn: ["REMOVIDO", "APAGADO"] } })
   }
 
   async perfil(usuarioId: string, agora: Date): Promise<PerfilDTO | null> {
@@ -308,7 +309,10 @@ export class PrismaMinhaContaQuery implements MinhaContaQuery {
   async extratoDoBanco(usuarioId: string, limite: number): Promise<MovimentoDoBancoDTO[]> {
     const linhas = await this.db.movimentoDoBanco.findMany({ where: { usuarioId }, orderBy: [{ criadoEm: "desc" }, { id: "desc" }], take: limite })
     const ids = [...new Set(linhas.map((l) => l.anuncioId).filter((id): id is string => id !== null))]
-    const anuncios = ids.length > 0 ? await this.db.anuncio.findMany({ where: { id: { in: ids }, usuarioId }, select: { id: true, codigo: true, titulo: true } }) : []
+    const linhasDosAnuncios =
+      ids.length > 0 ? await this.db.anuncio.findMany({ where: { id: { in: ids }, usuarioId }, select: { id: true, codigo: true, titulo: true, situacao: true } }) : []
+    // Feature 018: do apagado o extrato mostra só o código, sem link (RN-185).
+    const anuncios = linhasDosAnuncios.map(({ situacao, ...a }) => ({ ...a, apagado: situacao === "APAGADO" }))
     const porId = new Map(anuncios.map((a) => [a.id, a]))
     return linhas.map((l) => ({
       id: l.id,
@@ -355,8 +359,8 @@ export class PrismaPainelQuery implements PainelQuery {
   async anuncio(id: string): Promise<AnuncioDoPainelDTO | null> {
     const detalhe = await detalheDoAnuncio(this.db, { id })
     if (!detalhe) return null
-    const dono = await this.db.anuncio.findUnique({ where: { id }, select: { usuario: { select: { id: true, nome: true, email: true, celular: true } } } })
-    return dono ? { ...detalhe, anunciante: dono.usuario } : null
+    const dono = await this.db.anuncio.findUnique({ where: { id }, select: { apagadoEm: true, usuario: { select: { id: true, nome: true, email: true, celular: true } } } })
+    return dono ? { ...detalhe, anunciante: dono.usuario, apagadoEm: dono.apagadoEm } : null
   }
 
   async planos(): Promise<Plano[]> {
@@ -438,7 +442,8 @@ export class PrismaPainelQuery implements PainelQuery {
             ? { situacao: "DESATIVADO", expiraEm: { gt: agora } }
             : filtro.situacao
               ? { situacao: filtro.situacao }
-              : {}
+              : // RF-184: sem filtro, a lista não mostra os apagados; eles aparecem filtrando "Apagado".
+                { situacao: { not: "APAGADO" } }
     const criadoEm: Prisma.DateTimeFilter = {}
     if (filtro.dataInicial) criadoEm.gte = inicioDoDia(filtro.dataInicial)
     if (filtro.dataFinal) criadoEm.lt = new Date(inicioDoDia(filtro.dataFinal).getTime() + 86_400_000)

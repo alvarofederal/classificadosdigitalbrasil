@@ -38,6 +38,7 @@ import {
 } from "@/application/use-cases/anuncios/gerenciar-fotos"
 import { AvisarMensagemNovaUseCase, EnviarMensagemUseCase, MarcarMensagensLidasUseCase } from "@/application/use-cases/anuncios/mensagens"
 import { RegistrarResultadoUseCase } from "@/application/use-cases/anuncios/resultado"
+import { ApagarVencidosUseCase, AvisarAntesDeApagarUseCase } from "@/application/use-cases/anuncios/guarda"
 import { AvisarVencimentosUseCase } from "@/application/use-cases/anuncios/vencimento"
 import { RegistrarVisitaUseCase, ResumirVisitasUseCase } from "@/application/use-cases/anuncios/visitas"
 import {
@@ -69,6 +70,7 @@ import {
   PrismaCategoriaRepository,
   PrismaCodigoPorEmailRepository,
   PrismaFotoRepository,
+  PrismaGuardaDosVencidosRepository,
   PrismaMensagemRepository,
   PrismaSessaoRepository,
   PrismaTentativaLoginRepository,
@@ -160,6 +162,7 @@ function montar() {
   const presente = new DarPresenteDeBoasVindasUseCase(usuarios, banco, configuracao, relogio)
   const usarDiasDoBanco = new UsarDiasDoBancoUseCase(anuncios, banco, depsDePagamento, confirmarPagamento)
   const processarPagamentoDoGateway = new ProcessarPagamentoDoGatewayUseCase(pagamentos, gateway, confirmarPagamento)
+  const guarda = new PrismaGuardaDosVencidosRepository(prisma)
 
   return {
     relogio,
@@ -238,6 +241,9 @@ function montar() {
     enviarEmailDeTeste: new EnviarEmailDeTesteUseCase(correio),
     // Feature 012 (ADR-17): rodada diária chamada pelo agendador da Vercel.
     avisarVencimentos: new AvisarVencimentosUseCase(new PrismaAvisosDeVencimentoRepository(prisma), correio, relogio, enderecos),
+    // Feature 018 (ADR-24): a rodada dos vencidos apaga mensagens aos 90 dias e anúncios aos 180, e avisa 7 dias antes.
+    apagarVencidos: new ApagarVencidosUseCase(guarda, pagamentos, gateway, storage, relogio),
+    avisarAntesDeApagar: new AvisarAntesDeApagarUseCase(guarda, correio, relogio, enderecos),
 
     classificados: new PrismaClassificadosQuery(prisma),
     minhaConta: new PrismaMinhaContaQuery(prisma),

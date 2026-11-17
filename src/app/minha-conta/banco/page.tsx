@@ -50,7 +50,10 @@ export default async function BancoDeDias() {
                     <td>{NOMES_DOS_TIPOS_DE_DIA[m.tipo].plural}</td>
                     <td className="text-right font-bold">{m.dias > 0 ? `+${m.dias}` : m.dias}</td>
                     <td>
-                      {m.anuncio ? (
+                      {m.anuncio?.apagado ? (
+                        // Feature 018 (RN-185): do apagado fica só o código.
+                        <span className="text-tinta-suave">Anúncio apagado ({m.anuncio.codigo})</span>
+                      ) : m.anuncio ? (
                         <Link href={`/minha-conta/anuncios/${m.anuncio.id}`} className="link">
                           {m.anuncio.titulo}
                         </Link>

@@ -11,12 +11,16 @@ import type {
   UsuarioRepository,
 } from "@/application/ports/acesso"
 import type {
+  AnuncioAApagar,
+  AnuncioParaAvisarAntesDeApagar,
   AnuncioRegistro,
   AnuncioRepository,
   AvisosDeVencimentoRepository,
   CategoriaRepository,
+  CortesDaLimpeza,
   FotoRegistro,
   FotoRepository,
+  GuardaDosVencidosRepository,
   MensagemRepository,
   NovaFoto,
 } from "@/application/ports/caderno"
@@ -24,7 +28,7 @@ import type { ResultadoDoAnuncio } from "@/domain/anuncio/resultado"
 import type { Categoria } from "@/domain/categoria/categoria"
 import { type FinalidadeDoCodigo, emailCanonico } from "@/domain/usuario/codigo-por-email"
 import type { NovaMensagem } from "@/domain/mensagem/mensagem"
-import type { PrismaClient, Usuario } from "@/generated/prisma"
+import type { Prisma, PrismaClient, Usuario } from "@/generated/prisma"
 import { dadosDoAnuncio, paraAnuncio } from "./mapeadores"
 
 // ── Acesso ──
@@ -279,6 +283,90 @@ export class PrismaAvisosDeVencimentoRepository implements AvisosDeVencimentoRep
 
   async desmarcar(anuncioId: string, expiraEm: Date) {
     await this.db.anuncio.updateMany({ where: { id: anuncioId, avisoDeVencimentoPara: expiraEm }, data: { avisoDeVencimentoPara: null } })
+  }
+}
+
+// ── Guarda dos vencidos (feature 018, ADR-24) ──
+
+/** Publicado ou desativado: depois do prazo, os dois são vencidos (RN-142). */
+const COM_PRAZO = ["PUBLICADO", "DESATIVADO"] as const
+
+/** RN-182 e RN-184: o que a rodada apaga. Removido e apagado nunca entram (RN-188). */
+function dentroDosCortes(cortes: CortesDaLimpeza): Prisma.AnuncioWhereInput {
+  return {
+    OR: [
+      { situacao: { in: [...COM_PRAZO] }, expiraEm: { lte: cortes.vencidosAte } },
+      { situacao: "AGUARDANDO_PAGAMENTO", criadoEm: { lte: cortes.criadosAte } },
+    ],
+  }
+}
+
+export class PrismaGuardaDosVencidosRepository implements GuardaDosVencidosRepository {
+  constructor(private readonly db: PrismaClient) {}
+
+  async apagarMensagensDeVencidos(vencidosAte: Date) {
+    // Uma instrução só, com a condição no próprio anúncio: o renovado no meio da rodada não perde mensagem (RN-183).
+    const { count } = await this.db.mensagem.deleteMany({ where: { anuncio: { situacao: { in: [...COM_PRAZO] }, expiraEm: { lte: vencidosAte } } } })
+    return count
+  }
+
+  async aApagar(cortes: CortesDaLimpeza, limite: number): Promise<AnuncioAApagar[]> {
+    return this.db.anuncio.findMany({
+      where: dentroDosCortes(cortes),
+      select: { id: true, codigo: true },
+      orderBy: [{ expiraEm: "asc" }, { criadoEm: "asc" }, { id: "asc" }],
+      take: limite,
+    })
+  }
+
+  async apagar(anuncioId: string, cortes: CortesDaLimpeza, quando: Date) {
+    return this.db.$transaction(async (tx) => {
+      // RN-185: atualização condicionada; se o anúncio foi renovado depois da busca, não entra mais no corte e fica como está.
+      const { count } = await tx.anuncio.updateMany({
+        where: { id: anuncioId, ...dentroDosCortes(cortes) },
+        data: { situacao: "APAGADO", apagadoEm: quando, titulo: "", texto: "", preco: null, avisoDeVencimentoPara: null },
+      })
+      if (count === 0) return null
+      const fotos = await tx.fotoAnuncio.findMany({ where: { anuncioId }, select: { publicId: true } })
+      await tx.fotoAnuncio.deleteMany({ where: { anuncioId } })
+      await tx.mensagem.deleteMany({ where: { anuncioId } })
+      await tx.visitaAnuncio.deleteMany({ where: { anuncioId } })
+      return { publicIds: fotos.map((f) => f.publicId).filter((id) => id !== "") }
+    })
+  }
+
+  async aAvisar(params: { vencidosAte: Date; avisarAte: Date }, limite: number): Promise<AnuncioParaAvisarAntesDeApagar[]> {
+    const linhas = await this.db.anuncio.findMany({
+      where: {
+        situacao: { in: [...COM_PRAZO] },
+        expiraEm: { gt: params.vencidosAte, lte: params.avisarAte },
+        // Ainda não avisado deste fim. A marca de um fim anterior é sempre mais antiga que o corte: entre o aviso e a renovação
+        // passam ao menos 173 dias, e o fim novo está depois da renovação (ADR-24).
+        OR: [{ avisoDeApagarPara: null }, { avisoDeApagarPara: { lt: params.vencidosAte } }],
+      },
+      select: { id: true, codigo: true, titulo: true, expiraEm: true, usuario: { select: { nome: true, email: true, ativo: true } } },
+      orderBy: [{ expiraEm: "asc" }, { id: "asc" }],
+      take: limite,
+    })
+    return linhas.flatMap((l) => (l.expiraEm ? [{ id: l.id, codigo: l.codigo, titulo: l.titulo, expiraEm: l.expiraEm, dono: l.usuario }] : []))
+  }
+
+  async marcarAvisado(anuncioId: string, expiraEm: Date) {
+    // Atualização condicionada: só uma rodada consegue marcar este fim (RN-187).
+    const { count } = await this.db.anuncio.updateMany({
+      where: {
+        id: anuncioId,
+        situacao: { in: [...COM_PRAZO] },
+        expiraEm,
+        OR: [{ avisoDeApagarPara: null }, { avisoDeApagarPara: { not: expiraEm } }],
+      },
+      data: { avisoDeApagarPara: expiraEm },
+    })
+    return count === 1
+  }
+
+  async desmarcar(anuncioId: string, expiraEm: Date) {
+    await this.db.anuncio.updateMany({ where: { id: anuncioId, avisoDeApagarPara: expiraEm }, data: { avisoDeApagarPara: null } })
   }
 }
 
