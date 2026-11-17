@@ -50,7 +50,7 @@ A memória do projeto é esta pasta, não a conversa (Art. 7 da constituição).
 | `features/015-convites-de-cortesia` | Convites: 5 por conta, por e-mail ou WhatsApp; quem convida ganha 7 dias com foto quando o amigo publica | No ar desde 2026-11-16 |
 | `features/016-codigo-por-email` | Código de 6 números por e-mail no cadastro, na troca de e-mail e no "esqueci a senha" | No ar desde 2026-11-15 |
 | `features/017-banco-de-dias` | Banco de dias: saldo e extrato, presente de boas-vindas, usar dias para publicar e renovar, tabela proporcional | Etapa 1 no ar desde 2026-11-16; etapa 2 (compra pelo Pix) a fazer |
-| `features/023-cabecalho-de-ponta-a-ponta` | DIGITAIS DO BRASIL abaixo da manchete, do C ao S, e a cidade da página na linha fina | Feito em 2026-11-16; publicar com o OK do Álvaro |
+| `features/023-cabecalho-de-ponta-a-ponta` | DIGITAIS DO BRASIL abaixo da manchete, do C ao S, e a cidade da página na linha fina | No ar desde 2026-11-16, 21:51 |
 | `features/022-qr-code-do-anuncio` | QR Code do sistema na página do anúncio, nas imagens de divulgação, no cartaz e para baixar | No ar desde 2026-11-16 |
 | `features/021-fechou-negocio` | "Fechou negócio?" na tela do anúncio e no e-mail do vencimento, com os números no Painel | No ar desde 2026-11-16 |
 | `features/020-kit-de-divulgacao` | Imagens para o status e para grupos, texto pronto e compartilhar com imagem, na tela do anúncio | No ar desde 2026-11-16 |
