@@ -8,8 +8,9 @@ import { container } from "@/infrastructure/container"
 export default async function Capa() {
   const secoes = await container().classificados.categoriasAtivas()
 
+  // `data-capa`: o cabeçalho dá mais espaço ao nome do jornal só na capa (feature 023, RF-233).
   return (
-    <section aria-labelledby="titulo-busca" className="mx-auto flex min-h-[45dvh] w-full max-w-4xl flex-col justify-center gap-5 py-10">
+    <section data-capa aria-labelledby="titulo-busca" className="mx-auto flex min-h-[45dvh] w-full max-w-4xl flex-col justify-center gap-5 py-10">
       <h1 id="titulo-busca" className="text-center font-titulo text-xl font-bold uppercase tracking-wide sm:text-2xl">
         Encontre os classificados da sua cidade
       </h1>
