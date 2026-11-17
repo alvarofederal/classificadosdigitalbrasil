@@ -49,9 +49,10 @@ export async function Cabecalho({ compacto = false, lugar }: { compacto?: boolea
         </div>
       </nav>
 
-      {/* A caixa tem a largura da palavra CLASSIFICADOS; a linha de baixo ocupa essa mesma largura (RF-230). */}
+      {/* A caixa tem a largura da palavra CLASSIFICADOS; a linha de baixo ocupa essa mesma largura (RF-230).
+          A manchete grande tem 75% do tamanho de antes (RF-232): era clamp(3.4rem, 15.2vw, 13.5rem). */}
       <Link href="/" className="mx-auto block w-fit pb-1.5 pt-2" aria-label="Classificados Digitais do Brasil, capa">
-        <span className={cn("block font-manchete uppercase", compacto ? "text-[clamp(2.6rem,10vw,5.5rem)]" : "text-[clamp(3.4rem,15.2vw,13.5rem)]")}>
+        <span className={cn("block font-manchete uppercase", compacto ? "text-[clamp(2.6rem,10vw,5.5rem)]" : "text-[clamp(2.55rem,11.4vw,10.125rem)]")}>
           <span className="block leading-[0.82] tracking-[-0.01em]">Classificados</span>
           <LinhaDePontaAPonta texto={LINHA_DE_BAIXO} />
         </span>

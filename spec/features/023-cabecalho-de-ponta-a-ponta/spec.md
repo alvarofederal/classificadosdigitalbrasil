@@ -23,6 +23,12 @@
 
 Decisão tomada sem perguntar, que ele pode mudar: nas páginas sem cidade (capa, termos, como funciona, entrar, Minha conta) aparece TODO O BRASIL.
 
+**Ajuste depois de ver no ar (2026-11-16, à noite).** Com a captura da capa num monitor de 1561 px: "Viu que ficou bem desalinhado né, ficou grande o nome CLASSIFICADOS, pode diminuir 25%".
+
+| ID | Requisito |
+|---|---|
+| RF-232 | A manchete grande (capa, cidade, seção e anúncio) fica 25% menor em todas as larguras de tela: no máximo 10,125 rem (162 px, antes 216 px), 11,4% da largura da tela (antes 15,2%) e no mínimo 2,55 rem (antes 3,4 rem). DIGITAIS DO BRASIL acompanha e continua de ponta a ponta (RF-230). O cabeçalho menor das outras páginas não muda. |
+
 Fora deste pedido: o cartaz A4, as imagens de divulgação, as prévias para as redes e o e-mail têm cabeçalho próprio, com "Digitais do Brasil" no lugar antigo. Ficam como estão.
 
 ## Plano
@@ -41,3 +47,5 @@ Fora deste pedido: o cartaz A4, as imagens de divulgação, as prévias para as 
 - [x] T-262 Rota paralela `@lugar` e a cidade na linha fina (RF-231, RN-230) *(2026-11-16. Conferido pelo HTML do servidor: capa, termos, como funciona e entrar com TODO O BRASIL; `/df/brasilia` e `/df/brasilia/veiculos` com BRASÍLIA · DF; `/sp/sao-jose-dos-campos` com SÃO JOSÉ DOS CAMPOS · SP; anúncio no ar com a cidade dele; anúncio que não existe com TODO O BRASIL; cidade que não existe e UF em maiúscula continuam dando 404. Na navegação sem recarregar (cidade → termos → capa → seção → anúncio), a cidade troca a cada clique. No celular de 360 px, a linha fina cabe numa linha com BRASÍLIA · DF; cidade de nome comprido quebra o nome em duas linhas, como já acontecia com "Digitais do Brasil")*
 - [x] T-263 Testes, typecheck, build e conferência no `next dev` no celular e no computador *(324 testes, typecheck e `next build` passando)*
 - [x] T-264 Publicar com o OK do Álvaro e conferir no ar *(2026-11-16, "Pode publicar". Commit `0f2c32f`, push às 21:49; deploy de produção pronto em cerca de 1 minuto, sem migration. Conferido no ar: capa, termos, como funciona e entrar com TODO O BRASIL; Brasília, Veículos de Brasília e o anúncio do Astra (`/anuncio/4DPUMX`) com BRASÍLIA · DF, todos 200; `/df/naoexiste` continua 404; link curto, sitemap e cartaz respondem. Captura do Astra no celular, no ar, com DIGITAIS DO BRASIL de ponta a ponta)*
+- [x] T-265 Manchete grande 25% menor (RF-232) e conferência no celular e no computador *(2026-11-16, à noite. `clamp(3.4rem, 15.2vw, 13.5rem)` passou a `clamp(2.55rem, 11.4vw, 10.125rem)`. Medido no navegador: 162 px de letra e 875 px de largura no computador (antes 216 e 1167), 231 px de largura no celular de 375 px (antes 308). DIGITAIS DO BRASIL continua do C ao S, com diferença de até 0,01 px, em 360, 375, 414, 768, 1024, 1440, 1561 e 1920 px; no celular ela fica no mínimo de 0,6 rem. Sem rolagem para o lado. 324 testes, typecheck e build)*
+- [ ] T-266 Publicar o ajuste com o OK do Álvaro e conferir no ar

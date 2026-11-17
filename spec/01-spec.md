@@ -161,6 +161,7 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 |---|---|
 | RF-230 | Abaixo da manchete CLASSIFICADOS vem DIGITAIS DO BRASIL numa linha da mesma largura, do C ao S, em qualquer largura de tela, na capa e no cabeçalho menor. |
 | RF-231 | A linha fina abaixo do nome mostra o lugar da página: cidade e UF (BRASÍLIA · DF) na cidade, na seção e no anúncio; TODO O BRASIL nas outras. O preço continua à direita. |
+| RF-232 | A manchete grande (capa, cidade, seção e anúncio) tem 75% do tamanho anterior em todas as telas: até 162 px no computador. O cabeçalho menor não muda. |
 
 ## Regras de negócio
 
