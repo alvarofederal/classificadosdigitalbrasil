@@ -406,6 +406,7 @@ export class PrismaPainelQuery implements PainelQuery {
           ativo: true,
           criadoEm: true,
           emailConfirmadoEm: true,
+          contatoEnviadoEm: true,
           bancoDiasSimples: true,
           bancoDiasFotos: true,
           _count: { select: { anuncios: true } },

@@ -4,13 +4,21 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Faixa } from "@/components/jornal/pecas"
 import { container } from "@/infrastructure/container"
-import { formatarReais } from "@/lib/formatadores"
+import { formatarDataHora, formatarReais } from "@/lib/formatadores"
+import { cn } from "@/lib/utils"
+import { ContatoDoCadastro } from "./_componentes/contato-do-cadastro"
 
 export const metadata: Metadata = { title: "Painel", robots: { index: false } }
 
 export default async function Resumo() {
   const c = container()
-  const [resumo, configuracao] = await Promise.all([c.painel.resumo(c.relogio.agora()), c.configuracao.obter()])
+  const [resumo, configuracao, cadastros] = await Promise.all([
+    c.painel.resumo(c.relogio.agora()),
+    c.configuracao.obter(),
+    // Feature 024 (RF-244): cadastros sem confirmação esperando contato ou aguardando resposta.
+    c.lembreteDeCadastros.listar(),
+  ])
+  const esperando = cadastros.filter((x) => x.esperaContato).length
 
   const numeros = [
     { rotulo: "Anunciantes", valor: String(resumo.usuarios), href: "/painel/usuarios" },
@@ -30,6 +38,38 @@ export default async function Resumo() {
   return (
     <div className="flex flex-col gap-6">
       <Faixa como="h1">Resumo</Faixa>
+      {/* Feature 024 (RF-244): o lembrete do administrador, logo ao abrir o Painel. */}
+      {cadastros.length > 0 && (
+        <section
+          id="cadastros-sem-confirmacao"
+          aria-labelledby="titulo-cadastros"
+          className={cn("flex flex-col gap-3 border-2 p-4", esperando > 0 ? "border-perigo" : "border-tinta")}
+        >
+          <h2 id="titulo-cadastros" className={cn("font-titulo text-lg font-bold uppercase", esperando > 0 && "text-perigo")}>
+            {esperando === 0
+              ? "Cadastros aguardando resposta"
+              : esperando === 1
+                ? "1 cadastro esperando o seu contato"
+                : `${esperando} cadastros esperando o seu contato`}
+          </h2>
+          <p className="text-sm">
+            Contas que não confirmaram o e-mail. O botão manda um e-mail para a pessoa continuar ou desistir; sem resposta em 7 dias, a conta é apagada
+            sozinha.
+          </p>
+          <ul className="flex flex-col divide-y divide-fio">
+            {cadastros.map((x) => (
+              <li key={x.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-2">
+                <span className="min-w-0">
+                  <strong>{x.nome}</strong> · <span className="break-all">{x.email}</span>
+                  <br />
+                  <span className="text-xs text-tinta-suave">Cadastro em {formatarDataHora(x.criadoEm)}</span>
+                </span>
+                <ContatoDoCadastro usuarioId={x.id} contatoEnviadoEm={x.contatoEnviadoEm} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {!c.pixAutomatico && (
         <p className="border-2 border-perigo px-3 py-2">
           Pix automático desligado: cada pagamento precisa ser confirmado à mão

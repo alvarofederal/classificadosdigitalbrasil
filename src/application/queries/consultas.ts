@@ -191,6 +191,8 @@ export interface UsuarioAdminDTO {
   criadoEm: Date
   /** RF-156 */
   emailConfirmado: boolean
+  /** Feature 024 (RF-246): quando saiu o e-mail de continuar ou desistir; null = não saiu. */
+  contatoEnviadoEm: Date | null
   /** RF-175 */
   banco: SaldoDoBanco
   totalAnuncios: number

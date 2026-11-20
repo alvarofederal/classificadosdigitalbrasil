@@ -17,6 +17,7 @@ import {
 import { emailValido, validarNovaSenha } from "@/domain/usuario/usuario"
 import type { Perfil } from "@/domain/usuario/usuario"
 import type {
+  CadastroSemConfirmacaoRepository,
   CodigoPorEmailRegistro,
   CodigoPorEmailRepository,
   GeradorDeToken,
@@ -146,6 +147,8 @@ export class CorrigirEmailDoCadastroUseCase {
   constructor(
     private readonly usuarios: UsuarioRepository,
     private readonly deps: DepsDoCodigo,
+    /** Feature 024 (RN-246): o link de continuar ou desistir mandado ao endereço antigo deixa de valer. */
+    private readonly cadastros?: Pick<CadastroSemConfirmacaoRepository, "limparContato">,
   ) {}
 
   async executar(usuarioId: string, emailDigitado: string): Promise<Result<{ enviadoPara: string }>> {
@@ -157,7 +160,10 @@ export class CorrigirEmailDoCadastroUseCase {
     if (email !== usuario.email && (await this.usuarios.existeEmail(email, usuario.id))) {
       return falhaDeValidacao({ email: "Já existe uma conta com este e-mail." })
     }
-    if (email !== usuario.email) await this.usuarios.atualizar({ ...usuario, email })
+    if (email !== usuario.email) {
+      await this.usuarios.atualizar({ ...usuario, email })
+      await this.cadastros?.limparContato(usuario.id)
+    }
     return emitirCodigo(this.deps, usuario, "CADASTRO", email)
   }
 }

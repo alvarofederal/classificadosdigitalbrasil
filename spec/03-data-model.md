@@ -21,6 +21,8 @@ MySQL com `relationMode = "prisma"` (sem chaves estrangeiras físicas; todo camp
 | `visitas_anuncio` | Visitas do anúncio (feature 013, ADR-18) | anuncioId + dia (DATE, Brasília) + chave (HMAC, sem IP) como chave primária, vezes (até 20), cidade, uf, pais |
 | `configuracoes` | Linha única `geral` | pixChave, pixNome, pixCidade (Pix estático de reserva) |
 
+`usuarios` ganhou na migração `20261120000000_continuar_ou_desistir` (feature 024, ADR-25): `contatoEnviadoEm` (quando saiu o e-mail de continuar ou desistir; nulo = não saiu) e `contatoHash` (SHA-256 do código do link, único; RN-241), com o índice `(emailConfirmadoEm, contatoEnviadoEm)` para o lembrete e a rodada dos sem resposta.
+
 `anuncios` ganhou na migração `20261117000000_vencidos_e_mensagens` (feature 018, ADR-24): o valor `APAGADO` em `situacao`, `apagadoEm` e `avisoDeApagarPara` (o fim de prazo que já teve o e-mail de 7 dias, RN-187).
 
 `anuncios` ganhou na migração `20261116120000_resultado_do_anuncio` (feature 021): `resultado` (PELO_CLASSIFICADOS, POR_OUTRO_LUGAR, AINDA_NAO; nulo = sem resposta) e `resultadoEm`.
@@ -39,6 +41,7 @@ Na migração `20261116000000_banco_de_dias` (feature 017): `usuarios` ganhou `b
 - `anuncios (planoCodigo, situacao, expiraEm)`: vitrine da capa.
 - `pagamentos (gatewayId)`: aviso do gateway.
 - `usuarios (emailCanonico)`: "um e-mail por conta" com o e-mail escrito de outro jeito (RN-155).
+- `usuarios (emailConfirmadoEm, contatoEnviadoEm)`: o número do lembrete e os sem resposta da rodada diária (feature 024).
 - `codigos_por_email (usuarioId, finalidade, criadoEm)`: o código em aberto e os limites por hora (RN-152).
 - `visitas_anuncio (anuncioId, dia, chave)`: a chave primária serve à soma do dia, à série por dia e às pessoas por anúncio.
 

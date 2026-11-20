@@ -33,6 +33,8 @@ export interface Carta {
   /** Linhas "rótulo: valor", como o contato para responder. */
   linhas: LinhaDaCarta[]
   botao: { rotulo: string; url: string } | null
+  /** Segundo caminho, logo abaixo do botão e com menos peso, como "Apagar minha conta" (feature 024). */
+  segundoBotao?: { rotulo: string; url: string } | null
   /** Avisos em letra menor, depois do botão. */
   observacoes: string[]
   /** Por que a pessoa recebeu este e-mail. */

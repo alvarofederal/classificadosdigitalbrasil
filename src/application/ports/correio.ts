@@ -26,4 +26,6 @@ export interface EnderecosDoSite {
   resultadoDoAnuncio(anuncioId: string): string
   /** A página do convite (feature 015, RF-253). */
   convite(codigo: string): string
+  /** A página de continuar ou desistir do cadastro, com a escolha marcada (feature 024, RF-241, RF-242). */
+  continuarCadastro(codigo: string, escolha: "continuar" | "desistir"): string
 }

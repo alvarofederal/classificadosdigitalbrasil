@@ -68,6 +68,14 @@ export function cartaEmHtml(carta: Carta): string {
     )
   }
 
+  // Feature 024: o segundo caminho vem logo abaixo, só com o contorno, para não competir com o primeiro.
+  const segundo = carta.segundoBotao && linkSeguro(carta.segundoBotao.url) ? carta.segundoBotao : null
+  if (segundo) {
+    partes.push(
+      `<p style="margin:12px 0 0;"><a href="${escaparHtml(segundo.url)}" style="display:inline-block;border:2px solid ${TINTA};color:${TINTA};font-family:${TITULO};font-size:13px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;text-decoration:none;padding:9px 16px;">${escaparHtml(segundo.rotulo)}</a></p>`,
+    )
+  }
+
   for (const observacao of carta.observacoes) {
     partes.push(`<p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:${TINTA_SUAVE};">${escaparHtml(observacao)}</p>`)
   }
@@ -131,6 +139,7 @@ export function cartaEmTexto(carta: Carta): string {
   }
 
   if (carta.botao && linkSeguro(carta.botao.url)) blocos.push(`${carta.botao.rotulo}:\n${carta.botao.url}`)
+  if (carta.segundoBotao && linkSeguro(carta.segundoBotao.url)) blocos.push(`${carta.segundoBotao.rotulo}:\n${carta.segundoBotao.url}`)
   blocos.push(...carta.observacoes)
   blocos.push(`--\n${carta.rodape}`)
   return blocos.join("\n\n")

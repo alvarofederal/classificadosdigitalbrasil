@@ -142,3 +142,24 @@ export async function trocarSenhaAction(formData: FormData): Promise<EstadoFormu
   if (!resultado.ok) return deResultado(resultado)
   redirect(areaDoPerfil(usuario.perfil))
 }
+
+// ── Continuar ou desistir do cadastro (feature 024: RF-241, RF-242, RN-242) ──
+// Só o clique no botão da página chega aqui (POST); abrir o link do e-mail não muda nada.
+
+const schemaDoLink = z.object({ codigo: texto })
+
+export async function continuarCadastroAction(formData: FormData): Promise<EstadoFormulario> {
+  const lido = lerFormulario(schemaDoLink, formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().continuarOuDesistir.continuar(lido.dados.codigo)
+  if (!resultado.ok) return deResultado(resultado)
+  redirect(`/entrar?confirmada=1&voltar=${encodeURIComponent("/minha-conta/anuncios/novo")}`)
+}
+
+export async function desistirDoCadastroAction(formData: FormData): Promise<EstadoFormulario> {
+  const lido = lerFormulario(schemaDoLink, formData)
+  if (!lido.ok) return lido.estado
+  const resultado = await container().continuarOuDesistir.desistir(lido.dados.codigo)
+  if (!resultado.ok) return deResultado(resultado)
+  redirect("/continuar-cadastro/apagada")
+}

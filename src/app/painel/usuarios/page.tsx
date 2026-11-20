@@ -8,6 +8,7 @@ import { container } from "@/infrastructure/container"
 import { formatarCelular, formatarDia, formatarReais } from "@/lib/formatadores"
 import { paginaDe, parametro } from "@/lib/formularios"
 import { cn } from "@/lib/utils"
+import { ContatoDoCadastro } from "../_componentes/contato-do-cadastro"
 
 export const metadata: Metadata = { title: "Usuários", robots: { index: false } }
 
@@ -97,6 +98,12 @@ export default async function Usuarios({ searchParams }: { searchParams: Promise
                     {!u.emailConfirmado && <span className="ml-1 text-xs text-perigo">(e-mail não confirmado)</span>}
                     <br />
                     <span className="text-tinta-suave">{u.celular ? formatarCelular(u.celular) : "—"}</span>
+                    {/* Feature 024 (RF-240, RF-246): continuar ou desistir. */}
+                    {!u.emailConfirmado && u.perfil === "ANUNCIANTE" && (
+                      <div className="mt-1.5">
+                        <ContatoDoCadastro usuarioId={u.id} contatoEnviadoEm={u.contatoEnviadoEm} />
+                      </div>
+                    )}
                   </td>
                   <td>{cidade ? `${cidade.nome}/${cidade.uf}` : "—"}</td>
                   <td>{formatarDia(u.criadoEm)}</td>

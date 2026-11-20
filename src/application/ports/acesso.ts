@@ -77,6 +77,37 @@ export interface CodigoPorEmailRepository {
   encerrar(id: string, quando: Date): Promise<boolean>
 }
 
+// ── Cadastro sem confirmação: continuar ou desistir (feature 024, ADR-25) ──
+
+export interface CadastroSemConfirmacao {
+  id: string
+  nome: string
+  email: string
+  perfil: Perfil
+  criadoEm: Date
+  emailConfirmado: boolean
+  /** Quando saiu o último e-mail de continuar ou desistir; null = ainda não saiu. */
+  contatoEnviadoEm: Date | null
+}
+
+export interface CadastroSemConfirmacaoRepository {
+  buscarPorId(usuarioId: string): Promise<CadastroSemConfirmacao | null>
+  /** A conta do link (RN-241): procura pelo hash do código, nunca pelo código. */
+  buscarPeloHash(hash: string): Promise<CadastroSemConfirmacao | null>
+  /** Contas de anunciante sem e-mail confirmado, as mais novas primeiro (RF-244). */
+  listar(limite: number): Promise<CadastroSemConfirmacao[]>
+  /** RN-240: anunciantes sem confirmação, criados até o instante dado e sem o e-mail mandado. */
+  contarEsperandoContato(criadasAte: Date): Promise<number>
+  /** Guarda o hash do link e quando saiu, no lugar do anterior (RN-241). */
+  registrarContato(usuarioId: string, hash: string, quando: Date): Promise<void>
+  /** O link deixa de valer (RN-246) ou a conta respondeu. */
+  limparContato(usuarioId: string): Promise<void>
+  /** RF-243: anunciantes sem confirmação com o e-mail mandado até o instante dado. */
+  semRespostaDesde(mandadoAte: Date): Promise<string[]>
+  /** RN-243: apaga só anunciante sem confirmação, sem anúncio e sem pagamento, na mesma instrução; falso = não apagou. */
+  apagar(usuarioId: string): Promise<boolean>
+}
+
 export interface SessaoValida {
   sessaoId: string
   expiraEm: Date

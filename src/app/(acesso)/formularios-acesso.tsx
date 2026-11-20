@@ -10,8 +10,10 @@ import { SENHA_MINIMA } from "@/domain/usuario/usuario"
 import {
   cadastrarAction,
   confirmarEmailAction,
+  continuarCadastroAction,
   corrigirEmailAction,
   criarNovaSenhaAction,
+  desistirDoCadastroAction,
   entrarAction,
   pedirNovaSenhaAction,
   reenviarCodigoAction,
@@ -202,6 +204,45 @@ export function FormularioTrocarSenha({ obrigatoria }: { obrigatoria?: boolean }
         <input {...aria("confirmacaoSenha", erro("confirmacaoSenha"))} type="password" className="campo" autoComplete="new-password" />
       </Campo>
       <BotaoEnviar pendente={pendente}>Salvar nova senha</BotaoEnviar>
+    </form>
+  )
+}
+
+// ── Continuar ou desistir do cadastro (feature 024: RF-241, RF-242, RN-242) ──
+
+export function BotaoContinuarCadastro({ codigo, principal }: { codigo: string; principal: boolean }) {
+  const { estado, pendente, onSubmit, formRef } = useFormularioAcao(continuarCadastroAction)
+  return (
+    <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-3">
+      <MensagemFormulario estado={estado} />
+      <input type="hidden" name="codigo" value={codigo} />
+      <BotaoEnviar pendente={pendente} className={principal ? "self-start" : "botao-vazado self-start"}>
+        Continuar com a minha conta
+      </BotaoEnviar>
+    </form>
+  )
+}
+
+export function BotaoDesistirDoCadastro({ codigo, principal }: { codigo: string; principal: boolean }) {
+  const { estado, pendente, onSubmit, formRef } = useFormularioAcao(desistirDoCadastroAction)
+  return (
+    <form
+      ref={formRef}
+      onSubmit={(evento) => {
+        // Apagar não tem volta: pede a confirmação do navegador antes.
+        if (!window.confirm("Apagar a sua conta? Não dá para desfazer.")) {
+          evento.preventDefault()
+          return
+        }
+        onSubmit(evento)
+      }}
+      className="flex flex-col gap-3"
+    >
+      <MensagemFormulario estado={estado} />
+      <input type="hidden" name="codigo" value={codigo} />
+      <BotaoEnviar pendente={pendente} className={principal ? "botao-perigo self-start" : "botao-vazado border-perigo text-perigo self-start"}>
+        Apagar minha conta
+      </BotaoEnviar>
     </form>
   )
 }

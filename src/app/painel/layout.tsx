@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { MarcaDoLembrete } from "@/components/jornal/lembrete"
+import { container } from "@/infrastructure/container"
 import { exigirPerfil } from "@/lib/sessao"
 import { sairAction } from "../(acesso)/actions"
 
@@ -16,6 +18,8 @@ const ITENS = [
 
 export default async function LayoutDoPainel({ children }: { children: React.ReactNode }) {
   const admin = await exigirPerfil("ADMIN")
+  // Feature 024 (RF-245): cadastros esperando o e-mail de continuar ou desistir.
+  const lembrete = await container().lembreteDeCadastros.contar()
   return (
     <div className="min-h-dvh">
       <header className="faixa">
@@ -27,6 +31,7 @@ export default async function LayoutDoPainel({ children }: { children: React.Rea
             {ITENS.map((item) => (
               <Link key={item.href} href={item.href} className="hover:underline">
                 {item.rotulo}
+                {item.href === "/painel/usuarios" && <MarcaDoLembrete total={lembrete} />}
               </Link>
             ))}
             <Link href="/" className="hover:underline">

@@ -4,6 +4,7 @@
 import Link from "next/link"
 import { container } from "@/infrastructure/container"
 import { LINHA_DE_BAIXO, SEM_CIDADE, letrasDaLinha } from "@/lib/cabecalho"
+import { MarcaDoLembrete } from "./lembrete"
 import { dataPorExtenso } from "@/lib/formatadores"
 import { precoInicial } from "@/lib/planos"
 import { usuarioAtual } from "@/lib/sessao"
@@ -14,6 +15,8 @@ export async function Cabecalho({ compacto = false, lugar }: { compacto?: boolea
   const agora = container().relogio.agora()
   const preco = `a partir de ${precoInicial(planos)}`
   const areaDoUsuario = usuario ? (usuario.perfil === "ADMIN" ? "/painel" : "/minha-conta") : null
+  // Feature 024 (RF-245, ADR-25): só o administrador paga a contagem do lembrete; para os outros, nem consulta.
+  const lembrete = usuario?.perfil === "ADMIN" ? await container().lembreteDeCadastros.contar().catch(() => 0) : 0
 
   return (
     <header className="mx-auto w-full max-w-[1400px] px-3 pt-2 sm:px-4">
@@ -35,6 +38,7 @@ export async function Cabecalho({ compacto = false, lugar }: { compacto?: boolea
           {areaDoUsuario ? (
             <Link href={areaDoUsuario} className="hover:underline">
               {usuario?.perfil === "ADMIN" ? "Painel" : "Minha conta"}
+              <MarcaDoLembrete total={lembrete} />
             </Link>
           ) : (
             <>

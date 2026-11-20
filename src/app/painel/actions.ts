@@ -8,6 +8,7 @@ import type { NovaFoto } from "@/application/ports/caderno"
 import { ALINHAMENTOS, ESTILOS_DE_TITULO, MOLDURAS } from "@/domain/anuncio/anuncio"
 import type { Precos } from "@/domain/plano/plano"
 import { container } from "@/infrastructure/container"
+import { formatarDia } from "@/lib/formatadores"
 import { type EstadoFormulario, checkbox, codigoIbge, deResultado, inteiro, lerFormulario, reais, reaisOpcional, texto, umDe } from "@/lib/formularios"
 import { NAO_AUTORIZADO, autorizar } from "@/lib/sessao"
 
@@ -255,4 +256,16 @@ export async function ligarConvitesAction(ligado: boolean): Promise<EstadoFormul
   await container().configuracao.ligarConvites(ligado)
   revalidatePath("/painel/configuracoes")
   return { ok: true, mensagem: ligado ? "Convites ligados." : "Convites desligados. Quem já aceitou um convite continua com o prêmio garantido." }
+}
+
+// ── Cadastro sem confirmação: continuar ou desistir (feature 024: RF-240, RF-246) ──
+
+export async function mandarContinuarOuDesistirAction(usuarioId: string): Promise<EstadoFormulario> {
+  const admin = await autorizar("ADMIN")
+  if (!admin) return NAO_AUTORIZADO
+  const resultado = await container().mandarContinuarOuDesistir.executar(usuarioId)
+  if (!resultado.ok) return deResultado(resultado, "")
+  // O número do lembrete aparece no Painel e no alto do site (RF-245).
+  revalidatePath("/", "layout")
+  return { ok: true, mensagem: `E-mail mandado. Sem resposta, a conta será apagada em ${formatarDia(resultado.valor.prazo)}.` }
 }

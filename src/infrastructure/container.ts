@@ -3,6 +3,12 @@
 import type { Correio, EnderecosDoSite } from "@/application/ports/correio"
 import { AutenticarUsuarioUseCase } from "@/application/use-cases/acesso/autenticar-usuario"
 import {
+  ApagarCadastrosSemRespostaUseCase,
+  ContinuarOuDesistirUseCase,
+  LembreteDeCadastrosUseCase,
+  MandarContinuarOuDesistirUseCase,
+} from "@/application/use-cases/acesso/cadastro-sem-confirmacao"
+import {
   CancelarTrocaDeEmailUseCase,
   ConfirmarEmailUseCase,
   ConfirmarTrocaDeEmailUseCase,
@@ -67,6 +73,7 @@ import { PrismaClassificadosQuery, PrismaMinhaContaQuery, PrismaPainelQuery } fr
 import {
   PrismaAnuncioRepository,
   PrismaAvisosDeVencimentoRepository,
+  PrismaCadastroSemConfirmacaoRepository,
   PrismaCategoriaRepository,
   PrismaCodigoPorEmailRepository,
   PrismaFotoRepository,
@@ -148,6 +155,7 @@ function montar() {
     contato: () => `${enderecoDoSite}/como-funciona#contato`,
     resultadoDoAnuncio: (anuncioId) => `${enderecoDoSite}/minha-conta/anuncios/${anuncioId}#fechou-negocio`,
     convite: (codigo) => `${enderecoDoSite}/convite/${codigo}`,
+    continuarCadastro: (codigo, escolha) => `${enderecoDoSite}/continuar-cadastro/${codigo}?escolha=${escolha}`,
   }
   // Feature 016 (ADR-20): código por e-mail.
   const segundoPlano = new DepoisDaResposta()
@@ -163,6 +171,7 @@ function montar() {
   const usarDiasDoBanco = new UsarDiasDoBancoUseCase(anuncios, banco, depsDePagamento, confirmarPagamento)
   const processarPagamentoDoGateway = new ProcessarPagamentoDoGatewayUseCase(pagamentos, gateway, confirmarPagamento)
   const guarda = new PrismaGuardaDosVencidosRepository(prisma)
+  const cadastrosSemConfirmacao = new PrismaCadastroSemConfirmacaoRepository(prisma)
 
   return {
     relogio,
@@ -196,7 +205,12 @@ function montar() {
     alterarSenha: new AlterarSenhaUseCase(usuarios, sessoes, hash, tokens),
     confirmarEmail: new ConfirmarEmailUseCase(usuarios, depsDoCodigo, presente),
     reenviarCodigoDoCadastro: new ReenviarCodigoDoCadastroUseCase(usuarios, depsDoCodigo),
-    corrigirEmailDoCadastro: new CorrigirEmailDoCadastroUseCase(usuarios, depsDoCodigo),
+    corrigirEmailDoCadastro: new CorrigirEmailDoCadastroUseCase(usuarios, depsDoCodigo, cadastrosSemConfirmacao),
+    // Feature 024 (ADR-25): cadastro sem confirmação, continuar ou desistir, com o lembrete do administrador.
+    mandarContinuarOuDesistir: new MandarContinuarOuDesistirUseCase(cadastrosSemConfirmacao, correio, tokens, relogio, enderecos),
+    lembreteDeCadastros: new LembreteDeCadastrosUseCase(cadastrosSemConfirmacao, relogio),
+    continuarOuDesistir: new ContinuarOuDesistirUseCase(cadastrosSemConfirmacao, usuarios, tokens, relogio, presente),
+    apagarCadastrosSemResposta: new ApagarCadastrosSemRespostaUseCase(cadastrosSemConfirmacao, relogio),
     pedirNovaSenha: new PedirNovaSenhaUseCase(usuarios, depsDoCodigo, segundoPlano),
     criarNovaSenha: new CriarNovaSenhaUseCase(usuarios, sessoes, hash, depsDoCodigo, presente),
     pedirTrocaDeEmail: new PedirTrocaDeEmailUseCase(usuarios, depsDoCodigo),

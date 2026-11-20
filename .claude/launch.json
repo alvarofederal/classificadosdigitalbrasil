@@ -11,7 +11,13 @@
       "name": "dev-banco-local",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["next", "dev", "-p", "3016"],
-      "env": { "DATABASE_URL": "mysql://root@localhost:3306/cdb_local_016" },
+      "env": {
+        "DATABASE_URL": "mysql://root@localhost:3306/cdb_local_016",
+        "RESEND_API_KEY": "",
+        "SMTP_HOST": "",
+        "SMTP_USER": "",
+        "SMTP_PASS": ""
+      },
       "port": 3016
     }
   ]

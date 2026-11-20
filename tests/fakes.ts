@@ -1,6 +1,8 @@
 // Implementações em memória das portas: os casos de uso rodam sem banco, sem rede e sem relógio real.
 
 import type {
+  CadastroSemConfirmacao,
+  CadastroSemConfirmacaoRepository,
   CodigoPorEmailRegistro,
   CodigoPorEmailRepository,
   GeradorDeToken,
@@ -367,6 +369,7 @@ export const enderecosDeTeste: EnderecosDoSite = {
   contato: () => "https://classificados.teste/como-funciona#contato",
   resultadoDoAnuncio: (anuncioId) => `https://classificados.teste/minha-conta/anuncios/${anuncioId}#fechou-negocio`,
   convite: (codigo) => `https://classificados.teste/convite/${codigo}`,
+  continuarCadastro: (codigo, escolha) => `https://classificados.teste/continuar-cadastro/${codigo}?escolha=${escolha}`,
 }
 
 /** Feature 012: anúncios com dono e a marca do aviso de vencimento (`avisadoPara`). */
@@ -590,6 +593,65 @@ export class UsuariosEmMemoria implements UsuarioRepository {
     this.itens.set(u.id, u)
   }
   async registrarAcesso() {}
+  /** Feature 024: quando cada conta foi criada; o teste pode mudar. Sem registro, vale `agora`. */
+  criadosEm = new Map<string, Date>()
+}
+
+/** Feature 024 (ADR-25): o contato de continuar ou desistir, guardado junto da conta, como no banco. */
+export class CadastrosSemConfirmacaoEmMemoria implements CadastroSemConfirmacaoRepository {
+  contatos = new Map<string, { hash: string; enviadoEm: Date }>()
+  /** Contas com anúncio ou pagamento: a RN-243 não deixa apagar. */
+  comAnuncioOuPagamento = new Set<string>()
+  constructor(private readonly usuarios: UsuariosEmMemoria) {}
+
+  private paraCadastro(u: UsuarioRegistro): CadastroSemConfirmacao {
+    return {
+      id: u.id,
+      nome: u.nome,
+      email: u.email,
+      perfil: u.perfil,
+      criadoEm: this.usuarios.criadosEm.get(u.id) ?? this.usuarios.agora,
+      emailConfirmado: u.emailConfirmadoEm !== null,
+      contatoEnviadoEm: this.contatos.get(u.id)?.enviadoEm ?? null,
+    }
+  }
+  private semConfirmacao(): CadastroSemConfirmacao[] {
+    return [...this.usuarios.itens.values()].filter((u) => u.perfil === "ANUNCIANTE" && !u.emailConfirmadoEm).map((u) => this.paraCadastro(u))
+  }
+  async buscarPorId(id: string) {
+    const u = this.usuarios.itens.get(id)
+    return u ? this.paraCadastro(u) : null
+  }
+  async buscarPeloHash(hash: string) {
+    const id = [...this.contatos].find(([, c]) => c.hash === hash)?.[0]
+    return id ? this.buscarPorId(id) : null
+  }
+  async listar(limite: number) {
+    return this.semConfirmacao()
+      .sort((a, b) => b.criadoEm.getTime() - a.criadoEm.getTime())
+      .slice(0, limite)
+  }
+  async contarEsperandoContato(criadasAte: Date) {
+    return this.semConfirmacao().filter((c) => !c.contatoEnviadoEm && c.criadoEm <= criadasAte).length
+  }
+  async registrarContato(id: string, hash: string, quando: Date) {
+    this.contatos.set(id, { hash, enviadoEm: quando })
+  }
+  async limparContato(id: string) {
+    this.contatos.delete(id)
+  }
+  async semRespostaDesde(mandadoAte: Date) {
+    return this.semConfirmacao()
+      .filter((c) => c.contatoEnviadoEm && c.contatoEnviadoEm <= mandadoAte)
+      .map((c) => c.id)
+  }
+  async apagar(id: string) {
+    const u = this.usuarios.itens.get(id)
+    if (!u || u.perfil !== "ANUNCIANTE" || u.emailConfirmadoEm || this.comAnuncioOuPagamento.has(id)) return false
+    this.usuarios.itens.delete(id)
+    this.contatos.delete(id)
+    return true
+  }
 }
 
 export class SessoesEmMemoria implements SessaoRepository {

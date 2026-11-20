@@ -8,14 +8,22 @@ import { FormularioEntrar } from "../formularios-acesso"
 
 export const metadata: Metadata = { title: "Entrar", robots: { index: false } }
 
-export default async function Entrar({ searchParams }: { searchParams: Promise<{ voltar?: string }> }) {
+export default async function Entrar({ searchParams }: { searchParams: Promise<{ voltar?: string; confirmada?: string }> }) {
   const usuario = await usuarioAtual()
   if (usuario) redirect(areaDoPerfil(usuario.perfil))
-  const voltar = parametro((await searchParams).voltar) ?? undefined
+  const busca = await searchParams
+  const voltar = parametro(busca.voltar) ?? undefined
+  // Feature 024 (RF-241): vem da página de continuar o cadastro.
+  const confirmada = parametro(busca.confirmada) === "1"
 
   return (
     <div className="flex flex-col gap-5">
       <Faixa como="h1">Entrar</Faixa>
+      {confirmada && (
+        <p role="status" className="border border-sucesso px-3 py-2 text-sm text-sucesso">
+          Conta confirmada. Entre com o seu e-mail e a sua senha para anunciar.
+        </p>
+      )}
       <FormularioEntrar voltar={voltar} />
       <p className="text-sm">
         <Link href="/esqueci-a-senha" className="link">

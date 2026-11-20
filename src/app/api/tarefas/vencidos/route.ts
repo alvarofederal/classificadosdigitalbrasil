@@ -1,4 +1,4 @@
-// APRESENTAÇÃO — rodada diária dos vencidos (feature 018: RF-182, RF-183, RN-123; ADR-24).
+// APRESENTAÇÃO — rodada diária dos vencidos (feature 018: RF-182, RF-183, RN-123; ADR-24) e dos cadastros sem resposta (feature 024, RF-243).
 // O agendador da Vercel chama este endereço uma vez por dia (`crons` em vercel.json), com o CRON_SECRET no cabeçalho.
 
 import { NextResponse } from "next/server"
@@ -27,7 +27,9 @@ export async function GET(request: Request) {
   // ADR-24: primeiro apaga (mensagens, depois anúncios), depois avisa quem é apagado nos próximos 7 dias.
   const limpeza = await parte("a limpeza", () => c.apagarVencidos.executar())
   const avisos = await parte("o aviso de apagar", () => c.avisarAntesDeApagar.executar())
-  const resposta = { ok: limpeza !== null && avisos !== null, limpeza, avisos }
+  // Feature 024 (RF-243, ADR-25): contas que não confirmaram e não responderam em 7 dias ao e-mail de continuar ou desistir.
+  const cadastros = await parte("os cadastros sem resposta", () => c.apagarCadastrosSemResposta.executar())
+  const resposta = { ok: limpeza !== null && avisos !== null && cadastros !== null, limpeza, avisos, cadastros }
   console.log("[vencidos] rodada", JSON.stringify(resposta))
   return NextResponse.json(resposta, { status: resposta.ok ? 200 : 500 })
 }

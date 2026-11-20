@@ -1,6 +1,8 @@
 // INFRAESTRUTURA — repositórios Prisma (MySQL). Implementam as portas da aplicação.
 
 import type {
+  CadastroSemConfirmacao,
+  CadastroSemConfirmacaoRepository,
   CodigoPorEmailRegistro,
   CodigoPorEmailRepository,
   NovoUsuario,
@@ -93,6 +95,72 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
 
   async registrarAcesso(usuarioId: string, quando: Date) {
     await this.db.usuario.update({ where: { id: usuarioId }, data: { ultimoAcesso: quando } })
+  }
+}
+
+// ── Cadastro sem confirmação: continuar ou desistir (feature 024, ADR-25) ──
+
+const CAMPOS_DO_CADASTRO = {
+  id: true,
+  nome: true,
+  email: true,
+  perfil: true,
+  criadoEm: true,
+  emailConfirmadoEm: true,
+  contatoEnviadoEm: true,
+} satisfies Prisma.UsuarioSelect
+
+function paraCadastro({ emailConfirmadoEm, ...linha }: Prisma.UsuarioGetPayload<{ select: typeof CAMPOS_DO_CADASTRO }>): CadastroSemConfirmacao {
+  return { ...linha, emailConfirmado: emailConfirmadoEm !== null }
+}
+
+/** Anunciante que ainda não confirmou o e-mail. */
+const SEM_CONFIRMACAO = { perfil: "ANUNCIANTE", emailConfirmadoEm: null } satisfies Prisma.UsuarioWhereInput
+
+export class PrismaCadastroSemConfirmacaoRepository implements CadastroSemConfirmacaoRepository {
+  constructor(private readonly db: PrismaClient) {}
+
+  async buscarPorId(id: string) {
+    const linha = await this.db.usuario.findUnique({ where: { id }, select: CAMPOS_DO_CADASTRO })
+    return linha ? paraCadastro(linha) : null
+  }
+
+  async buscarPeloHash(hash: string) {
+    const linha = await this.db.usuario.findUnique({ where: { contatoHash: hash }, select: CAMPOS_DO_CADASTRO })
+    return linha ? paraCadastro(linha) : null
+  }
+
+  async listar(limite: number) {
+    const linhas = await this.db.usuario.findMany({ where: SEM_CONFIRMACAO, orderBy: { criadoEm: "desc" }, take: limite, select: CAMPOS_DO_CADASTRO })
+    return linhas.map(paraCadastro)
+  }
+
+  async contarEsperandoContato(criadasAte: Date) {
+    return this.db.usuario.count({ where: { ...SEM_CONFIRMACAO, contatoEnviadoEm: null, criadoEm: { lte: criadasAte } } })
+  }
+
+  async registrarContato(usuarioId: string, hash: string, quando: Date) {
+    await this.db.usuario.update({ where: { id: usuarioId }, data: { contatoHash: hash, contatoEnviadoEm: quando } })
+  }
+
+  async limparContato(usuarioId: string) {
+    await this.db.usuario.updateMany({ where: { id: usuarioId }, data: { contatoHash: null, contatoEnviadoEm: null } })
+  }
+
+  async semRespostaDesde(mandadoAte: Date) {
+    const linhas = await this.db.usuario.findMany({ where: { ...SEM_CONFIRMACAO, contatoEnviadoEm: { lte: mandadoAte } }, select: { id: true }, take: 500 })
+    return linhas.map((l) => l.id)
+  }
+
+  /**
+   * RN-243 e RN-244: as condições vão na mesma instrução, para não apagar uma conta que confirmou um instante antes.
+   * Com `relationMode = "prisma"`, o cliente apaga sessões, códigos, extrato e convites feitos e solta o convite aceito.
+   */
+  async apagar(usuarioId: string) {
+    const { count } = await this.db.usuario.deleteMany({
+      where: { id: usuarioId, ...SEM_CONFIRMACAO, anuncios: { none: {} }, pagamentos: { none: {} } },
+    })
+    return count === 1
   }
 }
 

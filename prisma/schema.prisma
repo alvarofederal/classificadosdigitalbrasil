@@ -45,6 +45,9 @@ model Usuario {
   bancoDiasFotos    Int       @default(0)
   presenteEm        DateTime? // RN-174: quando recebeu o presente de boas-vindas
   ipDoCadastro      String?   @db.VarChar(64) // RN-176: conexão de onde a conta foi criada
+  // Feature 024 (ADR-25): e-mail de continuar ou desistir do cadastro. Só o hash (SHA-256) do link fica no banco (RN-241).
+  contatoEnviadoEm  DateTime?
+  contatoHash       String?   @unique @db.Char(64)
 
   sessoes         Sessao[]
   anuncios        Anuncio[]
@@ -58,6 +61,7 @@ model Usuario {
   @@index([criadoEm])
   @@index([emailCanonico])
   @@index([ipDoCadastro, criadoEm])
+  @@index([emailConfirmadoEm, contatoEnviadoEm]) // feature 024: lembrete e rodada dos sem resposta
   @@map("usuarios")
 }
 

@@ -177,6 +177,18 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RF-234 | Só na capa, a linha da cidade fica mais abaixo do nome e com mais folga entre os dois fios. |
 | RF-235 | Só na capa, a linha da cidade tem 15% mais espaço acima e 20% mais abaixo do que no ajuste anterior. |
 
+### Cadastro sem confirmação: continuar ou desistir (feature 024)
+
+| ID | Requisito |
+|---|---|
+| RF-240 | No Painel, cada conta de anunciante sem e-mail confirmado tem o botão "Mandar e-mail: continuar ou desistir", com os dois caminhos e o prazo. |
+| RF-241 | "Continuar", com o clique no botão da página, confirma o e-mail, dá o presente de boas-vindas e leva a pessoa a entrar. |
+| RF-242 | "Desistir", com o clique no botão da página, apaga a conta na hora. |
+| RF-243 | Sem resposta em 7 dias depois do e-mail, a rodada diária apaga a conta. |
+| RF-244 | O Resumo do Painel abre com o quadro dos cadastros esperando contato (com o botão) e dos que aguardam resposta (com a data em que serão apagados). |
+| RF-245 | Enquanto houver cadastro esperando contato, o número aparece ao lado de "Usuários" no menu do Painel e de "Painel" no alto do site, para o administrador. |
+| RF-246 | Painel → Usuários mostra, na conta sem confirmação, se o e-mail foi mandado e quando ela será apagada, e permite mandar de novo. |
+
 ## Regras de negócio
 
 | ID | Regra |
@@ -291,6 +303,15 @@ Classificados por cidade no formato do caderno de jornal. O anunciante paga R$ 1
 | RN-230 | A cidade do cabeçalho vem do endereço ou, no anúncio, da cidade do anúncio; cidade que não existe e anúncio fora do ar mostram TODO O BRASIL. |
 | RN-231 | O texto do lugar sai de uma função só (`lugarDoCabecalho`): "Cidade · UF", ou "Todo o Brasil" sem cidade. |
 | RN-232 | DIGITAIS DO BRASIL acompanha o tamanho da manchete e divide o espaço entre as letras por igual; entre as palavras o espaço é maior. |
+| RN-240 | Espera contato a conta de anunciante sem e-mail confirmado, criada há mais de 1 hora, que ainda não recebeu o e-mail de continuar ou desistir. |
+| RN-241 | O link leva um código aleatório e o banco guarda só o hash; mandar de novo troca o código e recomeça o prazo. |
+| RN-242 | Abrir o link não muda nada; a escolha só vale com o clique no botão da página. |
+| RN-243 | Só se apaga conta de anunciante sem e-mail confirmado, sem anúncio e sem pagamento. |
+| RN-244 | Apagar leva junto sessões, códigos e extrato do banco de dias; convite aceito pela conta fica sem conta ligada. |
+| RN-245 | O prazo é de 7 dias depois do último e-mail, e a carta diz a data. |
+| RN-246 | Corrigir o e-mail na tela do código invalida o link mandado ao endereço antigo. |
+| RN-247 | Sem servidor de e-mail ou com falha no envio, nada fica registrado e o botão avisa. |
+| RN-248 | A carta leva só o primeiro nome, a data do cadastro, os dois caminhos e o prazo. |
 
 ## Requisitos não funcionais
 
